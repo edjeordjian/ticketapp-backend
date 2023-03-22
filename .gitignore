@@ -1,0 +1,25 @@
+# Environment
+.env.development
+
+firebase-admin.json
+
+package-lock.json
+
+# Jetbrains
+.idea
+
+# Logs
+/logs
+
+# Dependencies
+/node_modules
+
+# Testing
+/coverage
+
+.nyc_output
+
+# Production
+/build
+
+npm-debug.log*
