@@ -7,7 +7,7 @@ const sinon = require("sinon");
 const LogInService = rewire("../../../src/services/login/LogInService");
 
 describe("LogInService", function() {
-    it("handleLogIn", async () => {
+    it("Basic case of log in.", async () => {
         const setOkResponseMock = sinon.stub().returns({
             "status": "Ok"
         });
