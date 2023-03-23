@@ -9,7 +9,7 @@ package-lock.json
 .idea
 
 # Logs
-/logs
+npm-debug.log*
 
 # Dependencies
 /node_modules
@@ -22,4 +22,5 @@ package-lock.json
 # Production
 /build
 
-npm-debug.log*
+# macOS
+.DS_Store
