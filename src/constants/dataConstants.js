@@ -45,7 +45,21 @@ const ID_MAX_LEN = 60;
 
 const MAX_STR_LEN = 254;
 
-const FIREBASE_CONFIG = require("../../firebase-admin.json");
+
+const fs = require('fs')
+
+const path = './file.txt'
+
+let FIREBASE_CONFIG;
+
+try {
+    if (fs.existsSync(path)) {
+        FIREBASE_CONFIG = require("../../firebase-admin.json");
+    }
+} catch(err) {
+    //Testing environment
+    FIREBASE_CONFIG = {}
+}
 
 module.exports = {
     RESET_DATABASE, DATABASE_URL, IS_PRODUCTION, ID_MAX_LEN,
