@@ -1,0 +1,48 @@
+{
+    "name": "tdp-back",
+    "main": "src/services/app/App.js",
+    "scripts": {
+        "start": "LOG_LEVEL=debug node src/services/app/App.js",
+        "startdev": "MY_ENV=.development ENVLOG_LEVEL=debug nodemon src/services/app/App.js",
+        "test": "LOG_LEVEL=debug nyc --reporter=lcov --reporter=text mocha 'tests/**/*.js' --recursive --exit"
+    },
+    "dependencies": {
+        "body-parser": "1.20.2",
+        "cors": "2.8.5",
+        "dotenv": "16.0.3",
+        "eslint-plugin-mocha": "10.1.0",
+        "express": "4.18.2",
+        "firebase-admin": "11.5.0",
+        "mocha": "10.2.0",
+        "node-fetch": "3.3.1",
+        "nodemon": "2.0.21",
+        "nyc": "15.1.0",
+        "pg": "8.10.0",
+        "pg-hstore": "2.3.4",
+        "rewire": "6.0.0",
+        "sequelize": "6.29.3",
+        "simple-node-logger": "21.8.12",
+        "sinon": "15.0.2"
+    },
+    "eslintConfig": {
+        "extends": [
+            "node",
+            "plugin:mocha/recommended"
+        ],
+        "rules": {
+            "prefer-arrow-callback": 0,
+            "mocha/prefer-arrow-callback": 2,
+            "import/no-commonjs": 0,
+            "arrow-body-style": 0
+        }
+    },
+    "devDependencies": {
+        "eslint": "7.11.0",
+        "eslint-config-node": "4.1.0"
+    },
+    "nyc": {
+        "exclude": [
+            "test/"
+        ]
+    }
+}
