@@ -36,6 +36,18 @@ const Users = database.define("users", {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         validate: {notEmpty: true}
+    },
+
+    firstName: {
+        type: Sequelize.STRING(MAX_STR_LEN),
+    },
+
+    lastName: {
+        type: Sequelize.STRING(MAX_STR_LEN),
+    },
+
+    pictureUrl: {
+        type: Sequelize.STRING(MAX_STR_LEN),
     }
 } );
 

@@ -4,6 +4,8 @@ const assert = require("assert");
 
 const sinon = require("sinon");
 
+const {OK_LBL} = require("../../../src/constants/messages");
+
 const LogInService = rewire("../../../src/services/login/LogInService");
 
 describe("LogInService", function() {
@@ -22,6 +24,6 @@ describe("LogInService", function() {
 
         const response = await LogInService.handleLogIn(req, res);
 
-        assert("Ok" === response.status);
+        assert(OK_LBL === response.status);
     });
 });

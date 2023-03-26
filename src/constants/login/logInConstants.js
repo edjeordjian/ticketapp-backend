@@ -1,9 +1,9 @@
-const PROBLEM_SEARCHING_USER_ERROR_LBL = "Problema al buscar usuario.";
-
 const ERROR_CREATING_USER_LBL = "Error al crear el usuario";
 
-const LOGIN_SUCCESS_LBL = "Ingreso con email y contraseña de: ";
+const LOGIN_SUCCESS_LBL = "Ingreso de: ";
+
+const ERROR_SEARCHING_USER = "Error al buscar al usuario";
 
 module.exports = {
-    PROBLEM_SEARCHING_USER_ERROR_LBL, ERROR_CREATING_USER_LBL, LOGIN_SUCCESS_LBL
+    ERROR_CREATING_USER_LBL, LOGIN_SUCCESS_LBL, ERROR_SEARCHING_USER
 };
