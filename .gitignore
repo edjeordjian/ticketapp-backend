@@ -9,6 +9,7 @@ package-lock.json
 .idea
 
 # Logs
+logs/
 npm-debug.log*
 
 # Dependencies
