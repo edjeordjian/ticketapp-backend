@@ -1,7 +1,7 @@
 const BASE_URL = "/";
 
-const LOG_IN_URL = "/login";
+const SIGN_IN_URL = "/signin";
 
 module.exports = {
-    LOG_IN_URL, BASE_URL
+    SIGN_IN_URL, BASE_URL
 };

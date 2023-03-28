@@ -33,39 +33,39 @@ const setLevel = (level) => {
     }
 };
 
-const info = (message) => {
+const logInfo = (message) => {
     fileLogger.info(message);
 };
 
-const debug = (message) => {
+const logDebug = (message) => {
     fileLogger.debug(message);
 };
 
-const warn = (message) => {
+const logWarn = (message) => {
     fileLogger.warn(message);
 };
 
-const error = (message) => {
+const logError = (message) => {
     fileLogger.error(message);
 };
 
 const request = (message) => {
-    info("Request en : " + message);
+    logInfo("Request en : " + message);
 };
 
 const log = (message,
              type) => {
     const logTypes = {
-        INFO_LBL: info,
-        DEBUG_LBL: debug,
-        WARN_LBL: warn,
-        ERROR_LBL: error
+        INFO_LBL: logInfo,
+        DEBUG_LBL: logDebug,
+        WARN_LBL: logWarn,
+        ERROR_LBL: logError
     }
 
     logTypes[type](message);
 };
 
 module.exports = {
-    setLevel, info, debug, warn,
-    error, request, log
+    setLevel, logInfo, logDebug, logWarn,
+    logError, request, log
 };

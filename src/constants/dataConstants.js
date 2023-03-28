@@ -2,6 +2,12 @@ require('dotenv').config({
     path: `.env${process.env.MY_ENV}`
 });
 
+const fs = require('fs');
+
+const {TEST_ENV} = require("./generalConstants");
+
+const {TEST_URL} = require("./generalConstants");
+
 const IS_PRODUCTION =  process.env.PRODUCTION !== undefined;
 
 const RESET_DATABASE = false;
@@ -18,7 +24,9 @@ let DB_PORT;
 
 let DB_NAME;
 
-if (! IS_PRODUCTION) {
+if (process.env.MY_ENV === TEST_ENV) {
+    DATABASE_URL = TEST_URL;
+} else if (! IS_PRODUCTION) {
     if (process.env.DATABASE_URL === undefined) {
         DB_USER = process.env.POSTGRES_USER;
         DB_PASSWORD = process.env.POSTGRES_PASSWORD;
@@ -45,9 +53,6 @@ const ID_MAX_LEN = 60;
 
 const MAX_STR_LEN = 254;
 
-
-const fs = require('fs')
-
 const path = './file.txt'
 
 let FIREBASE_CONFIG;
@@ -61,7 +66,9 @@ try {
     FIREBASE_CONFIG = {}
 }
 
+const RUNNING_MIGRATIONS_LBL = "Running migrations...";
+
 module.exports = {
     RESET_DATABASE, DATABASE_URL, IS_PRODUCTION, ID_MAX_LEN,
-    MAX_STR_LEN, FIREBASE_CONFIG
+    MAX_STR_LEN, FIREBASE_CONFIG, RUNNING_MIGRATIONS_LBL
 };

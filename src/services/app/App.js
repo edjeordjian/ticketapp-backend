@@ -8,7 +8,7 @@ const {database} = require("../../data/database/database");
 
 const logInRoutes = require("../../routes/login/LogInRoutes");
 
-const Logger = require("../helpers/Logger");
+const {logInfo, logError, setLevel} = require("../helpers/Logger");
 
 const {PORT_LBL} = require("../../constants/app/appConstants");
 
@@ -43,13 +43,13 @@ app.use( bodyParser.json() );
 
 app.use(BASE_URL, logInRoutes);
 
-Logger.setLevel(LOG_LEVEL);
+setLevel(LOG_LEVEL);
 
 syncDB().then( () => {
         app.listen(NODE_PORT, () => {
-            Logger.info(`${PORT_LBL} ${NODE_PORT}`);
+            logInfo(`${PORT_LBL} ${NODE_PORT}`);
         } );
     } )
     .catch( (error) => {
-        Logger.error(error);
+        logError(error);
     } );
