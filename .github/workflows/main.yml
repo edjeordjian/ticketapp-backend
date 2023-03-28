@@ -21,5 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm i
 
+      - name: Set env variable
+        run: echo "MY_ENV=.development" >> $GITHUB_ENV
+
       - name: tests
         run: npm test
