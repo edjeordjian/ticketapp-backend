@@ -23,7 +23,10 @@ const handleSignUp = async (body) => {
         email: body.email,
         isAdministrator: body.isAdministrator !== undefined,
         isOrganizer: body.isOrganizer !== undefined,
-        isConsumer: body.isConsumer !== undefined
+        isConsumer: body.isConsumer !== undefined,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        pictureUrl: body.pictureUrl
     } );
 
     if (createResponse.error) {
@@ -88,7 +91,7 @@ const handleLogIn = async (req, res) => {
 
     const userData = {
         id: id
-    }
+    };
 
     return setOkResponse(OK_LBL, res, userData);
 };
