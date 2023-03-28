@@ -1,4 +1,5 @@
-const Logger = require("../helpers/Logger");
+const {logInfo} = require("../helpers/Logger");
+
 const {OK_LBL} = require("../../constants/messages");
 
 const {ERROR_CREATING_USER_LBL} = require("../../constants/login/logInConstants");
@@ -83,7 +84,7 @@ const handleLogIn = async (req, res) => {
         email = findResponse.email;
     }
 
-    Logger.info(`${LOGIN_SUCCESS_LBL} ${email}`);
+    logInfo(`${LOGIN_SUCCESS_LBL} ${email}`);
 
     const userData = {
         id: id

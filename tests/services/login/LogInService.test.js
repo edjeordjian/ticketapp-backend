@@ -9,21 +9,66 @@ const {OK_LBL} = require("../../../src/constants/messages");
 const LogInService = rewire("../../../src/services/login/LogInService");
 
 describe("LogInService", function() {
-    it("Basic case of log in.", async () => {
-        const setOkResponseMock = sinon.stub().returns({
+    let req, res;
+
+    beforeEach(() => {
+        const setOkResponseStub = sinon.stub().returns({
             "status": "Ok"
         });
 
-        LogInService.__set__("setOkResponse", setOkResponseMock);
+        LogInService.__set__({
+            "setOkResponse": setOkResponseStub,
 
-        const req = {};
+            "logInfo": sinon.stub()
+        });
 
-        const res = {
-            send: sinon.stub()
+        req = {
+            body: {
+                email: "a@a.com"
+            }
         };
+
+        res = {
+            json: sinon.stub()
+        };
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it("Log in with existing user", async () => {
+        const findOneStub = sinon.stub().resolves({
+            "id": "id",
+            "email": "email"
+        });
+
+        LogInService.__set__({
+            "findOne": findOneStub
+        });
 
         const response = await LogInService.handleLogIn(req, res);
 
         assert(OK_LBL === response.status);
+    });
+
+    it("Log in with new user", async () => {
+        const setErrorResponseStub = sinon.stub().returns({
+            "error": "Ok"
+        });
+
+        const findOneStub = sinon.stub().resolves(null);
+
+        LogInService.__set__({
+            "findOne": findOneStub,
+
+            "create": setErrorResponseStub,
+
+            "setErrorResponse": setErrorResponseStub
+        });
+
+        const response = await LogInService.handleLogIn(req, res);
+
+        assert(response.error != undefined);
     });
 });

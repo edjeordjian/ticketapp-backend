@@ -4,7 +4,7 @@
     "scripts": {
         "start": "LOG_LEVEL=debug node src/services/app/App.js",
         "startdev": "MY_ENV=.development ENVLOG_LEVEL=debug nodemon src/services/app/App.js",
-        "test": "LOG_LEVEL=debug nyc --reporter=lcov --reporter=text mocha 'tests/**/*.js' --recursive --exit"
+        "test": "MY_ENV=.development LOG_LEVEL=debug nyc --reporter=lcov --reporter=text mocha 'tests/**/*.js' --recursive --exit"
     },
     "dependencies": {
         "body-parser": "1.20.2",
