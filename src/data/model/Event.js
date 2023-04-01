@@ -4,7 +4,7 @@ const { ID_MAX_LEN, MAX_STR_LEN } = require("../../constants/dataConstants");
 
 const { database } = require("../database/database");
 
-const User = database.define("users", {
+const Event = database.define("events", {
     id: {
         primaryKey: true,
         type: Sequelize.STRING(ID_MAX_LEN),
@@ -12,45 +12,29 @@ const User = database.define("users", {
         validate: { notEmpty: true },
         unique: true
     },
-
-    email: {
+    name: {
         type: Sequelize.STRING(MAX_STR_LEN),
         allowNull: false,
         validate: { notEmpty: true },
         unique: true
     },
-
-    isAdministrator: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
+    date: {
+        type: Sequelize.DATE,
+        allowNull: true,
         validate: { notEmpty: true }
     },
-
-    isOrganizer: {
-        type: Sequelize.BOOLEAN,
+    ownerId: {
+        type: Sequelize.STRING(MAX_STR_LEN),
         allowNull: false,
-        validate: { notEmpty: true }
-    },
-
-    isConsumer: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        validate: { notEmpty: true }
-    },
-
-    firstName: {
-        type: Sequelize.STRING(MAX_STR_LEN),
-    },
-
-    lastName: {
-        type: Sequelize.STRING(MAX_STR_LEN),
-    },
-
-    pictureUrl: {
-        type: Sequelize.STRING(MAX_STR_LEN),
+        validate: { notEmpty: true },
+        references: {
+            model: User,
+            key: 'id'
+        }
     }
 });
+User.hasMany(User, { foreignKey: "ownerId" })
 
 module.exports = {
-    User
+    Event
 };
