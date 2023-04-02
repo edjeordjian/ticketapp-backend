@@ -1,3 +1,4 @@
+const {getSerializedEventType} = require("../../data/model/EventTypes");
 const {getSerializedEvent} = require("../../data/model/Events");
 
 const {Op} = require("sequelize");
@@ -225,8 +226,34 @@ const handleGet = async (req, res) => {
     return setOkResponse(OK_LBL, res, getSerializedEvent(event));
 };
 
+const handleGetTypes = async (req, res) => {
+    let result = await findAll(EventTypes,
+        {
+            id: {
+                [Op.ne]: null
+            }
+        });
+
+    if (result === null) {
+        result = [];
+    } else if (result.error) {
+        return setErrorResponse(result.error, res);
+    }
+
+    const eventTypes = [];
+
+    result.forEach(e => eventTypes.push(getSerializedEventType(e)));
+
+    const response = {
+        "event_types": eventTypes
+    }
+
+    return setOkResponse(OK_LBL, res, response);
+}
+
 module.exports = {
     handleCreate,
     handleGet,
-    handleSearch
+    handleSearch,
+    handleGetTypes
 };
