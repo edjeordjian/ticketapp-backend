@@ -1,3 +1,4 @@
+const {getSerializedEvent} = require("../../data/model/Events");
 const {Op} = require("sequelize");
 
 const { objDeepCopy } = require("../helpers/ObjectHelper");
@@ -10,8 +11,6 @@ const { User } = require("../../data/model/User");
 
 const { EventTypes } = require("../../data/model/EventTypes");
 
-const { EVENT_CREATE_ERR_LBL } = require("../../constants/events/eventsConstants");
-
 const { logError } = require("../helpers/Logger");
 
 const { UNEXISTING_USER_ERR_LBL } = require("../../constants/login/logInConstants");
@@ -21,15 +20,16 @@ const { dateFromString } = require("../helpers/DateHelper");
 const { areAnyUndefined } = require("../helpers/ListHelper");
 
 const { EVENT_ALREADY_EXISTS_ERR_LBL,
-    EVENT_WITH_NO_CAPACITY_ERR_LBL,
-    MISSING_EVENT_ATTRIBUTE_ERR_LBL,
-    EVENT_DOESNT_EXIST_ERR_LBL } = require("../../constants/events/eventsConstants");
+        EVENT_WITH_NO_CAPACITY_ERR_LBL,
+        MISSING_EVENT_ATTRIBUTE_ERR_LBL,
+        EVENT_DOESNT_EXIST_ERR_LBL,
+        EVENT_CREATE_ERR_LBL} = require("../../constants/events/eventsConstants");
 
 const { setOkResponse,
-    setErrorResponse,
-    setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
+        setErrorResponse,
+        setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
 
-const { create, findOne, findAll, findOneWithAttr } = require("../helpers/QueryHelper");
+const { create, findOne, findAll } = require("../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
@@ -138,11 +138,10 @@ const handleSearchByName = async (req, res) => {
             name: {
                 [Op.like]: `%${searchString}%`
             }
-        },
-        [
+        }, [
             {
                 model: Speakers,
-                attributes: ["time", "description"]
+                attributes: ["description", "time"]
             },
             {
                 model: EventTypes,
@@ -152,23 +151,32 @@ const handleSearchByName = async (req, res) => {
         [['createdAt', 'DESC']]
         );
 
-    return setOkResponse("", res, {});
+    const serializedEvents = [];
+
+    events.map(e => {
+       serializedEvents.push(getSerializedEvent(e));
+    });
+
+    const eventsResponse = {
+        events: serializedEvents
+    };
+
+    return setOkResponse(OK_LBL, res, eventsResponse);
 };
 
 const handleGet = async (req, res) => {
     const eventId = req.query.eventId;
-    const event = await findOneWithAttr(Events, {
+
+    const event = await findOne(Events, {
         id: eventId
     }, [
         {
             model: EventTypes,
-            attributes: ['name']
+            attributes: ['id']
         },
         {
             model: Speakers,
-            attributes: {
-                include: ['description', 'time']
-            }
+            attributes: ['description', 'time']
         }
     ],
     );
@@ -177,9 +185,7 @@ const handleGet = async (req, res) => {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
     }
 
-    setOkResponse(OK_LBL, res, { event });
-
-
+    setOkResponse(OK_LBL, res, getSerializedEvent(event));
 };
 
 module.exports = {

@@ -14,6 +14,15 @@ const dateFromString = (strFullDate) => {
     return new Date(year, month - 1, day, hours, minutes, seconds);
 }
 
+const dateToString = (aDate) => {
+    return aDate.toLocaleDateString('es-AR',
+        {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+}
+
 module.exports = {
-    getQuickDate, dateFromString
+    getQuickDate, dateFromString, dateToString
 };
