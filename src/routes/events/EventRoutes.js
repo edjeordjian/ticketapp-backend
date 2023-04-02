@@ -3,7 +3,7 @@ const Logger = require("../../services/helpers/Logger");
 const express = require('express');
 
 const {handleCreate,
-       handleSearchByName,
+       handleSearch,
        handleGet} = require("../../services/events/EventService");
 
 const {EVENT_URL, EVENT_SEARCH_NAME_URL} = require("../../constants/URLs");
@@ -19,11 +19,12 @@ router.post(EVENT_URL, async (req, res) => {
 router.get(EVENT_SEARCH_NAME_URL, async (req, res) => {
     Logger.request(`GET: ${EVENT_SEARCH_NAME_URL}`);
 
-    await handleSearchByName(req, res);
+    await handleSearch(req, res);
 });
 
 router.get(EVENT_URL, async (req, res) => {
-    Logger.request(`GET: ${EVENT_URL}`)
+    Logger.request(`GET: ${EVENT_URL}`);
+
     await handleGet(req, res);
 })
 
