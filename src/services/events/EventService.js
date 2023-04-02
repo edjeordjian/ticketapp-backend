@@ -165,11 +165,9 @@ const handleSearchByName = async (req, res) => {
 };
 
 const handleGet = async (req, res) => {
-    const eventId = req.query.eventId;
+    const { eventId, ownerId } = req.query;
 
-    const event = await findOne(Events, {
-        id: eventId
-    }, [
+    const toInclude = [
         {
             model: EventTypes,
             attributes: ['id']
@@ -178,14 +176,29 @@ const handleGet = async (req, res) => {
             model: Speakers,
             attributes: ['description', 'time']
         }
-    ],
-    );
+    ];
 
-    if (event === null) {
-        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
+    let eventResult;
+
+    if (eventId) {
+        eventResult = await findOne(Events, {
+                id: eventId
+            }, toInclude
+        );
+    } else {
+        eventResult = await findOne(Events, {
+                owner_id: ownerId
+            }, toInclude
+        );
     }
 
-    setOkResponse(OK_LBL, res, getSerializedEvent(event));
+    if (eventResult === null) {
+        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
+    } else if (eventResult.error) {
+        return setUnexpectedErrorResponse(eventResult.error, res);
+    }
+
+    setOkResponse(OK_LBL, res, getSerializedEvent(eventResult));
 };
 
 module.exports = {

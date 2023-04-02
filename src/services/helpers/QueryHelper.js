@@ -10,7 +10,7 @@ const findOne = async (model,
         include: include
     })
         .catch(error => {
-            logError(error.stack);
+            logError(error.name);
 
             return {
                 error: "Error en la consulta"
