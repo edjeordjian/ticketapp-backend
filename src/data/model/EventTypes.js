@@ -21,6 +21,14 @@ const EventTypes = database.define("event_types", {
     }
 });
 
+const getSerializedEventType = (e) => {
+    return {
+        id: e.id,
+
+        name: e.name
+    }
+}
+
 module.exports = {
-    EventTypes
+    EventTypes, getSerializedEventType
 };
