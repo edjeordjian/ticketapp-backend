@@ -4,52 +4,62 @@ const express = require('express');
 
 const bodyParser = require("body-parser");
 
-const {database} = require("../../data/database/database");
+const { database } = require("../../data/database/database");
 
 const logInRoutes = require("../../routes/login/LogInRoutes");
 
-const {logInfo, logError, setLevel} = require("../helpers/Logger");
+const eventRoutes = require("../../routes/events/EventRoutes");
 
-const {PORT_LBL} = require("../../constants/app/appConstants");
+const { defineRelationships } = require("../../data/database/relationships");
 
-const {NODE_PORT, LOG_LEVEL} = require("../../constants/generalConstants");
+const { logInfo, logError, setLevel } = require("../helpers/Logger");
 
-const {runMigrations} = require("../../data/migrations/migrations");
+const { PORT_LBL } = require("../../constants/app/appConstants");
 
-const {IS_PRODUCTION} = require("../../constants/dataConstants");
+const { NODE_PORT, LOG_LEVEL } = require("../../constants/generalConstants");
 
-const {BASE_URL} = require("../../constants/URLs");
+const { runMigrations } = require("../../data/migrations/migrations");
 
-const {RESET_DATABASE} = require("../../constants/dataConstants");
+const { IS_PRODUCTION } = require("../../constants/dataConstants");
+
+const { BASE_URL } = require("../../constants/URLs");
+
+const { RESET_DATABASE } = require("../../constants/dataConstants");
 
 const syncDB = async () => {
-    if (IS_PRODUCTION) {
-        await runMigrations();
-    }
+    defineRelationships();
 
     // "sync()" creates the database table for our model(s),
     // if we make .sync({force: true}),
     // the DB is dropped first if it is already existed
-    await database.sync( {
+    await database.sync({
         force: RESET_DATABASE
-    } );
+    }).then(async _ => {
+        if (IS_PRODUCTION) {
+            await runMigrations();
+        }
+    }).then(async _ => {
+        await database.sync();
+    });
 };
 
 const app = express();
 
-app.use( cors() );
+app.use(cors());
 
-app.use( bodyParser.json() );
+app.use(bodyParser.json());
 
 app.use(BASE_URL, logInRoutes);
 
+app.use(BASE_URL, eventRoutes);
+
 setLevel(LOG_LEVEL);
 
-syncDB().then( () => {
-        app.listen(NODE_PORT, () => {
-            logInfo(`${PORT_LBL} ${NODE_PORT}`);
-        } );
-    } )
-    .catch( (error) => {
+syncDB().then(() => {
+    app.listen(NODE_PORT, () => {
+        logInfo(`${PORT_LBL} ${NODE_PORT}`);
+    });
+})
+    .catch((error) => {
         logError(error);
-    } );
+    });

@@ -13,7 +13,7 @@ describe("LogInService", function() {
 
     beforeEach(() => {
         const setOkResponseStub = sinon.stub().returns({
-            "status": "Ok"
+            "message": "Ok"
         });
 
         LogInService.__set__({
@@ -49,7 +49,7 @@ describe("LogInService", function() {
 
         const response = await LogInService.handleLogIn(req, res);
 
-        assert(OK_LBL === response.status);
+        assert(OK_LBL === response.message);
     });
 
     it("Log in with new user", async () => {
