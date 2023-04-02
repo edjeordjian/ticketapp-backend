@@ -1,3 +1,5 @@
+const {Op} = require("sequelize");
+
 const {objDeepCopy} = require("../helpers/ObjectHelper");
 
 const {Speakers} = require("../../data/model/Speakers");
@@ -103,8 +105,12 @@ const handleCreate = async (req, res) => {
                const createResponse = await create(Speakers, {
                    description: speaker.description,
 
-                   time: speaker.time
+                   time: speaker.time,
+
+                   eventId: createdEvent.id
                });
+
+               createResponse.addEvent(createdEvent);
 
                if (createResponse.error !== undefined) {
                    throw new Error(createResponse.error);
@@ -128,10 +134,31 @@ const handleCreate = async (req, res) => {
     });
 };
 
-const handleGet = async (req, res) => {
+const handleSearchByName = async (req, res) => {
+    const searchString = req.query.value;
 
+    const events = await findAll(Events, {
+            name: {
+                [Op.like]: `%${searchString}%`
+            }
+        },
+        [
+            {
+                model: Speakers,
+                attributes: ["time", "description"]
+            },
+            {
+                model: EventTypes,
+                attributes: ["id"]
+            }
+        ],
+        [['createdAt', 'DESC']]
+        );
+
+    return setOkResponse("", res, {});
 };
 
+
 module.exports = {
-    handleCreate
+    handleCreate, handleSearchByName
 };

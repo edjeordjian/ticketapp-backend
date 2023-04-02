@@ -16,9 +16,16 @@ const findOne = async (model, condition) => {
     return response;
 };
 
-const findAll = async (model, condition) => {
+const findAll = async (model,
+                       condition,
+                       include = [],
+                       order =[['createdAt', 'ASC']]) => {
    const response = await model.findAll( {
-        where: condition
+        where: condition,
+
+        include: include,
+
+        order: order,
     } )
         .catch(error => {
             logError(error.stack);

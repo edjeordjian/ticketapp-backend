@@ -4,6 +4,8 @@ const SIGN_IN_URL = "/signin";
 
 const EVENT_URL = "/event";
 
+const EVENT_SEARCH_NAME_URL = "/event/name";
+
 module.exports = {
-    SIGN_IN_URL, BASE_URL, EVENT_URL
+    SIGN_IN_URL, BASE_URL, EVENT_URL, EVENT_SEARCH_NAME_URL
 };
