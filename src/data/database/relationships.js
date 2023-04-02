@@ -1,19 +1,20 @@
-const {Speakers} = require("../model/Speakers");
+const { Speakers } = require("../model/Speakers");
 
-const {Events} = require("../model/Events");
+const { Events } = require("../model/Events");
 
-const {User} = require("../model/User");
+const { User } = require("../model/User");
 
-const {EventTypes} = require("../model/EventTypes");
+const { EventTypes } = require("../model/EventTypes");
 
-const {defineEventList} = require("../model/SpeakerEventRelationship");
+const { defineEventList } = require("../model/SpeakerEventRelationship");
 
-const {defineEventTypeEventRelationship} = require("../model/EvenTypeEventRelationship");
+const { defineEventTypeEventRelationship } = require("../model/EvenTypeEventRelationship");
+const { defineEventSpeakerRelationship } = require("../model/SpeakerEventRelationship");
 
 const defineRelationships = () => {
     defineEventTypeEventRelationship();
 
-    defineEventList();
+    defineEventSpeakerRelationship();
 };
 
 module.exports = {

@@ -18,7 +18,6 @@ const Speakers = database.define("speakers", {
         type: Sequelize.STRING(MAX_STR_LEN)
     },
 
-
     time: {
         type: Sequelize.STRING(MAX_STR_LEN)
     }

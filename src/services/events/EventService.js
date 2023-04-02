@@ -1,34 +1,38 @@
-const {objDeepCopy} = require("../helpers/ObjectHelper");
+const {getSerializedEvent} = require("../../data/model/Events");
 
-const {Speakers} = require("../../data/model/Speakers");
+const {Op} = require("sequelize");
 
-const {Events} = require("../../data/model/Events");
+const { objDeepCopy } = require("../helpers/ObjectHelper");
 
-const {User} = require("../../data/model/User");
+const { Speakers } = require("../../data/model/Speakers");
 
-const {EventTypes} = require("../../data/model/EventTypes");
+const { Events } = require("../../data/model/Events");
 
-const {EVENT_CREATE_ERR_LBL} = require("../../constants/events/eventsConstants");
+const { User } = require("../../data/model/User");
 
-const {logError} = require("../helpers/Logger");
+const { EventTypes } = require("../../data/model/EventTypes");
 
-const {UNEXISTING_USER_ERR_LBL} = require("../../constants/login/logInConstants");
+const { logError } = require("../helpers/Logger");
 
-const {dateFromString} = require("../helpers/DateHelper");
+const { UNEXISTING_USER_ERR_LBL } = require("../../constants/login/logInConstants");
 
-const {areAnyUndefined} = require("../helpers/ListHelper");
+const { dateFromString } = require("../helpers/DateHelper");
 
-const {EVENT_ALREADY_EXISTS_ERR_LBL,
-       EVENT_WITH_NO_CAPACITY_ERR_LBL,
-       MISSING_EVENT_ATTRIBUTE_ERR_LBL} = require("../../constants/events/eventsConstants");
+const { areAnyUndefined } = require("../helpers/ListHelper");
 
-const {setOkResponse,
-       setErrorResponse,
-       setUnexpectedErrorResponse} = require("../helpers/ResponseHelper");
+const { EVENT_ALREADY_EXISTS_ERR_LBL,
+        EVENT_WITH_NO_CAPACITY_ERR_LBL,
+        MISSING_EVENT_ATTRIBUTE_ERR_LBL,
+        EVENT_DOESNT_EXIST_ERR_LBL,
+        EVENT_CREATE_ERR_LBL} = require("../../constants/events/eventsConstants");
 
-const {create, findOne, findAll} = require("../helpers/QueryHelper");
+const { setOkResponse,
+        setErrorResponse,
+        setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
 
-const {OK_LBL} = require("../../constants/messages");
+const { create, findOne, findAll } = require("../helpers/QueryHelper");
+
+const { OK_LBL } = require("../../constants/messages");
 
 const handleCreate = async (req, res) => {
     const body = req.body;
@@ -100,17 +104,17 @@ const handleCreate = async (req, res) => {
 
         if (body.agenda !== undefined) {
             body.agenda.map(async speaker => {
-               const createResponse = await create(Speakers, {
-                   description: speaker.description,
+                const createResponse = await create(Speakers, {
+                    description: speaker.description,
+                    time: speaker.time,
+                    eventId: createdEvent.id,
+                });
 
-                   time: speaker.time
-               });
+                if (createResponse.error !== undefined) {
+                    throw new Error(createResponse.error);
+                }
 
-               if (createResponse.error !== undefined) {
-                   throw new Error(createResponse.error);
-               }
-
-               speakers.push(objDeepCopy(createResponse))
+                speakers.push(objDeepCopy(createResponse))
             });
 
             const createResponse = await createdEvent.addSpeakers(speakers);
@@ -128,10 +132,101 @@ const handleCreate = async (req, res) => {
     });
 };
 
-const handleGet = async (req, res) => {
+const handleSearch = async (req, res) => {
+    const {value, owner} = req.query;
 
+    let events;
+
+    const includes =  [
+        {
+            model: Speakers,
+            attributes: ["description", "time"]
+        },
+        {
+            model: EventTypes,
+            attributes: ["id"]
+        }
+    ];
+
+    const order = [['createdAt', 'DESC']];
+
+    if (value) {
+        events = await findAll(Events, {
+                name: {
+                    [Op.like]: `%${value}%`
+                }
+            },
+            includes,
+            order
+        );
+    } else if (owner) {
+        events = await findAll(Events, {
+                owner_id: owner
+            },
+            includes,
+            order
+        );
+    } else {
+        events = await findAll(Events,
+            {
+                id: {
+                    [Op.ne]: null
+                }
+            },
+            includes,
+            order
+        );
+    }
+
+    if (events.error) {
+        return setUnexpectedErrorResponse(events.error, res);
+    }
+
+    const serializedEvents = [];
+
+    events.map(e => {
+       serializedEvents.push(getSerializedEvent(e));
+    });
+
+    const eventsResponse = {
+        events: serializedEvents
+    };
+
+    return setOkResponse(OK_LBL, res, eventsResponse);
+};
+
+const handleGet = async (req, res) => {
+    const { eventId } = req.query;
+
+    if (! eventId) {
+        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
+    }
+
+    const event = await findOne(Events, {
+        id: eventId
+    }, [
+        {
+            model: EventTypes,
+            attributes: ['id']
+        },
+        {
+            model: Speakers,
+            attributes: ['description', 'time']
+        }
+    ]
+    );
+
+    if (event === null) {
+        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
+    } else if (event.error) {
+        return setUnexpectedErrorResponse(event.error, res);
+    }
+
+    return setOkResponse(OK_LBL, res, getSerializedEvent(event));
 };
 
 module.exports = {
-    handleCreate
+    handleCreate,
+    handleGet,
+    handleSearch
 };

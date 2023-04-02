@@ -8,6 +8,8 @@ const { database } = require("../database/database");
 
 const { User } = require('./User');
 
+const { dateToString } = require("../../services/helpers/DateHelper");
+
 const Events = database.define("events", {
     id: {
         primaryKey: true,
@@ -73,10 +75,42 @@ const Events = database.define("events", {
     }
 });
 
-User.hasMany(User, {
-    foreignKey: "ownerId"
-});
+const getSerializedEvent = (e) => {
+    return {
+        id: e.id,
+
+        name: e.name,
+
+        description: e.description,
+
+        capacity: e.capacity,
+
+        date: dateToString(e.date),
+
+        address: e.address,
+
+        wallpaper_url: e.wallpaperUrl,
+
+        picture1_url: e.picture1Url,
+
+        picture2_url: e.picture2Url,
+
+        picture3_url: e.picture3Url,
+
+        picture4_url: e.picture4Url,
+
+        types_ids: e.event_types.map(type => type.id),
+
+        agenda: e.speakers.map(speaker => {
+            return {
+                "description": speaker.description,
+
+                "time": speaker.time
+            }
+        })
+    }
+};
 
 module.exports = {
-    Events
+    Events, getSerializedEvent
 };

@@ -1,8 +1,8 @@
-const {Sequelize} = require("sequelize");
+const { Sequelize } = require("sequelize");
 
-const {ID_MAX_LEN, MAX_STR_LEN} = require("../../constants/dataConstants");
+const { ID_MAX_LEN, MAX_STR_LEN } = require("../../constants/dataConstants");
 
-const {database} = require("../database/database");
+const { database } = require("../database/database");
 
 const User = database.define("users", {
     id: {
@@ -24,19 +24,22 @@ const User = database.define("users", {
     is_administrator: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        validate: { notEmpty: true }
+        validate: { notEmpty: true },
+        defaultValue: false
     },
 
     is_organizer: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        validate: { notEmpty: true }
+        validate: { notEmpty: true },
+        defaultValue: false
     },
 
     is_consumer: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        validate: { notEmpty: true }
+        validate: { notEmpty: true },
+        defaultValue: false
     },
 
     first_name: {

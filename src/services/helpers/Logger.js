@@ -50,7 +50,7 @@ const logError = (message) => {
 };
 
 const request = (message) => {
-    logInfo("Request en : " + message);
+    logInfo("Request " + message);
 };
 
 const log = (message,

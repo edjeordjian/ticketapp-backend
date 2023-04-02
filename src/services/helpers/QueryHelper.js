@@ -1,24 +1,37 @@
-const {logError} = require("./Logger");
+const {Op} = require("sequelize");
+const { logError } = require("./Logger");
 
 
-const findOne = async (model, condition) => {
-    const response = await model.findOne( {
-        where: condition
-    } )
+const findOne = async (model,
+                       condition,
+                       include = []) => {
+    const response = await model.findOne({
+        where: condition,
+
+        include: include
+    })
         .catch(error => {
-            logError(error.stack);
+            logError(error.name);
 
             return {
                 error: "Error en la consulta"
             }
-        } );
+        });
 
     return response;
 };
 
-const findAll = async (model, condition) => {
-   const response = await model.findAll( {
-        where: condition
+
+const findAll = async (model,
+                       condition,
+                       include = [],
+                       order =[['createdAt', 'ASC']]) => {
+    const response = await model.findAll( {
+        where: condition,
+
+        include: include,
+
+        order: order,
     } )
         .catch(error => {
             logError(error.stack);
@@ -76,5 +89,5 @@ const destroy = async (model, condition) => {
 
 module.exports = {
     findOne, findAll, create, update,
-    destroy,
+    destroy
 };
