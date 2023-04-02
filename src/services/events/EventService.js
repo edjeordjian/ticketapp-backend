@@ -135,10 +135,6 @@ const handleCreate = async (req, res) => {
 const handleSearch = async (req, res) => {
     const {value, owner} = req.query;
 
-    if (! value && ! owner) {
-        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
-    }
-
     let events;
 
     const includes =  [
@@ -170,8 +166,17 @@ const handleSearch = async (req, res) => {
             includes,
             order
         );
+    } else {
+        events = await findAll(Events,
+            {
+                id: {
+                    [Op.ne]: null
+                }
+            },
+            includes,
+            order
+        );
     }
-
 
     if (events.error) {
         return setUnexpectedErrorResponse(events.error, res);

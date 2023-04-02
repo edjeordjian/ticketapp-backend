@@ -1,3 +1,4 @@
+const {Op} = require("sequelize");
 const { logError } = require("./Logger");
 
 

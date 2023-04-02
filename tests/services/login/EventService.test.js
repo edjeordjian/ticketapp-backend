@@ -57,14 +57,20 @@ describe("EventService", function() {
         assert("error" === response.error);
     });
 
-    it("Cannot search without query param", async () => {
+    it("Get every event", async () => {
         req.query = {
 
         };
 
+        const findAllStub = sinon.stub().resolves([]);
+
+        EventService.__set__({
+            "findAll": findAllStub
+        });
+
         const response = await EventService.handleSearch(req, res);
 
-        assert("error" === response.error);
+        assert(OK_LBL === response.message);
     });
 
     it("Search event by name", async () => {
@@ -79,8 +85,6 @@ describe("EventService", function() {
         });
 
         const response = await EventService.handleSearch(req, res);
-
-        console.log(response);
 
         assert(OK_LBL === response.message);
     });
