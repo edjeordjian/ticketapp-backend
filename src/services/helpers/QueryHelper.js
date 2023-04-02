@@ -1,26 +1,43 @@
-const {logError} = require("./Logger");
+const { logError } = require("./Logger");
 
 
 const findOne = async (model, condition) => {
-    const response = await model.findOne( {
+    const response = await model.findOne({
         where: condition
-    } )
+    })
         .catch(error => {
             logError(error.stack);
 
             return {
                 error: "Error en la consulta"
             }
-        } );
+        });
 
     return response;
 };
+
+const findOneWithAttr = async (model, condition, attribute) => {
+    const response = await model.findOne({
+        where: condition,
+        include: attribute
+    })
+        .catch(error => {
+            logError(error.stack);
+
+            return {
+                error: "Error en la consulta"
+            }
+        });
+
+    return response;
+}
+
 
 const findAll = async (model,
                        condition,
                        include = [],
                        order =[['createdAt', 'ASC']]) => {
-   const response = await model.findAll( {
+    const response = await model.findAll( {
         where: condition,
 
         include: include,
@@ -83,5 +100,5 @@ const destroy = async (model, condition) => {
 
 module.exports = {
     findOne, findAll, create, update,
-    destroy,
+    destroy, findOneWithAttr
 };

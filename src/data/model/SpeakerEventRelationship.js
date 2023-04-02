@@ -1,12 +1,16 @@
-const {Speakers} = require("./Speakers");
+const { Speakers } = require("./Speakers");
 
-const {Events} = require("./Events");
+const { Events } = require("./Events");
+const { Sequelize } = require("sequelize");
 
-const defineEventList = () => {
+const { database } = require("../database/database");
+
+
+const defineEventSpeakerRelationship = () => {
     Events.hasMany(Speakers);
-};
+}
 
 module.exports = {
-    defineEventList
+    defineEventSpeakerRelationship
 };
 
