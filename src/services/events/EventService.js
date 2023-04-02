@@ -1,4 +1,5 @@
 const {getSerializedEvent} = require("../../data/model/Events");
+
 const {Op} = require("sequelize");
 
 const { objDeepCopy } = require("../helpers/ObjectHelper");
@@ -156,7 +157,7 @@ const handleSearch = async (req, res) => {
     if (value) {
         events = await findAll(Events, {
                 name: {
-                    [Op.like]: `%${searchString}%`
+                    [Op.like]: `%${value}%`
                 }
             },
             includes,

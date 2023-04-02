@@ -14,7 +14,7 @@ describe("EventService", function() {
 
     beforeEach(() => {
         const setOkResponseStub = sinon.stub().returns({
-            "status": "Ok"
+            "message": "Ok"
         });
 
         const setErrorResponseStub = sinon.stub().returns({
@@ -55,5 +55,65 @@ describe("EventService", function() {
         const response = await EventService.handleCreate(req, res);
 
         assert("error" === response.error);
+    });
+
+    it("Cannot search without query param", async () => {
+        req.query = {
+
+        };
+
+        const response = await EventService.handleSearch(req, res);
+
+        assert("error" === response.error);
+    });
+
+    it("Search event by name", async () => {
+        req.query = {
+            value: "Evento"
+        };
+
+        const findAllStub = sinon.stub().resolves([]);
+
+        EventService.__set__({
+            "findAll": findAllStub
+        });
+
+        const response = await EventService.handleSearch(req, res);
+
+        console.log(response);
+
+        assert(OK_LBL === response.message);
+    });
+
+    it("Cannot find event by id without query param", async () => {
+        req.query = {
+
+        };
+
+        const response = await EventService.handleGet(req, res);
+
+        assert("error" === response.error);
+    });
+
+    it("Find event by id", async () => {
+        req.query = {
+            eventId: "1"
+        };
+
+        const findAllStub = sinon.stub().resolves({});
+
+        EventService.__set__({
+            "findAll": findAllStub
+        });
+
+        const getSerializedEventStub = sinon.stub().resolves({});
+
+        EventService.__set__({
+            "getSerializedEvent": getSerializedEventStub
+        });
+
+        const response = await EventService.handleGet(req, res);
+
+        assert(OK_LBL === response.message);
     });
 });
