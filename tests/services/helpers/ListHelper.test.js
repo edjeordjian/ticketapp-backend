@@ -1,3 +1,5 @@
+const assert = require("assert");
+
 const {areAnyUndefined} = require("../../../src/services/helpers/ListHelper");
 
 describe("ListHelper", function () {
