@@ -27,18 +27,20 @@ const {BASE_URL} = require("../../constants/URLs");
 const {RESET_DATABASE} = require("../../constants/dataConstants");
 
 const syncDB = async () => {
-    defineRelationships()
-
-    if (true || IS_PRODUCTION) {
-        await runMigrations();
-    }
+    defineRelationships();
 
     // "sync()" creates the database table for our model(s),
     // if we make .sync({force: true}),
     // the DB is dropped first if it is already existed
     await database.sync( {
         force: RESET_DATABASE
-    } );
+    } ).then(async _ => {
+        if (IS_PRODUCTION) {
+            await runMigrations();
+        }
+    }).then(async _ => {
+        await database.sync();
+    });
 };
 
 const app = express();

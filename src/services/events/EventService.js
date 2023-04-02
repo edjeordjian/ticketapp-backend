@@ -1,6 +1,6 @@
 const {objDeepCopy} = require("../helpers/ObjectHelper");
 
-const {Speaker} = require("../../data/model/Speakers");
+const {Speakers} = require("../../data/model/Speakers");
 
 const {Events} = require("../../data/model/Events");
 
@@ -98,9 +98,9 @@ const handleCreate = async (req, res) => {
 
         const speakers = [];
 
-        if (body.speakers !== undefined) {
-            body.speakers.map(async speaker => {
-               const createResponse = await create(Speaker, {
+        if (body.agenda !== undefined) {
+            body.agenda.map(async speaker => {
+               const createResponse = await create(Speakers, {
                    description: speaker.description,
 
                    time: speaker.time
@@ -126,6 +126,10 @@ const handleCreate = async (req, res) => {
 
         return setUnexpectedErrorResponse(EVENT_CREATE_ERR_LBL, res);
     });
+};
+
+const handleGet = async (req, res) => {
+
 };
 
 module.exports = {

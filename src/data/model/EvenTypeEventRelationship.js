@@ -2,7 +2,7 @@ const {EventTypes} = require("./EventTypes");
 
 const {Events} = require("./Events");
 
-const { Sequelize } = require("sequelize");
+const {Sequelize} = require("sequelize");
 
 const {database} = require("../database/database");
 
