@@ -4,53 +4,58 @@ const {ID_MAX_LEN, MAX_STR_LEN} = require("../../constants/dataConstants");
 
 const {database} = require("../database/database");
 
-const Users = database.define("users", {
+const User = database.define("users", {
     id: {
         primaryKey: true,
         type: Sequelize.STRING(ID_MAX_LEN),
         allowNull: false,
-        validate: {notEmpty: true},
-        unique: true
+        validate: { notEmpty: true },
+        unique: true,
+        autoIncrement: true
     },
 
     email: {
         type: Sequelize.STRING(MAX_STR_LEN),
         allowNull: false,
-        validate: {notEmpty: true},
+        validate: { notEmpty: true },
         unique: true
     },
 
-    isAdministrator: {
+    is_administrator: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        validate: {notEmpty: true}
+        validate: { notEmpty: true }
     },
 
-    isOrganizer: {
+    is_organizer: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        validate: {notEmpty: true}
+        validate: { notEmpty: true }
     },
 
-    isConsumer: {
+    is_consumer: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        validate: {notEmpty: true}
+        validate: { notEmpty: true }
     },
 
-    firstName: {
+    first_name: {
         type: Sequelize.STRING(MAX_STR_LEN),
     },
 
-    lastName: {
+    last_name: {
         type: Sequelize.STRING(MAX_STR_LEN),
     },
 
-    pictureUrl: {
+    picture_url: {
         type: Sequelize.STRING(MAX_STR_LEN),
+    },
+
+    ownerId: {
+        type: Sequelize.STRING(ID_MAX_LEN)
     }
-} );
+});
 
 module.exports = {
-    Users
+    User
 };

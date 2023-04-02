@@ -3,16 +3,18 @@
 */
 
 
+
+async function examples() {
 /* ================ EXAMPLE 1 ===================== */
-/* await queryInterface.removeColumn(Users.tableName,
-                              'isAdmin');
+ await queryInterface.removeColumn(Users.tableName,
+                              'isAdmin')
                    .catch(e => {
                     console.log(e);
                    } );
-*/
+
 
 /* ================ EXAMPLE 2 ===================== */
-/* await queryInterface.changeColumn(Users.tableName,
+ await queryInterface.changeColumn(Users.tableName,
   'walletId', {
     type: Sequelize.INTEGER,
     unique: true
@@ -20,17 +22,17 @@
   .catch(error => {
     console.log(error.toString());
   });
-*/
+
 
 /* ================ EXAMPLE 3 ===================== */
-/* await queryInterface.addColumn(Song.tableName,
+ await queryInterface.addColumn(Song.tableName,
        'isBlocked', {
               type: Sequelize.BOOLEAN,
               allowNull: false,
               defaultValue: false
        }).catch(error => console.log(error.toString()));
-*/
+
 
 /* ================ EXAMPLE 4 ===================== */
-/* await queryInterface.removeConstraint(Notifications.tableName, 'PRIMARY');
-} */
+ await queryInterface.removeConstraint(Notifications.tableName, 'PRIMARY');
+}

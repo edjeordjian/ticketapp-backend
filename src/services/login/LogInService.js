@@ -4,7 +4,7 @@ const {OK_LBL} = require("../../constants/messages");
 
 const {ERROR_CREATING_USER_LBL} = require("../../constants/login/logInConstants");
 
-const {Users} = require("../../data/model/Users");
+const {User} = require("../../data/model/User");
 
 const {ERROR_SEARCHING_USER} = require("../../constants/login/logInConstants");
 
@@ -18,15 +18,15 @@ const {findOne, create} = require("../helpers/QueryHelper");
 
 
 const handleSignUp = async (body) => {
-    const createResponse = await create(Users, {
+    const createResponse = await create(User, {
         id: body.id,
         email: body.email,
-        isAdministrator: body.isAdministrator !== undefined,
-        isOrganizer: body.isOrganizer !== undefined,
-        isConsumer: body.isConsumer !== undefined,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        pictureUrl: body.pictureUrl
+        is_administrator: body.isAdministrator !== undefined,
+        is_organizer: body.isOrganizer !== undefined,
+        is_consumer: body.isConsumer !== undefined,
+        first_name: body.firstName,
+        last_name: body.lastName,
+        picture_url: body.pictureUrl
     } );
 
     if (createResponse.error) {
@@ -62,7 +62,7 @@ const handleSignUp = async (body) => {
 const handleLogIn = async (req, res) => {
     const body = req.body;
 
-    const findResponse = await findOne(Users, {
+    const findResponse = await findOne(User, {
         email: body.email
     } );
 
