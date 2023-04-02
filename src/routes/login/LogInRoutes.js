@@ -2,16 +2,16 @@ const Logger = require("../../services/helpers/Logger");
 
 const express = require('express')
 
-const router = express.Router()
+const {handleLogIn} = require("../../services/login/LogInService");
 
-const LoginService = require("../../services/login/LogInService");
+const router = express.Router()
 
 const {SIGN_IN_URL} = require("../../constants/URLs");
 
 router.post(SIGN_IN_URL, async (req, res) => {
     Logger.request(SIGN_IN_URL);
 
-    await LoginService.handleLogIn(req, res);
+    await handleLogIn(req, res);
 } );
 
 module.exports = router;

@@ -1,12 +1,12 @@
-const Logger = require("./Logger");
+const {logError} = require("./Logger");
 
-const findOne = async (model,
-                       condition) => {
+
+const findOne = async (model, condition) => {
     const response = await model.findOne( {
         where: condition
     } )
         .catch(error => {
-            Logger.error(error.stack);
+            logError(error.stack);
 
             return {
                 error: "Error en la consulta"
@@ -16,13 +16,12 @@ const findOne = async (model,
     return response;
 };
 
-const findAll = async (model,
-                       condition) => {
+const findAll = async (model, condition) => {
    const response = await model.findAll( {
         where: condition
     } )
         .catch(error => {
-            Logger.error(error.stack);
+            logError(error.stack);
 
             return {
                 error: "Error en la consulta."
@@ -32,11 +31,10 @@ const findAll = async (model,
     return response;
 };
 
-const create = async (model,
-                      body) => {
+const create = async (model, body) => {
     const response = await model.create(body)
         .catch(error => {
-            Logger.error(error.stack);
+            logError(error.stack);
 
             return {
                 error: "Error en la creación."
@@ -46,14 +44,12 @@ const create = async (model,
     return response;
 };
 
-const update = async (model,
-                      body,
-                      condition) => {
+const update = async (model, body, condition) => {
     const response = await model.update(body, {
             where: condition
         } )
         .catch(error => {
-            Logger.error(error.stack);
+            logError(error.stack);
 
             return {
                 error: "Error en la actualización."
@@ -63,13 +59,12 @@ const update = async (model,
     return response;
 };
 
-const destroy = async (model,
-                       condition) => {
+const destroy = async (model, condition) => {
     const response = await model.destroy( {
             where: condition
         } )
         .catch(error => {
-            Logger.error(error.stack);
+            logError(error.stack);
 
             return {
                 error: "Error en el borrado."

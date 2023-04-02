@@ -2,33 +2,61 @@ const {database} = require('../database/database');
 
 const Sequelize = require('sequelize');
 
+const {EventTypes} = require("../model/EventTypes");
+
 const {RUNNING_MIGRATIONS_LBL} = require("../../constants/dataConstants");
 
 const {logInfo} = require("../../services/helpers/Logger");
 
-const {MAX_STR_LEN} = require("../../constants/dataConstants");
-
-const {Users} = require("../model/Users");
+const {User} = require("../model/User");
 
 const queryInterface = database.getQueryInterface();
+
+const today = new Date();
 
 async function runMigrations() {
     logInfo(RUNNING_MIGRATIONS_LBL);
 
-    await queryInterface.addColumn(Users.tableName,
-        'firstName', {
-            type: Sequelize.STRING(MAX_STR_LEN)
-        }).catch(error => console.log(error.toString()));
-
-    await queryInterface.addColumn(Users.tableName,
-        'lastName', {
-            type: Sequelize.STRING(MAX_STR_LEN)
-        }).catch(error => console.log(error.toString()));
-
-    await queryInterface.addColumn(Users.tableName,
-        'pictureUrl', {
-            type: Sequelize.STRING(MAX_STR_LEN)
-        }).catch(error => console.log(error.toString()));
+    await queryInterface.bulkInsert(EventTypes.tableName, [{
+            name: "Música",
+            createdAt: today,
+            updatedAt: today
+        },
+        {
+            name: "Deporte",
+            createdAt: today,
+            updatedAt: today
+        },
+        {
+            name: "Artes visuales",
+            createdAt: today,
+            updatedAt: today
+        },
+        {
+            name: "Salud",
+            createdAt: today,
+            updatedAt: today
+        },
+        {
+            name: "Pasatiempos",
+            createdAt: today,
+            updatedAt: today
+        },
+        {
+            name: "Negocios",
+            createdAt: today,
+            updatedAt: today
+        },
+        {
+            name: "Gastronomía",
+            createdAt: today,
+            updatedAt: today
+        },
+        {
+            name: "Charla",
+            createdAt: today,
+            updatedAt: today
+        }]);
 }
 
 module.exports = {

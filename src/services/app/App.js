@@ -8,6 +8,10 @@ const {database} = require("../../data/database/database");
 
 const logInRoutes = require("../../routes/login/LogInRoutes");
 
+const eventRoutes = require("../../routes/events/EventRoutes");
+
+const {defineRelationships} = require("../../data/database/relationships");
+
 const {logInfo, logError, setLevel} = require("../helpers/Logger");
 
 const {PORT_LBL} = require("../../constants/app/appConstants");
@@ -23,7 +27,9 @@ const {BASE_URL} = require("../../constants/URLs");
 const {RESET_DATABASE} = require("../../constants/dataConstants");
 
 const syncDB = async () => {
-    if (IS_PRODUCTION) {
+    defineRelationships()
+
+    if (true || IS_PRODUCTION) {
         await runMigrations();
     }
 
@@ -42,6 +48,8 @@ app.use( cors() );
 app.use( bodyParser.json() );
 
 app.use(BASE_URL, logInRoutes);
+
+app.use(BASE_URL, eventRoutes);
 
 setLevel(LOG_LEVEL);
 

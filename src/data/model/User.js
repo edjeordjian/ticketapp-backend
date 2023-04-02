@@ -1,8 +1,8 @@
-const { Sequelize } = require("sequelize");
+const {Sequelize} = require("sequelize");
 
-const { ID_MAX_LEN, MAX_STR_LEN } = require("../../constants/dataConstants");
+const {ID_MAX_LEN, MAX_STR_LEN} = require("../../constants/dataConstants");
 
-const { database } = require("../database/database");
+const {database} = require("../database/database");
 
 const User = database.define("users", {
     id: {
@@ -10,7 +10,8 @@ const User = database.define("users", {
         type: Sequelize.STRING(ID_MAX_LEN),
         allowNull: false,
         validate: { notEmpty: true },
-        unique: true
+        unique: true,
+        autoIncrement: true
     },
 
     email: {
@@ -20,33 +21,33 @@ const User = database.define("users", {
         unique: true
     },
 
-    isAdministrator: {
+    is_administrator: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         validate: { notEmpty: true }
     },
 
-    isOrganizer: {
+    is_organizer: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         validate: { notEmpty: true }
     },
 
-    isConsumer: {
+    is_consumer: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         validate: { notEmpty: true }
     },
 
-    firstName: {
+    first_name: {
         type: Sequelize.STRING(MAX_STR_LEN),
     },
 
-    lastName: {
+    last_name: {
         type: Sequelize.STRING(MAX_STR_LEN),
     },
 
-    pictureUrl: {
+    picture_url: {
         type: Sequelize.STRING(MAX_STR_LEN),
     }
 });

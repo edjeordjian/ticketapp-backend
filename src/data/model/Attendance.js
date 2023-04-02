@@ -3,8 +3,10 @@ const { Sequelize } = require("sequelize");
 const { ID_MAX_LEN, MAX_STR_LEN } = require("../../constants/dataConstants");
 
 const { database } = require("../database/database");
+
 const { User } = require("./User");
-const { Event } = require("./Event");
+
+const { Event } = require("./Events");
 
 const Attendances = database.define("attendances", {
     id: {
@@ -50,7 +52,6 @@ Event.hasMany(Attendance, {
 User.hasMany(Attendance, {
     foreignKey: 'userId',
 });
-
 
 module.exports = {
     Attendances
