@@ -47,7 +47,8 @@ const findAll = async (model,
 const create = async (model, body) => {
     const response = await model.create(body)
         .catch(error => {
-            logError(error.stack);
+            logError(error.name);
+            // logError(error.stack);
 
             return {
                 error: "Error en la creación."

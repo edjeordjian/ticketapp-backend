@@ -50,6 +50,10 @@ const Events = database.define("events", {
         validate: { notEmpty: true }
     },
 
+    time: {
+        type: Sequelize.DATE
+    },
+
     address: {
         type: Sequelize.STRING(MAX_STR_LEN)
     },
