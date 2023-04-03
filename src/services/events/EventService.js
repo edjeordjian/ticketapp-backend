@@ -46,7 +46,9 @@ const handleCreate = async (req, res) => {
         return setErrorResponse(EVENT_ALREADY_EXISTS_ERR_LBL, res);
     }
 
-    if (body.capacity <= 0) {
+    body.capacity = parseInt(body.capacity);
+
+    if (isNaN(body.capacity) || body.capacity <= 0) {
         return setErrorResponse(EVENT_WITH_NO_CAPACITY_ERR_LBL, res);
     }
 
@@ -55,7 +57,7 @@ const handleCreate = async (req, res) => {
         body.description,
         body.capacity,
         body.date,
-        body.tags,
+        body.types,
         body.address])) {
         return setErrorResponse(MISSING_EVENT_ATTRIBUTE_ERR_LBL, res);
     }
@@ -69,7 +71,7 @@ const handleCreate = async (req, res) => {
     }
 
     const tagsToAdd = await findAll(EventTypes, {
-        id: body.tags
+        id: body.types
     });
 
     return await create(Events, {
@@ -81,9 +83,11 @@ const handleCreate = async (req, res) => {
 
         capacity: body.capacity,
 
+        address: body.address,
+
         date: dateFromString(body.date),
 
-        address: body.address,
+        time: dateFromString(body.time),
 
         wallpaper_url: body.wallpaperUrl,
 

@@ -5,11 +5,41 @@ const getQuickDate = () => {
 
 // https://stackoverflow.com/questions/5619202/parsing-a-string-to-a-date-in-javascript
 const dateFromString = (strFullDate) => {
-    const [strDate, strTime] = strFullDate.split("T");
+    let strDate, strTime;
 
-    const [year, month, day] = strDate.split('-');
+    let hours, minutes, seconds;
 
-    const [hours, minutes, seconds] = strTime.split(":");
+    if (strFullDate.includes(":")) {
+        const time = strFullDate.split(":");
+
+        hours = time[0];
+
+        minutes = time[1];
+    } else {
+        [strDate, strTime] = strFullDate.split("T");
+    }
+
+    let year, month, day;
+
+    if (strDate) {
+        [year, month, day] = strDate.split('-');
+    } else {
+        year = "2020";
+
+        month = "1";
+
+        day  = "1";
+    }
+
+    if (strTime) {
+        [hours, minutes, seconds] = strTime.split(":");
+    } else {
+        hours = "0";
+
+        minutes = "0";
+
+        seconds = "0";
+    }
 
     return new Date(year, month - 1, day, hours, minutes, seconds);
 }
