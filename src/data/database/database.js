@@ -25,6 +25,8 @@ const database = new Sequelize(dataConstants.DATABASE_URL, {
     },
 
     dialectOptions: {
+        useUTC: true,
+
         ssl: dataConstants.IS_PRODUCTION ? {
             require: true,
             rejectUnauthorized: false

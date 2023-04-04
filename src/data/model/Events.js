@@ -1,3 +1,5 @@
+const {timeToString} = require("../../services/helpers/DateHelper");
+
 const {MAX_STR_CAPACITY} = require("../../constants/dataConstants");
 
 const { Sequelize } = require("sequelize");
@@ -50,6 +52,10 @@ const Events = database.define("events", {
         validate: { notEmpty: true }
     },
 
+    time: {
+        type: Sequelize.DATE
+    },
+
     address: {
         type: Sequelize.STRING(MAX_STR_LEN)
     },
@@ -76,6 +82,28 @@ const Events = database.define("events", {
 });
 
 const getSerializedEvent = (e) => {
+    const pictures = [];
+
+    if (e.wallpaperUrl) {
+        pictures.push(e.wallpaperUrl);
+    }
+
+    if (e.picture1Url) {
+        pictures.push(e.picture1Url);
+    }
+
+    if (e.picture2Url) {
+        pictures.push(e.picture2Url);
+    }
+
+    if (e.picture3Url) {
+        pictures.push(e.picture3Url);
+    }
+
+    if (e.picture4Url) {
+        pictures.push(e.picture4Url);
+    }
+
     return {
         id: e.id,
 
@@ -87,17 +115,11 @@ const getSerializedEvent = (e) => {
 
         date: dateToString(e.date),
 
+        time: timeToString(e.time),
+
         address: e.address,
 
-        wallpaper_url: e.wallpaperUrl,
-
-        picture1_url: e.picture1Url,
-
-        picture2_url: e.picture2Url,
-
-        picture3_url: e.picture3Url,
-
-        picture4_url: e.picture4Url,
+        pictures: pictures,
 
         types_ids: e.event_types.map(type => type.id),
 

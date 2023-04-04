@@ -46,7 +46,9 @@ const handleCreate = async (req, res) => {
         return setErrorResponse(EVENT_ALREADY_EXISTS_ERR_LBL, res);
     }
 
-    if (body.capacity <= 0) {
+    body.capacity = parseInt(body.capacity);
+
+    if (isNaN(body.capacity) || body.capacity <= 0) {
         return setErrorResponse(EVENT_WITH_NO_CAPACITY_ERR_LBL, res);
     }
 
@@ -55,7 +57,7 @@ const handleCreate = async (req, res) => {
         body.description,
         body.capacity,
         body.date,
-        body.tags,
+        body.types,
         body.address])) {
         return setErrorResponse(MISSING_EVENT_ATTRIBUTE_ERR_LBL, res);
     }
@@ -69,8 +71,31 @@ const handleCreate = async (req, res) => {
     }
 
     const tagsToAdd = await findAll(EventTypes, {
-        id: body.tags
+        id: body.types
     });
+
+    let wallpaperUrl, picture1Url, picture2Url, picture3Url,
+        picture4Url;
+
+    if (body.pictures.length > 0) {
+        wallpaperUrl = body.pictures[0];
+    }
+
+    if (body.pictures.length > 1) {
+        picture1Url = body.pictures[1];
+    }
+
+    if (body.pictures.length > 2) {
+        picture2Url = body.pictures[2];
+    }
+
+    if (body.pictures.length > 3) {
+        picture3Url = body.pictures[3];
+    }
+
+    if (body.pictures.length > 4) {
+        picture4Url = body.pictures[4];
+    }
 
     return await create(Events, {
         owner_id: body.ownerId,
@@ -81,19 +106,21 @@ const handleCreate = async (req, res) => {
 
         capacity: body.capacity,
 
-        date: dateFromString(body.date),
-
         address: body.address,
 
-        wallpaper_url: body.wallpaperUrl,
+        date: dateFromString(body.date),
 
-        picture1_url: body.picture1Url,
+        time: dateFromString(body.time),
 
-        picture2_url: body.picture2Url,
+        wallpaper_url: wallpaperUrl,
 
-        picture3_url: body.picture3Url,
+        picture1_url: picture1Url,
 
-        picture4_url: body.picture4Url
+        picture2_url: picture2Url,
+
+        picture3_url: picture3Url,
+
+        picture4_url: picture4Url
     }).then(async createdEvent => {
         const createResponse = await createdEvent.addEvent_types(tagsToAdd);
 
