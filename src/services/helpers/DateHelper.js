@@ -10,11 +10,7 @@ const dateFromString = (strFullDate) => {
     let hours, minutes, seconds;
 
     if (strFullDate.includes(":")) {
-        const time = strFullDate.split(":");
-
-        hours = time[0];
-
-        minutes = time[1];
+        strTime = `${strFullDate}:0`
     } else {
         [strDate, strTime] = strFullDate.split("T");
     }
@@ -53,6 +49,23 @@ const dateToString = (aDate) => {
         });
 }
 
+const timeToString = (aTime) => {
+    let hours = aTime.getHours();
+
+    let minutes = aTime.getMinutes();
+
+    if (hours < 10) {
+        hours = `0${hours}`
+    }
+
+    if (minutes < 10) {
+        minutes = `0${minutes}`
+    }
+
+    return `${hours}:${minutes}`
+}
+
+
 module.exports = {
-    getQuickDate, dateFromString, dateToString
+    getQuickDate, dateFromString, dateToString, timeToString
 };
