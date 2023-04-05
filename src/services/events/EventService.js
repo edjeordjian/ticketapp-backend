@@ -1,3 +1,4 @@
+const {MAX_EVENT_CAPACITY} = require("../../constants/events/eventsConstants");
 const {getSerializedEventType} = require("../../data/model/EventTypes");
 const {getSerializedEvent} = require("../../data/model/Events");
 
@@ -48,7 +49,7 @@ const handleCreate = async (req, res) => {
 
     body.capacity = parseInt(body.capacity);
 
-    if (isNaN(body.capacity) || body.capacity <= 0) {
+    if (isNaN(body.capacity) || body.capacity <= 0 || body.capacity >= MAX_EVENT_CAPACITY) {
         return setErrorResponse(EVENT_WITH_NO_CAPACITY_ERR_LBL, res);
     }
 

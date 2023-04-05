@@ -22,14 +22,6 @@ const today = new Date();
 
 async function runMigrations() {
     logInfo(RUNNING_MIGRATIONS_LBL);
-
-    await queryInterface.addColumn(Events.tableName,
-        "time", {
-            type: Sequelize.DATE
-        }
-    ).catch(error => {
-        console.log(error.toString());
-    });
 }
 
 module.exports = {
