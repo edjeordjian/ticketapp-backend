@@ -14,7 +14,7 @@ const {setErrorResponse} = require("../helpers/ResponseHelper");
 
 const {setOkResponse} = require("../helpers/ResponseHelper");
 
-const {findOne, create} = require("../helpers/QueryHelper");
+const {findOne, create, update} = require("../helpers/QueryHelper");
 
 
 const handleSignUp = async (body) => {
@@ -35,22 +35,28 @@ const handleSignUp = async (body) => {
         };
     }
 
-    /* const firebaseResponse = await auth.createUser( {
-        email: body.email,
-        emailVerified: true,
-        disabled: false
-    } )
-        .catch(error => {
-            return {
-                error: error.toString()
-            }
-        } );
+    return {
+        id: createResponse.id,
 
-    if (firebaseResponse.error) {
+        email: createResponse.email
+    };
+}
+
+const handleRoleAppend = async (body, user) => {
+    const createResponse = await update(User, {
+            is_administrator: body.isAdministrator || user.is_administrator,
+            is_organizer: body.isOrganizer || user.is_organizer,
+            is_consumer: body.isConsumer || user.is_consumer
+        },
+        {
+            email: body.email
+        });
+
+    if (createResponse.error) {
         return {
-            error: ERROR_CREATING_USER_LBL
+            error: createResponse.error
         };
-    }*/
+    }
 
     return {
         id: createResponse.id,
@@ -71,6 +77,17 @@ const handleLogIn = async (req, res) => {
 
     if (findResponse === null) {
         const result = await handleSignUp(body);
+
+        if (result.error !== undefined) {
+            return setErrorResponse(ERROR_CREATING_USER_LBL, res);
+        }
+
+        id = result.id;
+        email = result.email;
+    } else if (findResponse.is_administrator !== body.isAdministrator ||
+               findResponse.is_organizer !== body.isOrganizer ||
+               findResponse.is_consumer !== body.isConsumer) {
+        const result = await handleRoleAppend(body, findResponse);
 
         if (result.error !== undefined) {
             return setErrorResponse(ERROR_CREATING_USER_LBL, res);

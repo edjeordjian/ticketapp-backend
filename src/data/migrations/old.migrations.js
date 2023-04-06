@@ -1,6 +1,16 @@
 /* Save here your old migrations.
 */
 
+async function m3() {
+    await queryInterface.addColumn(Events.tableName,
+        "time", {
+            type: Sequelize.DATE
+        }
+    ).catch(error => {
+        console.log(error.toString());
+    });
+}
+
 async function m2() {
     await queryInterface.addColumn(User.tableName,
         "is_administrator", {
