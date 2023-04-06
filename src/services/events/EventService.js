@@ -58,6 +58,7 @@ const handleCreate = async (req, res) => {
         body.description,
         body.capacity,
         body.date,
+        body.time,
         body.types,
         body.address])) {
         return setErrorResponse(MISSING_EVENT_ATTRIBUTE_ERR_LBL, res);
