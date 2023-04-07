@@ -238,7 +238,7 @@ const handleGet = async (req, res) => {
     }, [
         {
             model: EventTypes,
-            attributes: ['id']
+            attributes: ['id', 'name']
         },
         {
             model: Speakers,

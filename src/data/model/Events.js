@@ -123,6 +123,8 @@ const getSerializedEvent = (e) => {
 
         types_ids: e.event_types.map(type => type.id),
 
+        types_names: e.event_types.map(type => type.name),
+
         agenda: e.speakers.map(speaker => {
             return {
                 "start": speaker.start,
