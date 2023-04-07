@@ -10,8 +10,7 @@ const User = database.define("users", {
         type: Sequelize.STRING(ID_MAX_LEN),
         allowNull: false,
         validate: { notEmpty: true },
-        unique: true,
-        autoIncrement: true
+        unique: true
     },
 
     email: {
