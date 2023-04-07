@@ -125,9 +125,11 @@ const getSerializedEvent = (e) => {
 
         agenda: e.speakers.map(speaker => {
             return {
-                "description": speaker.description,
+                "start": speaker.start,
 
-                "time": speaker.time
+                "end": speaker.end,
+
+                "title": speaker.title
             }
         })
     }

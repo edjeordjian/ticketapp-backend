@@ -135,8 +135,9 @@ const handleCreate = async (req, res) => {
         if (body.agenda !== undefined) {
             body.agenda.map(async speaker => {
                 const createResponse = await create(Speakers, {
-                    description: speaker.description,
-                    time: speaker.time,
+                    start: speaker.start,
+                    end: speaker.end,
+                    title: speaker.title,
                     eventId: createdEvent.id,
                 });
 
@@ -170,7 +171,7 @@ const handleSearch = async (req, res) => {
     const includes =  [
         {
             model: Speakers,
-            attributes: ["description", "time"]
+            attributes: ['start', 'end', 'title']
         },
         {
             model: EventTypes,
@@ -241,7 +242,7 @@ const handleGet = async (req, res) => {
         },
         {
             model: Speakers,
-            attributes: ['description', 'time']
+            attributes: ['start', 'end', 'title']
         }
     ]
     );
