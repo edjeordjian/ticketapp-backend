@@ -4,13 +4,13 @@ require('dotenv').config({
 
 const fs = require('fs');
 
-const {TEST_ENV} = require("./generalConstants");
+const { TEST_ENV } = require("./generalConstants");
 
-const {TEST_URL} = require("./generalConstants");
+const { TEST_URL } = require("./generalConstants");
 
-const IS_PRODUCTION =  process.env.PRODUCTION !== undefined;
+const IS_PRODUCTION = process.env.PRODUCTION !== undefined;
 
-const RESET_DATABASE = false;
+const RESET_DATABASE = true;
 
 let DATABASE_URL;
 
@@ -26,7 +26,7 @@ let DB_NAME;
 
 if (process.env.MY_ENV === TEST_ENV) {
     DATABASE_URL = TEST_URL;
-} else if (! IS_PRODUCTION) {
+} else if (!IS_PRODUCTION) {
     if (process.env.DATABASE_URL === undefined) {
         DB_USER = process.env.POSTGRES_USER;
         DB_PASSWORD = process.env.POSTGRES_PASSWORD;
@@ -63,7 +63,7 @@ try {
     if (fs.existsSync(path)) {
         FIREBASE_CONFIG = require("../../firebase-admin.json");
     }
-} catch(err) {
+} catch (err) {
     //Testing environment
     FIREBASE_CONFIG = {}
 }

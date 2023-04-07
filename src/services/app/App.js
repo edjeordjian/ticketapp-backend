@@ -33,7 +33,7 @@ const syncDB = async () => {
     // if we make .sync({force: true}),
     // the DB is dropped first if it is already existed
     await database.sync({
-        force: RESET_DATABASE
+        force: false
     }).then(async _ => {
         if (IS_PRODUCTION) {
             await runMigrations();

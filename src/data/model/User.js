@@ -11,7 +11,6 @@ const User = database.define("users", {
         allowNull: false,
         validate: { notEmpty: true },
         unique: true,
-        autoIncrement: true
     },
 
     email: {
