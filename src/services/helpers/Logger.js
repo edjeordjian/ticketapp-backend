@@ -11,9 +11,20 @@ const {INFO_LBL,
        WARN_LBL,
        ERROR_LBL} = require("../../constants/helpers/helpersConstants");
 
-const logFile = path.resolve(__dirname, "")
+let logFile;
+       
+if (process.env.WIN){
+    logFile = path.resolve(__dirname, "")
+        .replace("src\\services\\helpers", "")
+    + "logs\\" + getQuickDate() + ".log";
+}
+else{
+    logFile = path.resolve(__dirname, "")
         .replace("src/services/helpers", "")
     + "logs/" + getQuickDate() + ".log";
+}
+
+
 
 // If the file does not exist, it will be created.
 const fileLogger = simple_node_logger.createSimpleLogger( {
