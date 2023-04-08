@@ -40,13 +40,11 @@ const Logger = require("../../services/helpers/Logger");
 
 const handleCreate = async (req, res) => {
     const body = req.body;
-
     const findResponse = await findOne(Events, {
         name: body.name
     });
 
     if (findResponse !== null) {
-        Logger.logInfo(findResponse);
         return setErrorResponse(EVENT_ALREADY_EXISTS_ERR_LBL, res);
     }
     if (findResponse !== null && "error" in findResponse) {
@@ -77,11 +75,9 @@ const handleCreate = async (req, res) => {
     if (userFindResponse === null) {
         return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
     }
-
     const tagsToAdd = await findAll(EventTypes, {
         id: body.types
     });
-
     let wallpaperUrl, picture1Url, picture2Url, picture3Url,
         picture4Url;
 

@@ -9,6 +9,8 @@ const { handleCreate,
     handleSearch,
     handleGet } = require("../../services/events/EventService");
 
+const { userExists } = require("../../services/users/UserService");
+
 const { setOkResponse,
     setErrorResponse,
     setUnexpectedErrorResponse } = require("../../services/helpers/ResponseHelper");
@@ -16,13 +18,14 @@ const { setOkResponse,
 const { isEmpty } = require("../../services/helpers/ObjectHelper");
 const { EVENT_URL, EVENT_SEARCH_NAME_URL } = require("../../constants/URLs");
 const { verifyToken } = require("../../services/authentication/FirebaseService")
+const { findOne } = require("../../services/helpers/QueryHelper");
 
 const router = express.Router();
 
 router.use("/event", async (req, res, next) => {
     if (req.method === "POST" && isEmpty(req.body)) {
         setErrorResponse("Body cannot be null", res, 400);
-        res.send();
+        return;
     } else {
         next();
     }
@@ -32,14 +35,20 @@ router.use("/event", async (req, res, next) => {
         token = req.headers.authorization.split(' ')[1];
     } else {
         setErrorResponse("Missing authorization token", res, 400);
-        res.send()
+        return;
     }
     const decodedToken = await verifyToken(token);
     if (decodedToken == false) {
         setErrorResponse("Invalid authorization token", res, 400);
-        res.send();
+        return;
     } else {
-        next();
+        const exists = await userExists(decodedToken.email);
+        if (exists) {
+            next();
+        } else {
+            setErrorResponse("User hasn't signed up yet", res, 400);
+            return;
+        }
     }
 }
 );
