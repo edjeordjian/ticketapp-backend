@@ -8,8 +8,6 @@ const { MAX_STR_LEN } = require("../../constants/dataConstants");
 
 const { database } = require("../database/database");
 
-const { User } = require('./User');
-
 const { dateToString } = require("../../services/helpers/DateHelper");
 
 const Events = database.define("events", {
@@ -25,11 +23,7 @@ const Events = database.define("events", {
     owner_id: {
         type: Sequelize.STRING(MAX_STR_LEN),
         allowNull: false,
-        validate: { notEmpty: true },
-        references: {
-            model: User,
-            key: 'id'
-        }
+        validate: { notEmpty: true }
     },
 
     name: {
@@ -124,6 +118,8 @@ const getSerializedEvent = (e) => {
         types_ids: e.event_types.map(type => type.id),
 
         types_names: e.event_types.map(type => type.name),
+
+        organizerName: `${e.user.first_name} ${e.user.last_name}`,
 
         agenda: e.speakers.map(speaker => {
             return {

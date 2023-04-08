@@ -36,6 +36,21 @@ const { create, findOne, findAll } = require("../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
+const includes = [
+    {
+        model: Speakers,
+        attributes: ['start', 'end', 'title']
+    },
+    {
+        model: EventTypes,
+        attributes: ["id", "name"]
+    },
+    {
+        model: User,
+        attributes: ["first_name", "last_name"]
+    }
+];
+
 const handleCreate = async (req, res) => {
     const body = req.body;
 
@@ -168,17 +183,6 @@ const handleSearch = async (req, res) => {
 
     let events;
 
-    const includes =  [
-        {
-            model: Speakers,
-            attributes: ['start', 'end', 'title']
-        },
-        {
-            model: EventTypes,
-            attributes: ["id"]
-        }
-    ];
-
     const order = [['createdAt', 'DESC']];
 
     if (value) {
@@ -235,16 +239,8 @@ const handleGet = async (req, res) => {
 
     const event = await findOne(Events, {
         id: eventId
-    }, [
-        {
-            model: EventTypes,
-            attributes: ['id', 'name']
-        },
-        {
-            model: Speakers,
-            attributes: ['start', 'end', 'title']
-        }
-    ]
+    },
+      includes
     );
 
     if (event === null) {

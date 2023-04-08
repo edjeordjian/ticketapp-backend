@@ -51,10 +51,6 @@ const User = database.define("users", {
 
     picture_url: {
         type: Sequelize.STRING(MAX_STR_LEN),
-    },
-
-    ownerId: {
-        type: Sequelize.STRING(ID_MAX_LEN)
     }
 });
 

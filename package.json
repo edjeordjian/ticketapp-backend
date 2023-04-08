@@ -25,22 +25,6 @@
         "simple-node-logger": "21.8.12",
         "sinon": "15.0.2"
     },
-    "eslintConfig": {
-        "extends": [
-            "node",
-            "plugin:mocha/recommended"
-        ],
-        "rules": {
-            "prefer-arrow-callback": 0,
-            "mocha/prefer-arrow-callback": 2,
-            "import/no-commonjs": 0,
-            "arrow-body-style": 0
-        }
-    },
-    "devDependencies": {
-        "eslint": "7.11.0",
-        "eslint-config-node": "4.1.0"
-    },
     "nyc": {
         "exclude": [
             "test/"

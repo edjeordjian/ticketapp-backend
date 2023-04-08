@@ -55,6 +55,12 @@ async function runMigrations() {
         'end', {
             type: Sequelize.STRING(MAX_STR_LEN)
         }).catch(error => console.log(error.toString()));
+
+    await queryInterface.removeColumn(User.tableName,
+        '\"ownerId\"')
+    .catch(e => {
+        console.log(e);
+    } );
 }
 
 module.exports = {
