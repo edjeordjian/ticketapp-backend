@@ -1,15 +1,17 @@
 const Logger = require("../../services/helpers/Logger");
 
-const express = require('express');
-const {handleGetTypes} = require("../../services/events/EventService");
+const express = require("express");
+const { handleGetTypes } = require("../../services/events/EventService");
 
-const {EVENT_TYPES_URL} = require("../../constants/URLs");
+const { EVENT_TYPES_URL } = require("../../constants/URLs");
 
-const {handleCreate,
-       handleSearch,
-       handleGet} = require("../../services/events/EventService");
+const {
+    handleCreate,
+    handleSearch,
+    handleGet
+} = require("../../services/events/EventService");
 
-const {EVENT_URL, EVENT_SEARCH_NAME_URL} = require("../../constants/URLs");
+const { EVENT_URL, EVENT_SEARCH_NAME_URL } = require("../../constants/URLs");
 
 const router = express.Router();
 
@@ -29,7 +31,7 @@ router.get(EVENT_URL, async (req, res) => {
     Logger.request(`GET: ${EVENT_URL}`);
 
     await handleGet(req, res);
-})
+});
 
 router.get(EVENT_TYPES_URL, async (req, res) => {
     Logger.request(`GET: ${EVENT_TYPES_URL}`);
