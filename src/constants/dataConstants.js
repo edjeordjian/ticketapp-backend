@@ -13,6 +13,8 @@ const { TEST_ENV } = require("./generalConstants");
 
 const { TEST_URL } = require("./generalConstants");
 
+const IS_PRODUCTION = process.env.PRODUCTION !== undefined;
+
 const RESET_DATABASE = false;
 
 let DATABASE_URL;
@@ -39,11 +41,12 @@ if (process.env.MY_ENV === TEST_ENV) {
 
         // DATABASE_URL=${DB}://${POSTGRES_USER}:${POSTGRES_PASSWORD}
         //              @${DB_CONTAINER_NAME}:${DB_PORT}/${POSTGRES_DB}
-        DATABASE_URL = `${process.env.DB}`.concat(`://${DB_USER}`).
-            concat(`:${DB_PASSWORD}`).
-            concat(`@${DB_HOST}`).
-            concat(`:${DB_PORT}`).
-            concat(`/${DB_NAME}`);
+        DATABASE_URL = `${process.env.DB}`
+            .concat(`://${DB_USER}`)
+            .concat(`:${DB_PASSWORD}`)
+            .concat(`@${DB_HOST}`)
+            .concat(`:${DB_PORT}`)
+            .concat(`/${DB_NAME}`);
     } else {
         DATABASE_URL = process.env.DATABASE_URL;
     }
@@ -73,12 +76,7 @@ try {
 const RUNNING_MIGRATIONS_LBL = "Running migrations...";
 
 module.exports = {
-    RESET_DATABASE,
-    DATABASE_URL,
-    IS_PRODUCTION,
-    ID_MAX_LEN,
-    MAX_STR_LEN,
-    FIREBASE_CONFIG,
-    RUNNING_MIGRATIONS_LBL,
+    RESET_DATABASE, DATABASE_URL, IS_PRODUCTION, ID_MAX_LEN,
+    MAX_STR_LEN, FIREBASE_CONFIG, RUNNING_MIGRATIONS_LBL,
     MAX_STR_CAPACITY
 };

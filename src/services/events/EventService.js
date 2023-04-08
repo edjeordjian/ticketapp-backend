@@ -55,6 +55,8 @@ const includes = [
     }
 ];
 
+const Logger = require("../../services/helpers/Logger");
+
 const handleCreate = async (req, res) => {
     const body = req.body;
 
@@ -65,6 +67,9 @@ const handleCreate = async (req, res) => {
     if (findResponse !== null) {
         return setErrorResponse(EVENT_ALREADY_EXISTS_ERR_LBL, res);
     }
+    if (findResponse !== null && "error" in findResponse) {
+        return setUnexpectedErrorResponse(findResponse.error, res);
+    }
 
     body.capacity = parseInt(body.capacity);
 
@@ -73,8 +78,7 @@ const handleCreate = async (req, res) => {
         return setErrorResponse(EVENT_WITH_NO_CAPACITY_ERR_LBL, res);
     }
 
-    if (areAnyUndefined([
-        body.name,
+    if (areAnyUndefined([body.name,
         body.ownerId,
         body.description,
         body.capacity,
@@ -92,11 +96,9 @@ const handleCreate = async (req, res) => {
     if (userFindResponse === null) {
         return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
     }
-
     const tagsToAdd = await findAll(EventTypes, {
         id: body.types
     });
-
     let wallpaperUrl, picture1Url, picture2Url, picture3Url,
         picture4Url;
 
