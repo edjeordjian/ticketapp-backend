@@ -1,8 +1,8 @@
-const {MAX_EVENT_CAPACITY} = require("../../constants/events/eventsConstants");
-const {getSerializedEventType} = require("../../data/model/EventTypes");
-const {getSerializedEvent} = require("../../data/model/Events");
+const { MAX_EVENT_CAPACITY } = require("../../constants/events/eventsConstants");
+const { getSerializedEventType } = require("../../data/model/EventTypes");
+const { getSerializedEvent } = require("../../data/model/Events");
 
-const {Op} = require("sequelize");
+const { Op } = require("sequelize");
 
 const { objDeepCopy } = require("../helpers/ObjectHelper");
 
@@ -23,28 +23,32 @@ const { dateFromString } = require("../helpers/DateHelper");
 const { areAnyUndefined } = require("../helpers/ListHelper");
 
 const { EVENT_ALREADY_EXISTS_ERR_LBL,
-        EVENT_WITH_NO_CAPACITY_ERR_LBL,
-        MISSING_EVENT_ATTRIBUTE_ERR_LBL,
-        EVENT_DOESNT_EXIST_ERR_LBL,
-        EVENT_CREATE_ERR_LBL} = require("../../constants/events/eventsConstants");
+    EVENT_WITH_NO_CAPACITY_ERR_LBL,
+    MISSING_EVENT_ATTRIBUTE_ERR_LBL,
+    EVENT_DOESNT_EXIST_ERR_LBL,
+    EVENT_CREATE_ERR_LBL } = require("../../constants/events/eventsConstants");
 
 const { setOkResponse,
-        setErrorResponse,
-        setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
+    setErrorResponse,
+    setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
 
 const { create, findOne, findAll } = require("../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
+const Logger = require("../../services/helpers/Logger");
+
 const handleCreate = async (req, res) => {
     const body = req.body;
-
     const findResponse = await findOne(Events, {
         name: body.name
     });
 
     if (findResponse !== null) {
         return setErrorResponse(EVENT_ALREADY_EXISTS_ERR_LBL, res);
+    }
+    if (findResponse !== null && "error" in findResponse) {
+        return setUnexpectedErrorResponse(findResponse.error, res);
     }
 
     body.capacity = parseInt(body.capacity);
@@ -54,13 +58,13 @@ const handleCreate = async (req, res) => {
     }
 
     if (areAnyUndefined([body.name,
-        body.ownerId,
-        body.description,
-        body.capacity,
-        body.date,
-        body.time,
-        body.types,
-        body.address])) {
+    body.ownerId,
+    body.description,
+    body.capacity,
+    body.date,
+    body.time,
+    body.types,
+    body.address])) {
         return setErrorResponse(MISSING_EVENT_ATTRIBUTE_ERR_LBL, res);
     }
 
@@ -71,11 +75,9 @@ const handleCreate = async (req, res) => {
     if (userFindResponse === null) {
         return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
     }
-
     const tagsToAdd = await findAll(EventTypes, {
         id: body.types
     });
-
     let wallpaperUrl, picture1Url, picture2Url, picture3Url,
         picture4Url;
 
@@ -163,11 +165,11 @@ const handleCreate = async (req, res) => {
 };
 
 const handleSearch = async (req, res) => {
-    const {value, owner} = req.query;
+    const { value, owner } = req.query;
 
     let events;
 
-    const includes =  [
+    const includes = [
         {
             model: Speakers,
             attributes: ["description", "time"]
@@ -182,17 +184,17 @@ const handleSearch = async (req, res) => {
 
     if (value) {
         events = await findAll(Events, {
-                name: {
-                    [Op.like]: `%${value}%`
-                }
-            },
+            name: {
+                [Op.like]: `%${value}%`
+            }
+        },
             includes,
             order
         );
     } else if (owner) {
         events = await findAll(Events, {
-                owner_id: owner
-            },
+            owner_id: owner
+        },
             includes,
             order
         );
@@ -215,7 +217,7 @@ const handleSearch = async (req, res) => {
     const serializedEvents = [];
 
     events.map(e => {
-       serializedEvents.push(getSerializedEvent(e));
+        serializedEvents.push(getSerializedEvent(e));
     });
 
     const eventsResponse = {
@@ -228,7 +230,7 @@ const handleSearch = async (req, res) => {
 const handleGet = async (req, res) => {
     const { eventId } = req.query;
 
-    if (! eventId) {
+    if (!eventId) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
     }
 
