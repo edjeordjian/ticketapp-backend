@@ -10,7 +10,7 @@ const { TEST_URL } = require("./generalConstants");
 
 const IS_PRODUCTION = process.env.PRODUCTION !== undefined;
 
-const RESET_DATABASE = true;
+const RESET_DATABASE = false;
 
 let DATABASE_URL;
 
