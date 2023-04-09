@@ -1,6 +1,7 @@
 const Logger = require("../../services/helpers/Logger");
 
-const express = require('express');
+const express = require("express");
+const { getFirebaseUserData } = require("../../services/authentication/FirebaseService");
 const { handleGetTypes } = require("../../services/events/EventService");
 
 const { EVENT_TYPES_URL } = require("../../constants/URLs");
@@ -24,30 +25,39 @@ const router = express.Router();
 
 router.use("/event", async (req, res, next) => {
     if (req.method === "POST" && isEmpty(req.body)) {
-        setErrorResponse("Body cannot be null", res, 400);
-        return;
+        return setErrorResponse("Body cannot be null", res, 400);
     } else {
         next();
     }
 }, async (req, res, next) => {
     let token;
-    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-        token = req.headers.authorization.split(' ')[1];
-    } else {
-        setErrorResponse("Missing authorization token", res, 400);
-        return;
-    }
-    const decodedToken = await verifyToken(token);
-    if (decodedToken == false) {
-        setErrorResponse("Invalid authorization token", res, 400);
-        return;
-    } else {
-        const exists = await userExists(decodedToken.email);
-        if (exists) {
+
+    if (req.headers.expo && req.headers.authorization) {
+        const userData = await getFirebaseUserData(req.headers.authorization.split(" ")[1]);
+
+        if (userData.id) {
             next();
         } else {
-            setErrorResponse("User hasn't signed up yet", res, 400);
-            return;
+            return setErrorResponse("No autorizado", res, 400);
+        }
+    } else {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            token = req.headers.authorization.split(' ')[1];
+        } else {
+            return setErrorResponse("No autorizado", res, 400);
+        }
+
+        const decodedToken = await verifyToken(token);
+
+        if (decodedToken === false) {
+            return setErrorResponse("No autorizado.", res, 400);
+        } else {
+            const exists = await userExists(decodedToken.email);
+            if (exists) {
+                next();
+            } else {
+                return setErrorResponse("Falta ingresar.", res, 400);
+            }
         }
     }
 }
@@ -69,7 +79,7 @@ router.get(EVENT_URL, async (req, res) => {
     Logger.request(`GET: ${EVENT_URL}`);
 
     await handleGet(req, res);
-})
+});
 
 router.get(EVENT_TYPES_URL, async (req, res) => {
     Logger.request(`GET: ${EVENT_TYPES_URL}`);
