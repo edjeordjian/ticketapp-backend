@@ -9,7 +9,7 @@ const { handleCreate,
     handleSearch,
     handleGet } = require("../../services/events/EventService");
 
-const { userExists } = require("../../services/users/UserService");
+const { userIsOrganizer } = require("../../services/users/UserService");
 
 const { setOkResponse,
     setErrorResponse,
@@ -42,11 +42,11 @@ router.use("/event", async (req, res, next) => {
         setErrorResponse("Invalid authorization token", res, 400);
         return;
     } else {
-        const exists = await userExists(decodedToken.email);
-        if (exists) {
+        const isOrganizer = await userIsOrganizer(decodedToken.email);
+        if (isOrganizer) {
             next();
         } else {
-            setErrorResponse("User hasn't signed up yet", res, 400);
+            setErrorResponse("Usser hasn't signed up yet or doesn't have permission to create events", res, 400);
             return;
         }
     }
@@ -55,7 +55,6 @@ router.use("/event", async (req, res, next) => {
 
 router.post(EVENT_URL, async (req, res) => {
     Logger.request(`POST: ${EVENT_URL}`);
-
     await handleCreate(req, res);
 });
 
