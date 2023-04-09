@@ -1,4 +1,5 @@
 const IS_PRODUCTION = process.env.PRODUCTION !== undefined;
+
 if (!IS_PRODUCTION && process.env.MY_ENV === undefined) {
     process.env.MY_ENV = ".development";
 }
@@ -12,8 +13,6 @@ const fs = require("fs");
 const { TEST_ENV } = require("./generalConstants");
 
 const { TEST_URL } = require("./generalConstants");
-
-const IS_PRODUCTION = process.env.PRODUCTION !== undefined;
 
 const RESET_DATABASE = false;
 
