@@ -1,4 +1,4 @@
-const {ID_MAX_LEN, MAX_STR_LEN} = require("../../constants/dataConstants");
+const {MAX_STR_LEN} = require("../../constants/dataConstants");
 
 const {Sequelize} = require("sequelize");
 
@@ -14,11 +14,15 @@ const Speakers = database.define("speakers", {
         autoIncrement: true
     },
 
-    description: {
+    title: {
         type: Sequelize.STRING(MAX_STR_LEN)
     },
 
-    time: {
+    start: {
+        type: Sequelize.STRING(MAX_STR_LEN)
+    },
+
+    end: {
         type: Sequelize.STRING(MAX_STR_LEN)
     }
 });

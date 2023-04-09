@@ -22,24 +22,44 @@ const { dateFromString } = require("../helpers/DateHelper");
 
 const { areAnyUndefined } = require("../helpers/ListHelper");
 
-const { EVENT_ALREADY_EXISTS_ERR_LBL,
+const {
+    EVENT_ALREADY_EXISTS_ERR_LBL,
     EVENT_WITH_NO_CAPACITY_ERR_LBL,
     MISSING_EVENT_ATTRIBUTE_ERR_LBL,
     EVENT_DOESNT_EXIST_ERR_LBL,
-    EVENT_CREATE_ERR_LBL } = require("../../constants/events/eventsConstants");
+    EVENT_CREATE_ERR_LBL
+} = require("../../constants/events/eventsConstants");
 
-const { setOkResponse,
+const {
+    setOkResponse,
     setErrorResponse,
-    setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
+    setUnexpectedErrorResponse
+} = require("../helpers/ResponseHelper");
 
 const { create, findOne, findAll } = require("../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
+const includes = [
+    {
+        model: Speakers,
+        attributes: ["start", "end", "title"]
+    },
+    {
+        model: EventTypes,
+        attributes: ["id", "name"]
+    },
+    {
+        model: User,
+        attributes: ["first_name", "last_name"]
+    }
+];
+
 const Logger = require("../../services/helpers/Logger");
 
 const handleCreate = async (req, res) => {
     const body = req.body;
+
     const findResponse = await findOne(Events, {
         name: body.name
     });
@@ -53,18 +73,19 @@ const handleCreate = async (req, res) => {
 
     body.capacity = parseInt(body.capacity);
 
-    if (isNaN(body.capacity) || body.capacity <= 0 || body.capacity >= MAX_EVENT_CAPACITY) {
+    if (isNaN(body.capacity) || body.capacity <= 0 || body.capacity >=
+        MAX_EVENT_CAPACITY) {
         return setErrorResponse(EVENT_WITH_NO_CAPACITY_ERR_LBL, res);
     }
 
     if (areAnyUndefined([body.name,
-    body.ownerId,
-    body.description,
-    body.capacity,
-    body.date,
-    body.time,
-    body.types,
-    body.address])) {
+        body.ownerId,
+        body.description,
+        body.capacity,
+        body.date,
+        body.time,
+        body.types,
+        body.address])) {
         return setErrorResponse(MISSING_EVENT_ATTRIBUTE_ERR_LBL, res);
     }
 
@@ -137,16 +158,17 @@ const handleCreate = async (req, res) => {
         if (body.agenda !== undefined) {
             body.agenda.map(async speaker => {
                 const createResponse = await create(Speakers, {
-                    description: speaker.description,
-                    time: speaker.time,
-                    eventId: createdEvent.id,
+                    start: speaker.start,
+                    end: speaker.end,
+                    title: speaker.title,
+                    eventId: createdEvent.id
                 });
 
                 if (createResponse.error !== undefined) {
                     throw new Error(createResponse.error);
                 }
 
-                speakers.push(objDeepCopy(createResponse))
+                speakers.push(objDeepCopy(createResponse));
             });
 
             const createResponse = await createdEvent.addSpeakers(speakers);
@@ -169,32 +191,21 @@ const handleSearch = async (req, res) => {
 
     let events;
 
-    const includes = [
-        {
-            model: Speakers,
-            attributes: ["description", "time"]
-        },
-        {
-            model: EventTypes,
-            attributes: ["id"]
-        }
-    ];
-
-    const order = [['createdAt', 'DESC']];
+    const order = [["createdAt", "DESC"]];
 
     if (value) {
         events = await findAll(Events, {
-            name: {
-                [Op.like]: `%${value}%`
-            }
-        },
+                name: {
+                    [Op.iLike]: `%${value}%`
+                }
+            },
             includes,
             order
         );
     } else if (owner) {
         events = await findAll(Events, {
-            owner_id: owner
-        },
+                owner_id: owner
+            },
             includes,
             order
         );
@@ -235,17 +246,9 @@ const handleGet = async (req, res) => {
     }
 
     const event = await findOne(Events, {
-        id: eventId
-    }, [
-        {
-            model: EventTypes,
-            attributes: ['id']
+            id: eventId
         },
-        {
-            model: Speakers,
-            attributes: ['description', 'time']
-        }
-    ]
+        includes
     );
 
     if (event === null) {
@@ -277,10 +280,10 @@ const handleGetTypes = async (req, res) => {
 
     const response = {
         "event_types": eventTypes
-    }
+    };
 
     return setOkResponse(OK_LBL, res, response);
-}
+};
 
 module.exports = {
     handleCreate,

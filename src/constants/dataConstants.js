@@ -1,14 +1,18 @@
-require('dotenv').config({
+const IS_PRODUCTION = process.env.PRODUCTION !== undefined;
+
+if (!IS_PRODUCTION && process.env.MY_ENV === undefined) {
+    process.env.MY_ENV = ".development";
+}
+
+require("dotenv").config({
     path: `.env${process.env.MY_ENV}`
 });
 
-const fs = require('fs');
+const fs = require("fs");
 
 const { TEST_ENV } = require("./generalConstants");
 
 const { TEST_URL } = require("./generalConstants");
-
-const IS_PRODUCTION = process.env.PRODUCTION !== undefined;
 
 const RESET_DATABASE = false;
 
@@ -55,7 +59,7 @@ const MAX_STR_LEN = 254;
 
 const MAX_STR_CAPACITY = 65500;
 
-const path = './file.txt'
+const path = "./file.txt";
 
 let FIREBASE_CONFIG;
 
@@ -65,7 +69,7 @@ try {
     }
 } catch (err) {
     //Testing environment
-    FIREBASE_CONFIG = {}
+    FIREBASE_CONFIG = {};
 }
 
 const RUNNING_MIGRATIONS_LBL = "Running migrations...";

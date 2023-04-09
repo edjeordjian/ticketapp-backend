@@ -8,8 +8,6 @@ const { MAX_STR_LEN } = require("../../constants/dataConstants");
 
 const { database } = require("../database/database");
 
-const { User } = require('./User');
-
 const { dateToString } = require("../../services/helpers/DateHelper");
 
 const Events = database.define("events", {
@@ -25,11 +23,7 @@ const Events = database.define("events", {
     owner_id: {
         type: Sequelize.STRING(MAX_STR_LEN),
         allowNull: false,
-        validate: { notEmpty: true },
-        references: {
-            model: User,
-            key: 'id'
-        }
+        validate: { notEmpty: true }
     },
 
     name: {
@@ -84,24 +78,24 @@ const Events = database.define("events", {
 const getSerializedEvent = (e) => {
     const pictures = [];
 
-    if (e.wallpaperUrl) {
-        pictures.push(e.wallpaperUrl);
+    if (e.wallpaper_url) {
+        pictures.push(e.wallpaper_url);
     }
 
-    if (e.picture1Url) {
-        pictures.push(e.picture1Url);
+    if (e.picture1_url) {
+        pictures.push(e.picture1_url);
     }
 
-    if (e.picture2Url) {
-        pictures.push(e.picture2Url);
+    if (e.picture2_url) {
+        pictures.push(e.picture2_url);
     }
 
-    if (e.picture3Url) {
-        pictures.push(e.picture3Url);
+    if (e.picture3_url) {
+        pictures.push(e.picture3_url);
     }
 
-    if (e.picture4Url) {
-        pictures.push(e.picture4Url);
+    if (e.picture4_url) {
+        pictures.push(e.picture4_url);
     }
 
     return {
@@ -123,11 +117,17 @@ const getSerializedEvent = (e) => {
 
         types_ids: e.event_types.map(type => type.id),
 
+        types_names: e.event_types.map(type => type.name),
+
+        organizerName: `${e.user.first_name} ${e.user.last_name}`,
+
         agenda: e.speakers.map(speaker => {
             return {
-                "description": speaker.description,
+                "start": speaker.start,
 
-                "time": speaker.time
+                "end": speaker.end,
+
+                "title": speaker.title
             }
         })
     }

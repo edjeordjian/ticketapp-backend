@@ -1,5 +1,10 @@
 const admin = require('firebase-admin');
 const Logger = require("../helpers/Logger");
+const { FIREBASE_URL } = require("../../constants/URLs");
+const { logError } = require("../helpers/Logger");
+
+const fetch = require('node-fetch');
+
 require('dotenv').config({
     path: `.env${process.env.MY_ENV}`
 });
@@ -13,6 +18,16 @@ const app = admin.initializeApp({
     appId: process.env.FIREBASE_APP_ID
 });
 
+const getFirebaseUserData = async (token) => {
+    const userInfoResponse = await fetch(FIREBASE_URL, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    return userInfoResponse.json();
+};
+
 const auth = admin.auth();
 
 const verifyToken = async (token) => {
@@ -20,9 +35,11 @@ const verifyToken = async (token) => {
         const decodedToken = await auth.verifyIdToken(token);
         return decodedToken;
     } catch (error) {
+        logError(error.stack);
+
         return false;
     }
 }
 module.exports = {
-    verifyToken
+    verifyToken, getFirebaseUserData
 }
