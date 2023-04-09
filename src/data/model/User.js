@@ -10,8 +10,7 @@ const User = database.define("users", {
         type: Sequelize.STRING(ID_MAX_LEN),
         allowNull: false,
         validate: { notEmpty: true },
-        unique: true,
-        autoIncrement: true
+        unique: true
     },
 
     email: {
@@ -52,10 +51,6 @@ const User = database.define("users", {
 
     picture_url: {
         type: Sequelize.STRING(MAX_STR_LEN),
-    },
-
-    ownerId: {
-        type: Sequelize.STRING(ID_MAX_LEN)
     }
 });
 

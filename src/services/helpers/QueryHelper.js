@@ -1,5 +1,5 @@
-const {Op} = require("sequelize");
-const { logError } = require("./Logger");
+const { Op } = require("sequelize");
+const { logError, logInfo } = require("./Logger");
 
 
 const findOne = async (model,
@@ -31,10 +31,9 @@ const findAll = async (model,
 
         include: include,
 
-        order: order,
-    } )
-        .catch(error => {
-            logError(error.stack);
+        order: order
+    }).catch(error => {
+        logError(error.stack);
 
             return {
                 error: "Error en la consulta."
@@ -53,7 +52,7 @@ const create = async (model, body) => {
             return {
                 error: "Error en la creación."
             }
-        } );
+        });
 
     return response;
 };

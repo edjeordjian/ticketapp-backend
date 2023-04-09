@@ -1,14 +1,18 @@
-require('dotenv').config({
+const IS_PRODUCTION = process.env.PRODUCTION !== undefined;
+
+if (!IS_PRODUCTION && process.env.MY_ENV === undefined) {
+    process.env.MY_ENV = ".development";
+}
+
+require("dotenv").config({
     path: `.env${process.env.MY_ENV}`
 });
 
-const fs = require('fs');
+const fs = require("fs");
 
-const {TEST_ENV} = require("./generalConstants");
+const { TEST_ENV } = require("./generalConstants");
 
-const {TEST_URL} = require("./generalConstants");
-
-const IS_PRODUCTION =  process.env.PRODUCTION !== undefined;
+const { TEST_URL } = require("./generalConstants");
 
 const RESET_DATABASE = false;
 
@@ -26,7 +30,7 @@ let DB_NAME;
 
 if (process.env.MY_ENV === TEST_ENV) {
     DATABASE_URL = TEST_URL;
-} else if (! IS_PRODUCTION) {
+} else if (!IS_PRODUCTION) {
     if (process.env.DATABASE_URL === undefined) {
         DB_USER = process.env.POSTGRES_USER;
         DB_PASSWORD = process.env.POSTGRES_PASSWORD;
@@ -55,7 +59,7 @@ const MAX_STR_LEN = 254;
 
 const MAX_STR_CAPACITY = 65500;
 
-const path = './file.txt'
+const path = "./file.txt";
 
 let FIREBASE_CONFIG;
 
@@ -63,9 +67,9 @@ try {
     if (fs.existsSync(path)) {
         FIREBASE_CONFIG = require("../../firebase-admin.json");
     }
-} catch(err) {
+} catch (err) {
     //Testing environment
-    FIREBASE_CONFIG = {}
+    FIREBASE_CONFIG = {};
 }
 
 const RUNNING_MIGRATIONS_LBL = "Running migrations...";

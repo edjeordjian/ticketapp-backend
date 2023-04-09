@@ -1,8 +1,8 @@
-const {MAX_EVENT_CAPACITY} = require("../../constants/events/eventsConstants");
-const {getSerializedEventType} = require("../../data/model/EventTypes");
-const {getSerializedEvent} = require("../../data/model/Events");
+const { MAX_EVENT_CAPACITY } = require("../../constants/events/eventsConstants");
+const { getSerializedEventType } = require("../../data/model/EventTypes");
+const { getSerializedEvent } = require("../../data/model/Events");
 
-const {Op} = require("sequelize");
+const { Op } = require("sequelize");
 
 const { objDeepCopy } = require("../helpers/ObjectHelper");
 
@@ -22,19 +22,40 @@ const { dateFromString } = require("../helpers/DateHelper");
 
 const { areAnyUndefined } = require("../helpers/ListHelper");
 
-const { EVENT_ALREADY_EXISTS_ERR_LBL,
-        EVENT_WITH_NO_CAPACITY_ERR_LBL,
-        MISSING_EVENT_ATTRIBUTE_ERR_LBL,
-        EVENT_DOESNT_EXIST_ERR_LBL,
-        EVENT_CREATE_ERR_LBL} = require("../../constants/events/eventsConstants");
+const {
+    EVENT_ALREADY_EXISTS_ERR_LBL,
+    EVENT_WITH_NO_CAPACITY_ERR_LBL,
+    MISSING_EVENT_ATTRIBUTE_ERR_LBL,
+    EVENT_DOESNT_EXIST_ERR_LBL,
+    EVENT_CREATE_ERR_LBL
+} = require("../../constants/events/eventsConstants");
 
-const { setOkResponse,
-        setErrorResponse,
-        setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
+const {
+    setOkResponse,
+    setErrorResponse,
+    setUnexpectedErrorResponse
+} = require("../helpers/ResponseHelper");
 
 const { create, findOne, findAll } = require("../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
+
+const includes = [
+    {
+        model: Speakers,
+        attributes: ["start", "end", "title"]
+    },
+    {
+        model: EventTypes,
+        attributes: ["id", "name"]
+    },
+    {
+        model: User,
+        attributes: ["first_name", "last_name"]
+    }
+];
+
+const Logger = require("../../services/helpers/Logger");
 
 const handleCreate = async (req, res) => {
     const body = req.body;
@@ -46,10 +67,14 @@ const handleCreate = async (req, res) => {
     if (findResponse !== null) {
         return setErrorResponse(EVENT_ALREADY_EXISTS_ERR_LBL, res);
     }
+    if (findResponse !== null && "error" in findResponse) {
+        return setUnexpectedErrorResponse(findResponse.error, res);
+    }
 
     body.capacity = parseInt(body.capacity);
 
-    if (isNaN(body.capacity) || body.capacity <= 0 || body.capacity >= MAX_EVENT_CAPACITY) {
+    if (isNaN(body.capacity) || body.capacity <= 0 || body.capacity >=
+        MAX_EVENT_CAPACITY) {
         return setErrorResponse(EVENT_WITH_NO_CAPACITY_ERR_LBL, res);
     }
 
@@ -71,11 +96,9 @@ const handleCreate = async (req, res) => {
     if (userFindResponse === null) {
         return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
     }
-
     const tagsToAdd = await findAll(EventTypes, {
         id: body.types
     });
-
     let wallpaperUrl, picture1Url, picture2Url, picture3Url,
         picture4Url;
 
@@ -135,16 +158,17 @@ const handleCreate = async (req, res) => {
         if (body.agenda !== undefined) {
             body.agenda.map(async speaker => {
                 const createResponse = await create(Speakers, {
-                    description: speaker.description,
-                    time: speaker.time,
-                    eventId: createdEvent.id,
+                    start: speaker.start,
+                    end: speaker.end,
+                    title: speaker.title,
+                    eventId: createdEvent.id
                 });
 
                 if (createResponse.error !== undefined) {
                     throw new Error(createResponse.error);
                 }
 
-                speakers.push(objDeepCopy(createResponse))
+                speakers.push(objDeepCopy(createResponse));
             });
 
             const createResponse = await createdEvent.addSpeakers(speakers);
@@ -163,27 +187,16 @@ const handleCreate = async (req, res) => {
 };
 
 const handleSearch = async (req, res) => {
-    const {value, owner} = req.query;
+    const { value, owner } = req.query;
 
     let events;
 
-    const includes =  [
-        {
-            model: Speakers,
-            attributes: ["description", "time"]
-        },
-        {
-            model: EventTypes,
-            attributes: ["id"]
-        }
-    ];
-
-    const order = [['createdAt', 'DESC']];
+    const order = [["createdAt", "DESC"]];
 
     if (value) {
         events = await findAll(Events, {
                 name: {
-                    [Op.like]: `%${value}%`
+                    [Op.iLike]: `%${value}%`
                 }
             },
             includes,
@@ -215,7 +228,7 @@ const handleSearch = async (req, res) => {
     const serializedEvents = [];
 
     events.map(e => {
-       serializedEvents.push(getSerializedEvent(e));
+        serializedEvents.push(getSerializedEvent(e));
     });
 
     const eventsResponse = {
@@ -228,22 +241,14 @@ const handleSearch = async (req, res) => {
 const handleGet = async (req, res) => {
     const { eventId } = req.query;
 
-    if (! eventId) {
+    if (!eventId) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
     }
 
     const event = await findOne(Events, {
-        id: eventId
-    }, [
-        {
-            model: EventTypes,
-            attributes: ['id']
+            id: eventId
         },
-        {
-            model: Speakers,
-            attributes: ['description', 'time']
-        }
-    ]
+        includes
     );
 
     if (event === null) {
@@ -275,10 +280,10 @@ const handleGetTypes = async (req, res) => {
 
     const response = {
         "event_types": eventTypes
-    }
+    };
 
     return setOkResponse(OK_LBL, res, response);
-}
+};
 
 module.exports = {
     handleCreate,

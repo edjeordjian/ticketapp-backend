@@ -120,4 +120,26 @@ describe("EventService", function() {
 
         assert(OK_LBL === response.message);
     });
+
+    it("Get types", async () => {
+        req.query = {
+            eventId: "1"
+        };
+
+        const findAllStub = sinon.stub().resolves([]);
+
+        EventService.__set__({
+            "findAll": findAllStub
+        });
+
+        const getSerializedEventType = sinon.stub().resolves({});
+
+        EventService.__set__({
+            "getSerializedEventType": getSerializedEventType
+        });
+
+        const response = await EventService.handleGetTypes(req, res);
+
+        assert(OK_LBL === response.message);
+    });
 });
