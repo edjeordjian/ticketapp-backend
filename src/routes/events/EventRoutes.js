@@ -1,6 +1,7 @@
 const Logger = require("../../services/helpers/Logger");
 
 const express = require("express");
+const { getFirebaseUserData } = require("../../services/authentication/FirebaseService");
 const { handleGetTypes } = require("../../services/events/EventService");
 
 const { EVENT_TYPES_URL } = require("../../constants/URLs");
@@ -30,20 +31,33 @@ router.use("/event", async (req, res, next) => {
     }
 }, async (req, res, next) => {
     let token;
-    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-        token = req.headers.authorization.split(' ')[1];
-    } else {
-        return setErrorResponse("Missing authorization token", res, 400);
-    }
-    const decodedToken = await verifyToken(token);
-    if (decodedToken === false) {
-        return setErrorResponse("Invalid authorization token", res, 400);
-    } else {
-        const exists = await userExists(decodedToken.email);
-        if (exists) {
+
+    if (req.headers.expo && req.headers.authorization) {
+        const userData = await getFirebaseUserData(req.headers.authorization.split(" ")[1]);
+
+        if (userData.id) {
             next();
         } else {
-            return setErrorResponse("User hasn't signed up yet", res, 400);
+            return setErrorResponse("No autorizado", res, 400);
+        }
+    } else {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            token = req.headers.authorization.split(' ')[1];
+        } else {
+            return setErrorResponse("No autorizado", res, 400);
+        }
+
+        const decodedToken = await verifyToken(token);
+
+        if (decodedToken === false) {
+            return setErrorResponse("No autorizado.", res, 400);
+        } else {
+            const exists = await userExists(decodedToken.email);
+            if (exists) {
+                next();
+            } else {
+                return setErrorResponse("Falta ingresar.", res, 400);
+            }
         }
     }
 }
