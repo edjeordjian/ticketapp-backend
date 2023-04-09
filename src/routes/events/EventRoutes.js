@@ -30,14 +30,14 @@ const isOrganizerMiddleware = async (req, res, next) => {
     if (isOrganizer) {
         next();
     } else {
-        return setErrorResponse("User doesn't have an organizer role", res, 401);
+        return setErrorResponse("Acceso solo para organizadores.", res, 401);
     }
 
 }
 
 router.use("/event", async (req, res, next) => {
     if (req.method === "POST" && isEmpty(req.body)) {
-        return setErrorResponse("Body cannot be null", res, 400);
+        return setErrorResponse("Error en la petición.", res, 400);
     } else {
         next();
     }
