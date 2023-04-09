@@ -1,6 +1,45 @@
 /* Save here your old migrations.
 */
 
+async function m4() {
+    await queryInterface.removeColumn(Speakers.tableName,
+        'description')
+    .catch(e => {
+        console.log(e);
+    } );
+
+
+    await queryInterface.removeColumn(Speakers.tableName,
+        'time')
+    .catch(e => {
+        console.log(e);
+    } );
+
+
+    await queryInterface.addColumn(Speakers.tableName,
+        'title', {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }).catch(error => console.log(error.toString()));
+
+
+    await queryInterface.addColumn(Speakers.tableName,
+        'start', {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }).catch(error => console.log(error.toString()));
+
+
+    await queryInterface.addColumn(Speakers.tableName,
+        'end', {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }).catch(error => console.log(error.toString()));
+
+    await queryInterface.removeColumn(User.tableName,
+        '\"ownerId\"')
+    .catch(e => {
+        console.log(e);
+    } );
+}
+
 async function m3() {
     await queryInterface.addColumn(Events.tableName,
         "time", {
