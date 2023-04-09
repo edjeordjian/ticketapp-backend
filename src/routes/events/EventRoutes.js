@@ -9,7 +9,7 @@ const { handleCreate,
     handleSearch,
     handleGet } = require("../../services/events/EventService");
 
-const { userIsOrganizer } = require("../../services/users/UserService");
+const { userIsOrganizer, userExists } = require("../../services/users/UserService");
 
 const { setOkResponse,
     setErrorResponse,
@@ -21,6 +21,19 @@ const { verifyToken } = require("../../services/authentication/FirebaseService")
 const { findOne } = require("../../services/helpers/QueryHelper");
 
 const router = express.Router();
+
+const isOrganizerMiddleware = async (req, res, next) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = await verifyToken(token);
+    const isOrganizer = await userIsOrganizer(decodedToken.email);
+    if (isOrganizer) {
+        next();
+    } else {
+        setErrorResponse("User doesn't have an organizer role", res, 401);
+        return;
+    }
+
+}
 
 router.use("/event", async (req, res, next) => {
     if (req.method === "POST" && isEmpty(req.body)) {
@@ -39,24 +52,28 @@ router.use("/event", async (req, res, next) => {
     }
     const decodedToken = await verifyToken(token);
     if (decodedToken == false) {
-        setErrorResponse("Invalid authorization token", res, 400);
+        setErrorResponse("Invalid authorization token", res, 401);
         return;
     } else {
-        const isOrganizer = await userIsOrganizer(decodedToken.email);
-        if (isOrganizer) {
+        const exists = await userExists(decodedToken.email);
+        console.log(decodedToken.email);
+        if (exists) {
             next();
         } else {
-            setErrorResponse("Usser hasn't signed up yet or doesn't have permission to create events", res, 400);
+            setErrorResponse("User hasn't signed up yet", res, 401);
             return;
         }
     }
 }
 );
 
-router.post(EVENT_URL, async (req, res) => {
-    Logger.request(`POST: ${EVENT_URL}`);
-    await handleCreate(req, res);
-});
+
+router.post(EVENT_URL, async (req, res, next) => { isOrganizerMiddleware(req, res, next) },
+    async (req, res, next) => {
+
+        Logger.request(`POST: ${EVENT_URL}`);
+        await handleCreate(req, res);
+    });
 
 router.get(EVENT_SEARCH_NAME_URL, async (req, res) => {
     Logger.request(`GET: ${EVENT_SEARCH_NAME_URL}`);
@@ -70,10 +87,11 @@ router.get(EVENT_URL, async (req, res) => {
     await handleGet(req, res);
 })
 
-router.get(EVENT_TYPES_URL, async (req, res) => {
-    Logger.request(`GET: ${EVENT_TYPES_URL}`);
+router.get(EVENT_TYPES_URL, async (req, res, next) => { isOrganizerMiddleware(req, res, next) },
+    async (req, res, next) => {
+        Logger.request(`GET: ${EVENT_TYPES_URL}`);
 
-    await handleGetTypes(req, res);
-});
+        await handleGetTypes(req, res);
+    });
 
 module.exports = router;
