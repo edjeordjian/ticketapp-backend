@@ -53,7 +53,7 @@ router.get(EVENT_TYPES_URL, async (req, res, next) => { isOrganizerMiddleware(re
 
 router.post(EVENT_GROUP_ADD_USER_URL, async (req, res, next) => { isOrganizerMiddleware(req, res, next) },
     async (req, res) => {
-        Logger.request(`POST: /event/group/addUser`);
+        Logger.request(`POST: /event/group/addUsers`);
         await handleAddUserToGroup(req, res);
     });
 
