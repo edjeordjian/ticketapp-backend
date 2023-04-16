@@ -133,6 +133,10 @@ const handleCreate = async (req, res) => {
 
         address: body.address,
 
+        latitude: body.latitude,
+
+        longitude: body.longitude,
+
         date: dateFromString(body.date),
 
         time: dateFromString(body.time),
