@@ -1,8 +1,8 @@
-const { database } = require('../database/database');
+const { database } = require("../database/database");
 
-const Sequelize = require('sequelize');
+const Sequelize = require("sequelize");
 
-const {Speakers} = require("../model/Speakers");
+const { Speakers } = require("../model/Speakers");
 
 const { ID_MAX_LEN } = require("../../constants/dataConstants");
 
@@ -22,10 +22,21 @@ const { EventTypes } = require("../model/EventTypes");
 
 const today = new Date();
 
-async function runMigrations() {
+async function runMigrations () {
     logInfo(RUNNING_MIGRATIONS_LBL);
+
+    await queryInterface.addColumn(Events.tableName,
+        "latitude", {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }
+    ).catch(error => console.log(error.toString()));
+
+    await queryInterface.addColumn(Events.tableName,
+        "longitude", {
+            type: Sequelize.STRING(MAX_STR_LEN)
+    }).catch(error => console.log(error.toString()));
 }
 
 module.exports = {
     runMigrations
-}
+};

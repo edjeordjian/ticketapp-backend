@@ -54,6 +54,14 @@ const Events = database.define("events", {
         type: Sequelize.STRING(MAX_STR_LEN)
     },
 
+    latitude: {
+        type: Sequelize.STRING(MAX_STR_LEN)
+    },
+
+    longitude: {
+        type: Sequelize.STRING(MAX_STR_LEN)
+    },
+
     wallpaper_url: {
         type: Sequelize.STRING(MAX_STR_LEN)
     },
@@ -112,6 +120,10 @@ const getSerializedEvent = (e) => {
         time: timeToString(e.time),
 
         address: e.address,
+
+        latitude: e.latitude,
+
+        longitude: e.longitude,
 
         pictures: pictures,
 
