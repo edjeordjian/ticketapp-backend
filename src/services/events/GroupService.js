@@ -4,7 +4,7 @@ const { getSerializedEvent } = require("../../data/model/Events");
 
 const { Op } = require("sequelize");
 
-const { objDeepCopy } = require("../helpers/ObjectHelper");
+const { objDeepCopy, removeTimestamps } = require("../helpers/ObjectHelper");
 
 const { Speakers } = require("../../data/model/Speakers");
 
@@ -63,7 +63,7 @@ const handleGetGroup = async (req, res) => {
             model: User,
             attributes: ["email"]
         });
-    return setOkResponse(group, res);
+    return setOkResponse(removeTimestamps(group), res);
 
 }
 
