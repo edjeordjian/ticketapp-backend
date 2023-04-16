@@ -79,13 +79,13 @@ const handleCreate = async (req, res) => {
     }
 
     if (areAnyUndefined([body.name,
-        body.ownerId,
-        body.description,
-        body.capacity,
-        body.date,
-        body.time,
-        body.types,
-        body.address])) {
+    body.ownerId,
+    body.description,
+    body.capacity,
+    body.date,
+    body.time,
+    body.types,
+    body.address])) {
         return setErrorResponse(MISSING_EVENT_ATTRIBUTE_ERR_LBL, res);
     }
 
@@ -199,17 +199,17 @@ const handleSearch = async (req, res) => {
 
     if (value) {
         events = await findAll(Events, {
-                name: {
-                    [Op.iLike]: `%${value}%`
-                }
-            },
+            name: {
+                [Op.iLike]: `%${value}%`
+            }
+        },
             includes,
             order
         );
     } else if (owner) {
         events = await findAll(Events, {
-                owner_id: owner
-            },
+            owner_id: owner
+        },
             includes,
             order
         );
@@ -250,8 +250,8 @@ const handleGet = async (req, res) => {
     }
 
     const event = await findOne(Events, {
-            id: eventId
-        },
+        id: eventId
+    },
         includes
     );
 
