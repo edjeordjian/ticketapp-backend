@@ -33,7 +33,7 @@ const findAll = async (model,
 
         order: order
     }).catch(error => {
-        logError(error.stack);
+        logError(error.name);
 
             return {
                 error: "Error en la consulta."

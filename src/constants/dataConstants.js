@@ -59,6 +59,8 @@ const MAX_STR_LEN = 254;
 
 const MAX_STR_CAPACITY = 65500;
 
+const BASE_SALT = process.env.BASE_SALT;
+
 const path = "./file.txt";
 
 let FIREBASE_CONFIG;
@@ -77,5 +79,5 @@ const RUNNING_MIGRATIONS_LBL = "Running migrations...";
 module.exports = {
     RESET_DATABASE, DATABASE_URL, IS_PRODUCTION, ID_MAX_LEN,
     MAX_STR_LEN, FIREBASE_CONFIG, RUNNING_MIGRATIONS_LBL,
-    MAX_STR_CAPACITY
+    MAX_STR_CAPACITY, BASE_SALT
 };

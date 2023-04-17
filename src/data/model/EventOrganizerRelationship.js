@@ -8,7 +8,8 @@ const defineEventOrganizerRelationship = () => {
   });
 
   Events.belongsTo(User, {
-    foreignKey: 'owner_id'
+    foreignKey: 'owner_id',
+    as: 'owner'
   });
 }
 

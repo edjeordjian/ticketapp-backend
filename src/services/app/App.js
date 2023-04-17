@@ -6,9 +6,9 @@ const bodyParser = require("body-parser");
 
 const { database } = require("../../data/database/database");
 
-const logInRoutes = require("../../routes/login/LogInRoutes");
+const logInRoutes = require("../../routes/LogInRoutes");
 
-const eventRoutes = require("../../routes/events/EventRoutes");
+const eventRoutes = require("../../routes/EventRoutes");
 
 const { defineRelationships } = require("../../data/database/relationships");
 
