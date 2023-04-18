@@ -104,16 +104,25 @@ describe("EventService", function() {
             eventId: "1"
         };
 
-        const findAllStub = sinon.stub().resolves({});
+        const findOneStub = sinon.stub().resolves({
+            id: "1",
+            attendees: []
+        });
 
         EventService.__set__({
-            "findAll": findAllStub
+            "findOne": findOneStub
         });
 
         const getSerializedEventStub = sinon.stub().resolves({});
 
         EventService.__set__({
             "getSerializedEvent": getSerializedEventStub
+        });
+
+        const getUserIdStub = sinon.stub().resolves(null);
+
+        EventService.__set__({
+            "getUserId": getUserIdStub
         });
 
         const response = await EventService.handleGet(req, res);
@@ -144,7 +153,7 @@ describe("EventService", function() {
     });
 
     it("Cannot sign up to an existing event", async () => {
-        const findOneStub = sinon.stub().resolves([]);
+        const findOneStub = sinon.stub().resolves(null);
 
         EventService.__set__({
             "findOne": findOneStub
@@ -154,6 +163,12 @@ describe("EventService", function() {
 
         EventService.__set__({
             "getAttendanceId": getAttendanceIdStub
+        });
+
+        const getUserIdStub = sinon.stub().resolves(null);
+
+        EventService.__set__({
+            "getUserId": getUserIdStub
         });
 
         const response = await EventService.handleEventSignUp(req, res);
