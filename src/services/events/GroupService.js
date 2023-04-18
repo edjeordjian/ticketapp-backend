@@ -52,7 +52,6 @@ const handleAddUserToGroup = async (req, res) => {
             return setErrorResponse("Error al agregar usuarios al grupo", res, 400);
         }
     }
-    logInfo(response);
     return setOkResponse("Usuarios agregados al grupo con exito", res);
 
 }

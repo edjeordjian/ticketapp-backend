@@ -13,6 +13,7 @@ const { Speakers } = require("../../data/model/Speakers");
 const { Events } = require("../../data/model/Events");
 
 const { User } = require("../../data/model/User");
+const { FAQ } = require("../../data/model/FAQ");
 
 const { EventTypes } = require("../../data/model/EventTypes");
 
@@ -69,6 +70,10 @@ const includes = [
         model: User,
         attributes: ["id"],
         as: ATTENDEES_RELATION_NAME
+    },
+    {
+        model: FAQ,
+        attributes: ["question", "answer"],
     }
 ];
 
@@ -202,6 +207,27 @@ const handleCreate = async (req, res) => {
                 throw new Error(createResponse.error);
             }
         }
+        const faqs = [];
+
+        if (body.FAQs !== undefined) {
+            body.FAQs.map(async f => {
+                const faqCreated = await create(FAQ, {
+                    eventId: createdEvent.id,
+                    question: f.question,
+                    answer: f.answer
+                });
+                if (faqCreated.error !== undefined) {
+                    throw new Error(faqCreated.error);
+                }
+                faqs.push(objDeepCopy(faqCreated));
+
+            });
+            const createResponse = await createdEvent.addFAQs(faqs);
+
+            if (createResponse.error !== undefined) {
+                throw new Error(createResponse.error);
+            }
+        }
 
         return setOkResponse(OK_LBL, res, {});
     }).catch(err => {
@@ -297,6 +323,7 @@ const handleGet = async (req, res) => {
         return returnedEvent;
     });
 
+
     return setOkResponse(OK_LBL, res, serializedEvent);
 };
 
@@ -326,14 +353,14 @@ const handleGetTypes = async (req, res) => {
 };
 
 const handleEventSignUp = async (req, res) => {
-    const {eventId} = req.body;
+    const { eventId } = req.body;
 
     const event = await findOne(Events, {
         id: eventId
     },
         includes);
 
-    if (! event) {
+    if (!event) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
     } else if (event.error) {
         return setUnexpectedErrorResponse(event.error, res);
@@ -345,7 +372,7 @@ const handleEventSignUp = async (req, res) => {
         id: userId
     });
 
-    if (! user) {
+    if (!user) {
         return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
     } else if (user.error) {
         return setUnexpectedErrorResponse(user.error, res);
