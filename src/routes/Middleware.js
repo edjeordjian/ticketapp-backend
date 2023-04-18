@@ -1,16 +1,14 @@
+const Logger = require("../services/helpers/Logger");
 
-const Logger = require("../../services/helpers/Logger");
+const { getFirebaseUserData } = require("../services/authentication/FirebaseService");
 
-const { getFirebaseUserData } = require("../../services/authentication/FirebaseService");
+const { userIsOrganizer, userExists } = require("../services/users/UserService");
 
+const { setErrorResponse } = require("../services/helpers/ResponseHelper");
 
+const { isEmpty } = require("../services/helpers/ObjectHelper");
 
-const { userIsOrganizer, userExists } = require("../../services/users/UserService");
-
-const { setErrorResponse } = require("../../services/helpers/ResponseHelper");
-
-const { isEmpty } = require("../../services/helpers/ObjectHelper");
-const { verifyToken } = require("../../services/authentication/FirebaseService")
+const { verifyToken } = require("../services/authentication/FirebaseService")
 
 
 const isOrganizerMiddleware = async (req, res, next) => {
@@ -31,6 +29,42 @@ const emptyBodyMiddleware = async (req, res, next) => {
         return setErrorResponse("Error en la petición.", res, 400);
     } else {
         next();
+    }
+}
+
+const getUserId = async (req) => {
+    const token = req.headers.authorization.split(' ')[1];
+
+    let userData;
+
+    if (req.headers.expo && req.headers.authorization) {
+        userData = await getFirebaseUserData(token);
+    } else {
+        userData = await verifyToken(token);
+    }
+
+    return userData.id;
+}
+
+const isAllowedMiddleware = async (req, res, next, check_fn) => {
+    const token = req.headers.authorization.split(' ')[1];
+
+    let isAllowed;
+
+    if (req.headers.expo && req.headers.authorization) {
+        const userData = await getFirebaseUserData(token);
+
+        isAllowed = await check_fn(userData.id, null);
+    } else {
+        const decodedToken = await verifyToken(token);
+
+        isAllowed = await check_fn(null, decodedToken.email);
+    }
+
+    if (isAllowed) {
+        next();
+    } else {
+        return setErrorResponse("Acceso solo para organizadores.", res, 401);
     }
 }
 
@@ -55,7 +89,7 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         if (decodedToken === false) {
             return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
         } else {
-            const exists = await userExists(decodedToken.email);
+            const exists = await userExists(null, decodedToken.email);
             if (exists) {
                 req.decodedToken = decodedToken;
                 next();
@@ -66,5 +100,6 @@ const firebaseAuthMiddleware = async (req, res, next) => {
     }
 }
 module.exports = {
-    firebaseAuthMiddleware, emptyBodyMiddleware, isOrganizerMiddleware
+    firebaseAuthMiddleware, emptyBodyMiddleware, isOrganizerMiddleware, isAllowedMiddleware,
+    getUserId
 }

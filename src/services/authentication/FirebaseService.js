@@ -40,6 +40,7 @@ const verifyToken = async (token) => {
         return false;
     }
 }
+
 module.exports = {
     verifyToken, getFirebaseUserData
 }

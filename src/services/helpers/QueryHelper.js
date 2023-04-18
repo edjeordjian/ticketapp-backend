@@ -13,6 +13,8 @@ const findOne = async (model,
         .catch(error => {
             logError(error.name);
 
+            logError(error.message);
+
             return {
                 error: "Error en la consulta"
             }
@@ -33,7 +35,9 @@ const findAll = async (model,
 
         order: order
     }).catch(error => {
-        logError(error.stack);
+        logError(error.name);
+
+        logError(error.message);
 
         return {
             error: "Error en la consulta."
@@ -46,8 +50,9 @@ const findAll = async (model,
 const create = async (model, body) => {
     const response = await model.create(body)
         .catch(error => {
-            logError(error);
-            // logError(error.stack);
+            logError(error.name);
+
+            logError(error.message);
 
             return {
                 error: "Error en la creación."
@@ -62,7 +67,9 @@ const update = async (model, body, condition) => {
         where: condition
     })
         .catch(error => {
-            logError(error.stack);
+            logError(error.name);
+
+            logError(error.message);
 
             return {
                 error: "Error en la actualización."
@@ -77,7 +84,9 @@ const destroy = async (model, condition) => {
         where: condition
     })
         .catch(error => {
-            logError(error.stack);
+            logError(error.name);
+
+            logError(error.message);
 
             return {
                 error: "Error en el borrado."

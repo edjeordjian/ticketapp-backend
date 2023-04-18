@@ -1,12 +1,12 @@
-const Logger = require("../../services/helpers/Logger");
+const Logger = require("../services/helpers/Logger");
 
 const express = require('express')
 
-const {handleLogIn} = require("../../services/login/LogInService");
+const {handleLogIn} = require("../services/login/LogInService");
 
 const router = express.Router()
 
-const {SIGN_IN_URL} = require("../../constants/URLs");
+const {SIGN_IN_URL} = require("../constants/URLs");
 
 router.post(SIGN_IN_URL, async (req, res) => {
     Logger.request(SIGN_IN_URL);
