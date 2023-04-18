@@ -43,9 +43,12 @@ const { create, findOne, findAll } = require("../helpers/QueryHelper");
 const { OK_LBL } = require("../../constants/messages");
 
 const Logger = require("../../services/helpers/Logger");
+const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
+const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
 const { getHashOf } = require("../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
+const crypto = require("crypto");
 
 const includes = [
     {
@@ -58,7 +61,13 @@ const includes = [
     },
     {
         model: User,
-        attributes: ["first_name", "last_name"]
+        attributes: ["first_name", "last_name"],
+        as: ORGANIZER_RELATION_NAME
+    },
+    {
+        model: User,
+        attributes: ["id"],
+        as: ATTENDEES_RELATION_NAME
     }
 ];
 
@@ -270,27 +279,20 @@ const handleGet = async (req, res) => {
         return setUnexpectedErrorResponse(event.error, res);
     }
 
-    const serializedEvent = await getSerializedEvent(event);
+    const serializedEvent = await getSerializedEvent(event).then(returnedEvent => {
+        const attendances = event.attendees.filter(attendee => attendee.id === userId);
 
-    const attendance = await findOne(Attendances,
-        {
-            userId: userId,
+        if (attendances.length > 0) {
+            const attendance = attendances[0].attendances;
 
-            eventId: eventId
-        },
-        [{
-            model: Event
-        }]
-    );
-
-    if (attendance) {
-        serializedEvent.ticket = {
-            id: attendance.hash_code,
-            wasUsed: attendance.attended
+            returnedEvent.ticket = {
+                id: attendance.hash_code,
+                wasUsed: attendance.attended
+            }
         }
-    } else if (attendance.error) {
-        return setUnexpectedErrorResponse(attendance.error, res);
-    }
+
+        return returnedEvent;
+    });
 
     return setOkResponse(OK_LBL, res, serializedEvent);
 };
@@ -325,7 +327,8 @@ const handleEventSignUp = async (req, res) => {
 
     const event = await findOne(Events, {
         id: eventId
-    });
+    },
+        includes);
 
     if (! event) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
@@ -343,30 +346,26 @@ const handleEventSignUp = async (req, res) => {
         return setUnexpectedErrorResponse(user.error, res);
     }
 
-    const attendances = await findOne(Attendances,
-        {
-            userId: user.id,
-
-            eventId: event.id
-        },
-        [{
-            model: Event
-        }]
-    );
-
-    if (attendances.error) {
-        return setUnexpectedErrorResponse(attendances.error, res);
-    }
-
-    if (attendances) {
+    if (event.attendees.filter(attendee => attendee.id === userId).length > 0) {
         return setErrorResponse(EVENT_ALREADY_BOOKED, res);
     }
 
+    const hash_code = getAttendanceId();
+
     user.addEvent(event, {
-        hash_code: getAttendanceId()
+        through: {
+            hash_code: hash_code
+        }
     });
 
-    return setOkResponse(OK_LBL, res, {});
+    const serializedEvent = await getSerializedEvent(event);
+
+    serializedEvent.ticket = {
+        id: hash_code,
+        wasUsed: false
+    }
+
+    return setOkResponse(OK_LBL, res, serializedEvent);
 }
 
 module.exports = {

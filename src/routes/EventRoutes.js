@@ -77,7 +77,7 @@ router.use(EVENT_URL, async (req, res, next) => {
         if (decodedToken === false) {
             return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
         } else {
-            const exists = await userExists(decodedToken.email);
+            const exists = await userExists(null, decodedToken.email);
             if (exists) {
                 next();
             } else {

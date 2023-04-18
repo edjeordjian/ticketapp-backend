@@ -106,7 +106,7 @@ const getSerializedEvent = async (e) => {
         pictures.push(e.picture4_url);
     }
 
-    const owner = await e.getOwner();
+    const owner = await e.getOrganizer();
 
     return {
         id: e.id,

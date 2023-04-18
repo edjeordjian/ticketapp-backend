@@ -142,4 +142,22 @@ describe("EventService", function() {
 
         assert(OK_LBL === response.message);
     });
+
+    it("Cannot sign up to an existing event", async () => {
+        const findOneStub = sinon.stub().resolves([]);
+
+        EventService.__set__({
+            "findOne": findOneStub
+        });
+
+        const getAttendanceIdStub = sinon.stub().resolves([]);
+
+        EventService.__set__({
+            "getAttendanceId": getAttendanceIdStub
+        });
+
+        const response = await EventService.handleEventSignUp(req, res);
+
+        assert("error" === response.error);
+    });
 });

@@ -1,3 +1,7 @@
+const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
+
+const { EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
+
 const { ID_MAX_LEN } = require("../../constants/dataConstants");
 
 const { Sequelize } = require("sequelize");
@@ -20,11 +24,13 @@ const Attendances = database.define("attendances", {
 });
 
 Events.belongsToMany(User, {
-    through: Attendances
+    through: Attendances,
+    as: ATTENDEES_RELATION_NAME
 });
 
 User.belongsToMany(Events, {
-    through: Attendances
+    through: Attendances,
+    as: EVENTS_RELATION_NAME
 })
 
 module.exports = {
