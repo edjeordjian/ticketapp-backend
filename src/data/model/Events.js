@@ -54,6 +54,14 @@ const Events = database.define("events", {
         type: Sequelize.STRING(MAX_STR_LEN)
     },
 
+    latitude: {
+        type: Sequelize.STRING(MAX_STR_LEN)
+    },
+
+    longitude: {
+        type: Sequelize.STRING(MAX_STR_LEN)
+    },
+
     wallpaper_url: {
         type: Sequelize.STRING(MAX_STR_LEN)
     },
@@ -75,7 +83,7 @@ const Events = database.define("events", {
     }
 });
 
-const getSerializedEvent = (e) => {
+const getSerializedEvent = async (e) => {
     const pictures = [];
 
     if (e.wallpaper_url) {
@@ -98,6 +106,8 @@ const getSerializedEvent = (e) => {
         pictures.push(e.picture4_url);
     }
 
+    const owner = await e.getOrganizer();
+
     return {
         id: e.id,
 
@@ -113,13 +123,17 @@ const getSerializedEvent = (e) => {
 
         address: e.address,
 
+        latitude: e.latitude,
+
+        longitude: e.longitude,
+
         pictures: pictures,
 
         types_ids: e.event_types.map(type => type.id),
 
         types_names: e.event_types.map(type => type.name),
 
-        organizerName: `${e.user.first_name} ${e.user.last_name}`,
+        organizerName: `${owner.first_name} ${owner.last_name}`,
 
         agenda: e.speakers.map(speaker => {
             return {

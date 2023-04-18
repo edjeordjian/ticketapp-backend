@@ -16,6 +16,10 @@ https://console.firebase.google.com/u/0/project/ticketapp-firebase/authenticatio
 - Consumo:
 https://dashboard.render.com/billing#payment-method
 
+### Sequelize
+- Relaciones many to many
+https://sequelize.org/docs/v6/advanced-association-concepts/advanced-many-to-many/
+
 
 ### Errores Frecuentes
 -Para matar la app corriendo en un puerto (ejemplo: 4481)

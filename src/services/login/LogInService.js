@@ -1,20 +1,23 @@
-const {logInfo} = require("../helpers/Logger");
+const { logInfo } = require("../helpers/Logger");
 
-const {OK_LBL} = require("../../constants/messages");
+const { OK_LBL } = require("../../constants/messages");
 
-const {ERROR_CREATING_USER_LBL} = require("../../constants/login/logInConstants");
+const { ERROR_CREATING_USER_LBL } = require("../../constants/login/logInConstants");
 
-const {User} = require("../../data/model/User");
+const { User } = require("../../data/model/User");
+const { Group } = require("../../data/model/Group");
 
-const {ERROR_SEARCHING_USER} = require("../../constants/login/logInConstants");
+const { ERROR_SEARCHING_USER } = require("../../constants/login/logInConstants");
 
-const {LOGIN_SUCCESS_LBL} = require("../../constants/login/logInConstants");
+const { LOGIN_SUCCESS_LBL } = require("../../constants/login/logInConstants");
 
-const {setErrorResponse} = require("../helpers/ResponseHelper");
+const { setErrorResponse } = require("../helpers/ResponseHelper");
 
-const {setOkResponse} = require("../helpers/ResponseHelper");
+const { setOkResponse } = require("../helpers/ResponseHelper");
 
-const {findOne, create, update} = require("../helpers/QueryHelper");
+const { findOne, create, update } = require("../helpers/QueryHelper");
+
+
 
 
 const handleSignUp = async (body) => {
@@ -27,7 +30,14 @@ const handleSignUp = async (body) => {
         first_name: body.firstName,
         last_name: body.lastName,
         picture_url: body.pictureUrl
-    } );
+    }).then(async (response) => {
+        logInfo(body);
+        if (body.isOrganizer) {
+            const group = await create(Group, { organizer_email: body.email });
+            logInfo(group);
+        }
+        return response;
+    });
 
     if (createResponse.error) {
         return {
@@ -44,10 +54,10 @@ const handleSignUp = async (body) => {
 
 const handleRoleAppend = async (body, user) => {
     const createResponse = await update(User, {
-            is_administrator: body.isAdministrator || user.is_administrator,
-            is_organizer: body.isOrganizer || user.is_organizer,
-            is_consumer: body.isConsumer || user.is_consumer
-        },
+        is_administrator: body.isAdministrator || user.is_administrator,
+        is_organizer: body.isOrganizer || user.is_organizer,
+        is_consumer: body.isConsumer || user.is_consumer
+    },
         {
             email: body.email
         });
@@ -70,7 +80,7 @@ const handleLogIn = async (req, res) => {
 
     const findResponse = await findOne(User, {
         email: body.email
-    } );
+    });
 
     let email;
     let id;
@@ -85,8 +95,8 @@ const handleLogIn = async (req, res) => {
         id = result.id;
         email = result.email;
     } else if (findResponse.is_administrator !== body.isAdministrator ||
-               findResponse.is_organizer !== body.isOrganizer ||
-               findResponse.is_consumer !== body.isConsumer) {
+        findResponse.is_organizer !== body.isOrganizer ||
+        findResponse.is_consumer !== body.isConsumer) {
         const result = await handleRoleAppend(body, findResponse);
 
         if (result.error !== undefined) {

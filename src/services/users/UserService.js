@@ -1,32 +1,81 @@
-
-const { create, findOne, findAll } = require("../helpers/QueryHelper");
+const { findOne } = require("../helpers/QueryHelper");
 const { User } = require("../../data/model/User");
 
+const userIsOrganizer = async (id, email) => {
+    let user;
 
-const userIsOrganizer = async (email) => {
-    const user = await findOne(User,
-        {
-            email: email,
-            is_organizer: true
-        }
-    );
+    if (id) {
+        user = await findOne(User,
+            {
+                id: id,
+                is_organizer: true
+            }
+        );
+    } else {
+        user = await findOne(User,
+            {
+                email: email,
+                is_organizer: true
+            }
+        );
+    }
+
     if (user === null || user.error) {
         return false;
     }
     return user;
 }
-const userExists = async (email) => {
-    const user = await findOne(User,
-        {
-            email: email,
-        }
-    );
+
+const userIsConsumer = async(id, email) => {
+    let user;
+
+    if (id) {
+        user = await findOne(User,
+            {
+                id: id,
+                is_consumer: true
+            }
+        );
+    } else {
+        user = await findOne(User,
+            {
+                email: email,
+                is_consumer: true
+            }
+        );
+    }
+
     if (user === null || user.error) {
         return false;
     }
+
+    return user;
+}
+
+const userExists = async (id, email) => {
+    let user;
+
+    if (id) {
+        user = await findOne(User,
+            {
+                id: id,
+            }
+        );
+    } else {
+        user = await findOne(User,
+            {
+                email: email,
+            }
+        );
+    }
+
+    if (user === null || user.error) {
+        return false;
+    }
+
     return user;
 }
 
 module.exports = {
-    userIsOrganizer, userExists
+    userIsOrganizer, userExists, userIsConsumer
 }
