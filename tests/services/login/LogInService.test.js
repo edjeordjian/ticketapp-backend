@@ -4,11 +4,11 @@ const assert = require("assert");
 
 const sinon = require("sinon");
 
-const {OK_LBL} = require("../../../src/constants/messages");
+const { OK_LBL } = require("../../../src/constants/messages");
 
 const LogInService = rewire("../../../src/services/login/LogInService");
 
-describe("LogInService", function() {
+describe("LogInService", function () {
     let req, res;
 
     beforeEach(() => {
@@ -59,12 +59,14 @@ describe("LogInService", function() {
 
         const findOneStub = sinon.stub().resolves(null);
 
+        const createStub = sinon.stub().resolves({
+            error: "error"
+        });
+
         LogInService.__set__({
             "findOne": findOneStub,
-
-            "create": setErrorResponseStub,
-
-            "setErrorResponse": setErrorResponseStub
+            "create": createStub,
+            "setErrorResponse": setErrorResponseStub,
         });
 
         const response = await LogInService.handleLogIn(req, res);

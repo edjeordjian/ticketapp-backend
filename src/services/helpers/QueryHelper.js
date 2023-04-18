@@ -3,8 +3,8 @@ const { logError, logInfo } = require("./Logger");
 
 
 const findOne = async (model,
-                       condition,
-                       include = []) => {
+    condition,
+    include = []) => {
     const response = await model.findOne({
         where: condition,
 
@@ -25,10 +25,10 @@ const findOne = async (model,
 
 
 const findAll = async (model,
-                       condition,
-                       include = [],
-                       order =[['createdAt', 'ASC']]) => {
-    const response = await model.findAll( {
+    condition,
+    include = [],
+    order = [['createdAt', 'ASC']]) => {
+    const response = await model.findAll({
         where: condition,
 
         include: include,
@@ -39,10 +39,10 @@ const findAll = async (model,
 
         logError(error.message);
 
-            return {
-                error: "Error en la consulta."
-            }
-        } );
+        return {
+            error: "Error en la consulta."
+        }
+    });
 
     return response;
 };
@@ -64,8 +64,8 @@ const create = async (model, body) => {
 
 const update = async (model, body, condition) => {
     const response = await model.update(body, {
-            where: condition
-        } )
+        where: condition
+    })
         .catch(error => {
             logError(error.name);
 
@@ -74,15 +74,15 @@ const update = async (model, body, condition) => {
             return {
                 error: "Error en la actualización."
             }
-        } );
+        });
 
     return response;
 };
 
 const destroy = async (model, condition) => {
-    const response = await model.destroy( {
-            where: condition
-        } )
+    const response = await model.destroy({
+        where: condition
+    })
         .catch(error => {
             logError(error.name);
 
@@ -91,7 +91,7 @@ const destroy = async (model, condition) => {
             return {
                 error: "Error en el borrado."
             }
-        } );
+        });
 
     return response;
 };

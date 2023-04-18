@@ -1,10 +1,10 @@
-const { defineEventAttendanceRelationship } = require("../model/Attendances");
-
 const { defineEventOrganizerRelationship } = require("../model/EventOrganizerRelationship");
 
 const { defineEventTypeEventRelationship } = require("../model/EvenTypeEventRelationship");
 
 const { defineEventSpeakerRelationship } = require("../model/SpeakerEventRelationship");
+
+const { defineGroupGroupParticipantRelationship } = require("../model/GroupParticipantsRelationship");
 
 const defineRelationships = () => {
     defineEventTypeEventRelationship();
@@ -12,6 +12,8 @@ const defineRelationships = () => {
     defineEventSpeakerRelationship();
 
     defineEventOrganizerRelationship();
+
+    defineGroupGroupParticipantRelationship();
 };
 
 module.exports = {
