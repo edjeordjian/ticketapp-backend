@@ -1,6 +1,14 @@
 const Logger = require("../services/helpers/Logger");
 
 const express = require('express');
+const { firebaseAuthMiddleware } = require("./Middleware");
+const { emptyBodyMiddleware } = require("./Middleware");
+const { isAllowedMiddleware } = require("./Middleware");
+const { handleGetGroup } = require("../services/events/GroupService");
+const { handleAddUserToGroup } = require("../services/events/GroupService");
+const { isOrganizerMiddleware } = require("./Middleware");
+const { EVENT_GROUP_URL } = require("../constants/URLs");
+const { EVENT_GROUP_ADD_USER_URL } = require("../constants/URLs");
 const { handleEventSignUp } = require("../services/events/EventService");
 const { userIsConsumer } = require("../services/users/UserService");
 const { EVENT_SIGN_UP_URL } = require("../constants/URLs");
@@ -26,67 +34,13 @@ const { findOne } = require("../services/helpers/QueryHelper");
 
 const router = express.Router();
 
-const isAllowedMiddleware = async (req, res, next, check_fn) => {
-    const token = req.headers.authorization.split(' ')[1];
 
-    let isAllowed;
-
-    if (req.headers.expo && req.headers.authorization) {
-        const userData = await getFirebaseUserData(req.headers.authorization.split(" ")[1]);
-
-        isAllowed = await check_fn(userData.id, null);
-    } else {
-        const decodedToken = await verifyToken(token);
-
-        isAllowed = await check_fn(null, decodedToken.email);
-    }
-
-    if (isAllowed) {
-        next();
-    } else {
-        return setErrorResponse("Acceso solo para organizadores.", res, 401);
-    }
-}
-
-router.use(EVENT_URL, async (req, res, next) => {
-    if (req.method === "POST" && isEmpty(req.body)) {
-        return setErrorResponse("Error en la petición.", res, 400);
-    } else {
-        next();
-    }
+router.use("/event", async (req, res, next) => {
+    await emptyBodyMiddleware(req, res, next);
 }, async (req, res, next) => {
-    let token;
+    await firebaseAuthMiddleware(req, res, next);
+});
 
-    if (req.headers.expo && req.headers.authorization) {
-        const userData = await getFirebaseUserData(req.headers.authorization.split(" ")[1]);
-
-        if (userData.id) {
-            next();
-        } else {
-            return setErrorResponse("No autorizado", res, 400);
-        }
-    } else {
-        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            token = req.headers.authorization.split(' ')[1];
-        } else {
-            return setErrorResponse("No autorizado", res, 400);
-        }
-
-        const decodedToken = await verifyToken(token);
-
-        if (decodedToken === false) {
-            return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
-        } else {
-            const exists = await userExists(null, decodedToken.email);
-            if (exists) {
-                next();
-            } else {
-                return setErrorResponse("Falta ingresar", res, 400);
-            }
-        }
-    }
-}
-);
 
 router.post(EVENT_URL,
     async (req, res, next) => {
@@ -137,5 +91,21 @@ router.get(EVENT_TYPES_URL,
 
         await handleGetTypes(req, res);
     });
+
+router.post(EVENT_GROUP_ADD_USER_URL, async (req, res, next) => {
+    await isOrganizerMiddleware(req, res, next, userIsOrganizer) },
+    async (req, res) => {
+        Logger.request(`POST: /event/group/addUsers`);
+        await handleAddUserToGroup(req, res);
+    });
+
+router.get(EVENT_GROUP_URL, async (req, res, next) => {
+        await isOrganizerMiddleware(req, res, next, userIsOrganizer)
+    },
+    async (req, res) => {
+        Logger.request(`POST: /event/group`);
+
+        await handleGetGroup(req, res);
+    })
 
 module.exports = router;

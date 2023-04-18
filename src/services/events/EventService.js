@@ -49,6 +49,7 @@ const { getHashOf } = require("../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
+const { getUserId } = require("../../routes/Middleware");
 
 const includes = [
     {
@@ -261,7 +262,7 @@ const handleSearch = async (req, res) => {
 };
 
 const handleGet = async (req, res) => {
-    const { userId, eventId } = req.query;
+    const { eventId } = req.query;
 
     if (!eventId) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
@@ -279,13 +280,15 @@ const handleGet = async (req, res) => {
         return setUnexpectedErrorResponse(event.error, res);
     }
 
+    const userId = await getUserId(req);
+
     const serializedEvent = await getSerializedEvent(event).then(returnedEvent => {
         const attendances = event.attendees.filter(attendee => attendee.id === userId);
 
         if (attendances.length > 0) {
             const attendance = attendances[0].attendances;
 
-            returnedEvent.ticket = {
+            returnedEvent$ticket = {
                 id: attendance.hash_code,
                 wasUsed: attendance.attended
             }
@@ -323,7 +326,7 @@ const handleGetTypes = async (req, res) => {
 };
 
 const handleEventSignUp = async (req, res) => {
-    const {userId, eventId} = req.body;
+    const {eventId} = req.body;
 
     const event = await findOne(Events, {
         id: eventId
@@ -335,6 +338,8 @@ const handleEventSignUp = async (req, res) => {
     } else if (event.error) {
         return setUnexpectedErrorResponse(event.error, res);
     }
+
+    const userId = await getUserId(req);
 
     const user = await findOne(User, {
         id: userId
