@@ -41,6 +41,13 @@ const User = database.define("users", {
         defaultValue: false
     },
 
+    is_staff: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        validate: { notEmpty: true },
+        defaultValue: false
+    },
+
     first_name: {
         type: Sequelize.STRING(MAX_STR_LEN),
     },

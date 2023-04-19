@@ -23,4 +23,4 @@ https://sequelize.org/docs/v6/advanced-association-concepts/advanced-many-to-man
 
 ### Errores Frecuentes
 -Para matar la app corriendo en un puerto (ejemplo: 4481)
-kill $(lsof -i :4484 | cut -d ' ' -f5)
+kill $(lsof -i :4481 | cut -d ' ' -f5)

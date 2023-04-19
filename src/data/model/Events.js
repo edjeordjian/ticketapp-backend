@@ -1,6 +1,6 @@
-const {timeToString} = require("../../services/helpers/DateHelper");
+const { timeToString } = require("../../services/helpers/DateHelper");
 
-const {MAX_STR_CAPACITY} = require("../../constants/dataConstants");
+const { MAX_STR_CAPACITY } = require("../../constants/dataConstants");
 
 const { Sequelize } = require("sequelize");
 
@@ -135,7 +135,7 @@ const getSerializedEvent = async (e) => {
 
         organizerName: `${owner.first_name} ${owner.last_name}`,
 
-        agenda: e.speakers.map(speaker => {
+        agenda: e.speakers ? e.speakers.map(speaker => {
             return {
                 "start": speaker.start,
 
@@ -143,8 +143,16 @@ const getSerializedEvent = async (e) => {
 
                 "title": speaker.title
             }
-        })
+        }) : [],
+
+        faq: e.FAQs ? e.FAQs.map(faq => {
+            return {
+                "question": faq.question,
+                "answer": faq.answer
+            }
+        }) : []
     }
+
 };
 
 module.exports = {
