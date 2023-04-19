@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const { logError, logInfo } = require("./Logger");
+const { objDeepCopy } = require("./ObjectHelper");
 
 
 const findOne = async (model,
@@ -47,12 +48,14 @@ const findAll = async (model,
     return response;
 };
 
-const create = async (model, body) => {
-    const response = await model.create(body)
+const create = async (model, body, models = []) => {
+    const response = await model.create(body, {
+        include: models
+    })
         .catch(error => {
             logError(error.name);
 
-            logError(error.message);
+            logInfo(error);
 
             return {
                 error: "Error en la creación."
@@ -95,7 +98,6 @@ const destroy = async (model, condition) => {
 
     return response;
 };
-
 module.exports = {
     findOne, findAll, create, update,
     destroy

@@ -1,6 +1,6 @@
-const {timeToString} = require("../../services/helpers/DateHelper");
+const { timeToString } = require("../../services/helpers/DateHelper");
 
-const {MAX_STR_CAPACITY} = require("../../constants/dataConstants");
+const { MAX_STR_CAPACITY } = require("../../constants/dataConstants");
 
 const { Sequelize } = require("sequelize");
 
@@ -143,8 +143,11 @@ const getSerializedEvent = async (e) => {
 
                 "title": speaker.title
             }
-        })
+        }),
+
+        FAQs: e.FAQs
     }
+
 };
 
 module.exports = {
