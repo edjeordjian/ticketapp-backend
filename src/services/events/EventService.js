@@ -39,7 +39,7 @@ const {
     setUnexpectedErrorResponse
 } = require("../helpers/ResponseHelper");
 
-const { create, findOne, findAll } = require("../helpers/QueryHelper");
+const { create, findOne, findAll, update } = require("../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
@@ -90,11 +90,12 @@ const handleCreate = async (req, res) => {
         name: body.name
     });
 
-    if (findResponse !== null) {
+    if (findResponse) {
+        if (findResponse.error) {
+            return setUnexpectedErrorResponse(findResponse.error, res);
+        }
+
         return setErrorResponse(EVENT_ALREADY_EXISTS_ERR_LBL, res);
-    }
-    if (findResponse !== null && "error" in findResponse) {
-        return setUnexpectedErrorResponse(findResponse.error, res);
     }
 
     body.capacity = parseInt(body.capacity);
@@ -125,6 +126,7 @@ const handleCreate = async (req, res) => {
     const tagsToAdd = await findAll(EventTypes, {
         id: body.types
     });
+
     let wallpaperUrl, picture1Url, picture2Url, picture3Url,
         picture4Url;
 
@@ -209,12 +211,12 @@ const handleCreate = async (req, res) => {
         }
         const faqs = [];
 
-        if (body.FAQs !== undefined) {
-            body.FAQs.map(async f => {
+        if (body.faq !== undefined) {
+            body.faq.map(async f => {
                 const faqCreated = await create(FAQ, {
                     eventId: createdEvent.id,
-                    question: f.question,
-                    answer: f.answer
+                    question: f[0],
+                    answer: f[1]
                 });
                 if (faqCreated.error !== undefined) {
                     throw new Error(faqCreated.error);
@@ -238,7 +240,7 @@ const handleCreate = async (req, res) => {
 };
 
 const handleSearch = async (req, res) => {
-    const { value, owner } = req.query;
+    const { value, owner, staff } = req.query;
 
     let events;
 
@@ -257,6 +259,45 @@ const handleSearch = async (req, res) => {
         events = await findAll(Events, {
             owner_id: owner
         },
+            includes,
+            order
+        );
+    } else if (staff) {
+        const user = await findOne(User, {
+            id: staff
+        });
+
+        if (! user) {
+            return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+        }
+
+        const groups = await user.getGroups();
+
+        const owner_emails = groups.map(group => {
+            return group.organizer_email
+        });
+
+        const owners = await findAll(User, {
+            email: {
+                [Op.in]: owner_emails
+            },
+            is_staff: true
+        });
+
+        if (owners.error) {
+            return setUnexpectedErrorResponse(owner.error, res);
+        }
+
+        const owners_ids = owners.map(owner => {
+            return owner.id
+        });
+
+        events = await findAll(Events,
+            {
+                owner_id: {
+                    [Op.in]: owners_ids
+                }
+            },
             includes,
             order
         );
@@ -383,6 +424,18 @@ const handleEventSignUp = async (req, res) => {
     }
 
     const hash_code = getAttendanceId();
+
+    const updateResponse = await update(Events,
+        {
+            capacity: event.capacity - 1
+        },
+        {
+            id: event.id
+        });
+
+    if (updateResponse.error) {
+        return setErrorResponse(updateResponse.error, res);
+    }
 
     user.addEvent(event, {
         through: {
