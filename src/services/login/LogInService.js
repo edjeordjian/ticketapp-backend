@@ -30,13 +30,20 @@ const handleSignUp = async (body) => {
         first_name: body.firstName,
         last_name: body.lastName,
         picture_url: body.pictureUrl
-    }).then(async (response) => {
+    }).then(async (user) => {
         logInfo(body);
+
         if (body.isOrganizer) {
-            const group = await create(Group, { organizer_email: body.email });
+            const group = await create(Group, {
+                organizer_email: body.email
+            });
+
+            await group.addUser(user);
+
             logInfo(group);
         }
-        return response;
+
+        return user;
     });
 
     if (createResponse.error) {

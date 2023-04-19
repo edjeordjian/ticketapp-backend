@@ -35,7 +35,7 @@ const { findOne } = require("../services/helpers/QueryHelper");
 const router = express.Router();
 
 
-router.use("/event", async (req, res, next) => {
+router.use(EVENT_URL, async (req, res, next) => {
     await emptyBodyMiddleware(req, res, next);
 }, async (req, res, next) => {
     await firebaseAuthMiddleware(req, res, next);
