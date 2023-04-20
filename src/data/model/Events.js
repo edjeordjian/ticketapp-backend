@@ -152,7 +152,6 @@ const getSerializedEvent = async (e) => {
             }
         }) : []
     }
-
 };
 
 module.exports = {

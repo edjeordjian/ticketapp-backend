@@ -39,11 +39,13 @@ const getUserId = async (req) => {
 
     if (req.headers.expo && req.headers.authorization) {
         userData = await getFirebaseUserData(token);
-    } else {
-        userData = await verifyToken(token);
+
+        return userData.id;
     }
 
-    return userData.id;
+    userData = await verifyToken(token);
+
+    return userData.user_id;
 }
 
 const isAllowedMiddleware = async (req, res, next, check_fn) => {
