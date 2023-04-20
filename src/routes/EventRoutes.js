@@ -1,6 +1,8 @@
 const Logger = require("../services/helpers/Logger");
 
 const express = require('express');
+const { handleEventCheck } = require("../services/events/EventService");
+const { EVENT_CHECK_URL } = require("../constants/URLs");
 const { firebaseAuthMiddleware } = require("./Middleware");
 const { emptyBodyMiddleware } = require("./Middleware");
 const { isAllowedMiddleware } = require("./Middleware");
@@ -60,6 +62,16 @@ router.post(EVENT_SIGN_UP_URL,
         Logger.request(`POST: ${EVENT_SIGN_UP_URL}`);
 
         await handleEventSignUp(req, res);
+    });
+
+router.post(EVENT_CHECK_URL,
+    async (req, res, next) => {
+        await isAllowedMiddleware(req, res, next, userIsConsumer)
+    },
+    async (req, res, next) => {
+        Logger.request(`POST: ${EVENT_CHECK_URL}`);
+
+        await handleEventCheck(req, res);
     });
 
 router.get(EVENT_SEARCH_NAME_URL,

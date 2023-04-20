@@ -110,8 +110,8 @@ const handleLogIn = async (req, res) => {
             return setErrorResponse(ERROR_CREATING_USER_LBL, res);
         }
 
-        id = result.id;
-        email = result.email;
+        id = body.id;
+        email = body.email;
     } else {
         if (findResponse.error !== undefined) {
             return setErrorResponse(ERROR_SEARCHING_USER, res);
