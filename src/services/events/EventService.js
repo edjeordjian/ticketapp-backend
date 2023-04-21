@@ -242,22 +242,70 @@ const handleCreate = async (req, res) => {
 };
 
 const handleSearch = async (req, res) => {
-    const { value, owner, staff, consumer} = req.query;
+    const {
+        value,
+        types,
+        owner,
+        staff,
+        consumer
+    } = req.query;
 
     let events;
+
+    let userId = null;
 
     const order = [["createdAt", "DESC"]];
 
     if (value) {
+        userId = await getUserId(req);
+
         events = await findAll(Events, {
             name: {
-                [Op.iLike]: `%${value}%`,
+                [Op.iLike]: `%${value}%`
+            },
                 capacity: {
                     [Op.ne]: 0
                 }
-            }
         },
             includes,
+            order
+        );
+    } else if (types) {
+        userId = await getUserId(req);
+
+        const types_ids = types.split(",");
+
+        events = await findAll(Events,
+            {},
+            [
+                {
+                    model: Speakers,
+                    attributes: ["start", "end", "title"]
+                },
+                {
+                    model: EventTypes,
+                    attributes: ["id", "name"],
+                    where: {
+                        id: {
+                            [Op.in]: types_ids
+                        }
+                    }
+                },
+                {
+                    model: User,
+                    attributes: ["first_name", "last_name"],
+                    as: ORGANIZER_RELATION_NAME
+                },
+                {
+                    model: User,
+                    attributes: ["id"],
+                    as: ATTENDEES_RELATION_NAME
+                },
+                {
+                    model: FAQ,
+                    attributes: ["question", "answer"],
+                }
+            ],
             order
         );
     } else if (owner) {
@@ -307,6 +355,8 @@ const handleSearch = async (req, res) => {
             order
         );
     } else if (consumer) {
+        userId = await getUserId(req);
+
         const user = await findOne(User,
             {
                 id: consumer,
@@ -321,11 +371,10 @@ const handleSearch = async (req, res) => {
             include: includes
         });
     } else {
+        userId = await getUserId(req);
+
         events = await findAll(Events,
             {
-                id: {
-                    [Op.ne]: null
-                },
                 capacity: {
                     [Op.ne]: 0
                 }
@@ -340,7 +389,7 @@ const handleSearch = async (req, res) => {
     }
 
     const serializedEvents = await Promise.all(events.map(async e => {
-        return getSerializedEvent(e);
+        return getSerializedEvent(e, userId);
     }));
 
     const eventsResponse = {
@@ -371,21 +420,7 @@ const handleGet = async (req, res) => {
 
     const userId = await getUserId(req);
 
-    const serializedEvent = await getSerializedEvent(event).then(returnedEvent => {
-        const attendances = event.attendees.filter(attendee => attendee.id === userId);
-
-        if (attendances.length > 0) {
-            const attendance = attendances[0].attendances;
-
-            returnedEvent$ticket = {
-                id: attendance.hash_code,
-                wasUsed: attendance.attended
-            }
-        }
-
-        return returnedEvent;
-    });
-
+    const serializedEvent = await getSerializedEvent(event, userId);
 
     return setOkResponse(OK_LBL, res, serializedEvent);
 };

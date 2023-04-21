@@ -5,6 +5,7 @@ const { defineEventTypeEventRelationship } = require("../model/EvenTypeEventRela
 const { defineEventSpeakerRelationship } = require("../model/SpeakerEventRelationship");
 
 const { defineGroupGroupParticipantRelationship } = require("../model/GroupParticipantsRelationship");
+
 const { defineEventFAQRelationship } = require("../model/EventsFAQRelationship");
 
 const defineRelationships = () => {

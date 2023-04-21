@@ -83,7 +83,7 @@ const Events = database.define("events", {
     }
 });
 
-const getSerializedEvent = async (e) => {
+const getSerializedEvent = async (e, userId = null) => {
     const pictures = [];
 
     if (e.wallpaper_url) {
@@ -107,6 +107,22 @@ const getSerializedEvent = async (e) => {
     }
 
     const owner = await e.getOrganizer();
+
+    let ticket = {}
+
+    if (userId) {
+        const attendances = e.attendees
+                             .filter(attendee => attendee.id === userId);
+
+        if (attendances.length > 0) {
+            const attendance = attendances[0].attendances;
+
+            ticket = {
+                id: attendance.hash_code,
+                wasUsed: attendance.attended
+            }
+        }
+    }
 
     return {
         id: e.id,
@@ -150,7 +166,9 @@ const getSerializedEvent = async (e) => {
                 "question": faq.question,
                 "answer": faq.answer
             }
-        }) : []
+        }) : [],
+
+        ticket: ticket
     }
 };
 
