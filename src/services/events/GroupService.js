@@ -1,3 +1,4 @@
+const { findAll } = require("../helpers/QueryHelper");
 const { MAX_EVENT_CAPACITY } = require("../../constants/events/eventsConstants");
 const { getSerializedEventType } = require("../../data/model/EventTypes");
 const { getSerializedEvent } = require("../../data/model/Events");
@@ -42,18 +43,38 @@ const {
 
 const handleAddUserToGroup = async (req, res) => {
     const body = req.body;
-    const group = await findOne(Group, { organizer_email: req.decodedToken.email });
+
+    const group = await findOne(Group, {
+        organizer_email: req.decodedToken.email
+    });
+
+    if (group.error) {
+        return setUnexpectedErrorResponse(group.error, res);
+    }
+
+    const users = await findAll(User, {
+        email: {
+            [Op.in]: body.assitants
+        }
+    });
+
+    if (users.error) {
+        return setUnexpectedErrorResponse(users.error, res);
+    }
+
+    const ids = users.map(user => user.id);
+
     try {
-        const response = await group.addUser(body.users)
+        const response = await group.addUser(ids);
     } catch (err) {
         if (err.name === "SequelizeForeignKeyConstraintError") {
-            return setErrorResponse("Alguno de los usuarios a agregar no existe", res, 400);
+            return setErrorResponse("Alguno de los usuarios a agregar no existe.", res, 400);
         } else {
-            return setErrorResponse("Error al agregar usuarios al grupo", res, 400);
+            return setUnexpectedErrorResponse("Error al agregar usuarios al grupo.", res);
         }
     }
-    return setOkResponse("Usuarios agregados al grupo con exito", res);
 
+    return setOkResponse("Usuarios agregados al grupo con exito", res);
 }
 
 const handleGetGroup = async (req, res) => {
@@ -63,7 +84,6 @@ const handleGetGroup = async (req, res) => {
             attributes: ["email"]
         });
     return setOkResponse(removeTimestamps(group), res);
-
 }
 
 module.exports = {

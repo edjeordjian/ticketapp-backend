@@ -14,7 +14,7 @@ const { verifyToken } = require("../services/authentication/FirebaseService")
 const isOrganizerMiddleware = async (req, res, next) => {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = await verifyToken(token);
-    const isOrganizer = await userIsOrganizer(decodedToken.email);
+    const isOrganizer = await userIsOrganizer(null, decodedToken.email);
     if (isOrganizer) {
         next();
     } else {

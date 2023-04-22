@@ -24,17 +24,6 @@ const today = new Date();
 
 async function runMigrations () {
     logInfo(RUNNING_MIGRATIONS_LBL);
-
-    await queryInterface.addColumn(User.tableName,
-        'is_staff',
-        {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        validate: {
-            notEmpty: true
-        },
-        defaultValue: false
-    }).catch(error => console.log(error));
 }
 
 module.exports = {

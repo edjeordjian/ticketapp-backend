@@ -50,6 +50,7 @@ const { getHashOf } = require("../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
+const { getTicket } = require("../../data/model/Events");
 const { USER_NOT_REGISTERED } = require("../../constants/events/eventsConstants");
 const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
 const { getUserId } = require("../../routes/Middleware");
@@ -369,6 +370,8 @@ const handleSearch = async (req, res) => {
 
         events = await user.getEvents({
             include: includes
+        }).filter(e => {
+            return ! getTicket(e).wasUsed;
         });
     } else {
         userId = await getUserId(req);

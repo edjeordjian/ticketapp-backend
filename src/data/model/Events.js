@@ -83,6 +83,22 @@ const Events = database.define("events", {
     }
 });
 
+const getTicket = (e, userId) => {
+    const attendances = e.attendees
+                         .filter(attendee => attendee.id === userId);
+
+    if (attendances.length > 0) {
+        const attendance = attendances[0].attendances;
+
+        return {
+            id: attendance.hash_code,
+            wasUsed: attendance.attended
+        }
+    }
+
+    return {};
+}
+
 const getSerializedEvent = async (e, userId = null) => {
     const pictures = [];
 
@@ -111,17 +127,7 @@ const getSerializedEvent = async (e, userId = null) => {
     let ticket = {}
 
     if (userId) {
-        const attendances = e.attendees
-                             .filter(attendee => attendee.id === userId);
-
-        if (attendances.length > 0) {
-            const attendance = attendances[0].attendances;
-
-            ticket = {
-                id: attendance.hash_code,
-                wasUsed: attendance.attended
-            }
-        }
+        ticket = getTicket(e, userId);
     }
 
     return {
@@ -173,5 +179,5 @@ const getSerializedEvent = async (e, userId = null) => {
 };
 
 module.exports = {
-    Events, getSerializedEvent
+    Events, getSerializedEvent, getTicket
 };
