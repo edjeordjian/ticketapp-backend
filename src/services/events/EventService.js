@@ -244,7 +244,7 @@ const handleCreate = async (req, res) => {
 const handleSearch = async (req, res) => {
     const {
         value,
-        types,
+        tags,
         owner,
         staff,
         consumer
@@ -270,10 +270,10 @@ const handleSearch = async (req, res) => {
             includes,
             order
         );
-    } else if (types) {
+    } else if (tags) {
         userId = await getUserId(req);
 
-        const types_ids = types.split(",");
+        const types_ids = tags.split(",");
 
         events = await findAll(Events,
             {},
@@ -501,12 +501,7 @@ const handleEventSignUp = async (req, res) => {
         }
     });
 
-    const serializedEvent = await getSerializedEvent(event);
-
-    serializedEvent.ticket = {
-        id: hash_code,
-        wasUsed: false
-    }
+    const serializedEvent = await getSerializedEvent(event, userId);
 
     return setOkResponse(OK_LBL, res, serializedEvent);
 }
