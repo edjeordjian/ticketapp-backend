@@ -96,7 +96,7 @@ router.get(EVENT_URL,
 
 router.get(EVENT_TYPES_URL,
     async (req, res, next) => {
-        await isAllowedMiddleware(req, res, next, userIsOrganizer)
+        await isAllowedMiddleware(req, res, next, userExists)
     },
     async (req, res, next) => {
         Logger.request(`GET: ${EVENT_TYPES_URL}`);
@@ -118,6 +118,6 @@ router.get(EVENT_GROUP_URL, async (req, res, next) => {
         Logger.request(`POST: /event/group`);
 
         await handleGetGroup(req, res);
-    })
+    });
 
 module.exports = router;

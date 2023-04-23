@@ -285,7 +285,11 @@ const handleSearch = async (req, res) => {
         const types_ids = tags.split(",");
 
         events = await findAll(Events,
-            {},
+            {
+                capacity: {
+                    [Op.ne]: 0
+                }
+            },
             [
                 {
                     model: Speakers,
@@ -317,14 +321,16 @@ const handleSearch = async (req, res) => {
             ],
             order
         );
-    } else if (owner) {
+    }
+    else if (owner) {
         events = await findAll(Events, {
             owner_id: owner
         },
             includes,
             order
         );
-    } else if (staff) {
+    }
+    else if (staff) {
         const user = await findOne(User, {
             id: staff,
             is_staff: true
@@ -363,7 +369,8 @@ const handleSearch = async (req, res) => {
             includes,
             order
         );
-    } else if (consumer) {
+    }
+    else if (consumer) {
         userId = await getUserId(req);
 
         const user = await findOne(User,

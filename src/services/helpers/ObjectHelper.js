@@ -10,22 +10,6 @@ const isEmpty = (obj) => {
     return JSON.stringify(obj) === JSON.stringify({});
 }
 
-const removeTimestamps = (data) => {
-    if (typeof data !== 'object' || data === null) {
-        return data;
-    }
-
-    for (let key in data) {
-        if (key === 'createdAt' || key === 'updatedAt') {
-            delete data[key];
-        } else {
-            removeTimestamps(data[key]);
-        }
-    }
-
-    return data;
-}
-
 module.exports = {
-    objDeepCopy, isEmpty, removeTimestamps
+    objDeepCopy, isEmpty
 };

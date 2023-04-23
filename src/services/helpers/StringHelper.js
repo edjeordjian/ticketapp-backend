@@ -8,6 +8,18 @@ function replaceAll(str, toReplace, newStr) {
     return str.split(toReplace).join(newStr);
 }
 
+function replaceAllBy(str, toReplace) {
+    let toReturn = str;
+
+    for (const key in toReplace) {
+        toReturn = replaceAll(toReturn,
+                              key,
+                              toReplace[key]);
+    }
+
+    return toReturn;
+}
+
 function fullTrimString(str) {
     const noA = replaceAll(str.toLowerCase(), "á", "a");
 
@@ -26,10 +38,23 @@ function getBcryptOf(toHash) {
 }
 
 function getHashOf(toHash) {
-    // Edge case: slashes cannot be used in URLs items.
-    return replaceAll(getBcryptOf(toHash), "/", "a").split(".p5.")[1].substring(0, 10);
+    const hash = getBcryptOf(toHash);
+
+    // slashes cannot be used in URLs items.
+    // l can be confused with I
+    // o can be confuse with O
+    // O can be confused with 0
+    const conflicts = {
+        "/": "a",
+        "O": "b",
+        "0": "c",
+        "I": "d",
+        "l": "e"
+    }
+
+    return replaceAllBy(hash, conflicts).split(".p5.")[1].substring(0, 10);
 }
 
 module.exports = {
-    getBcryptOf, getHashOf, replaceAll, fullTrimString
+    getBcryptOf, getHashOf, replaceAll, fullTrimString, replaceAllBy
 };
