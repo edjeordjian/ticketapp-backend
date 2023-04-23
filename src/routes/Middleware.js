@@ -14,7 +14,7 @@ const { verifyToken } = require("../services/authentication/FirebaseService")
 const isOrganizerMiddleware = async (req, res, next) => {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = await verifyToken(token);
-    const isOrganizer = await userIsOrganizer(decodedToken.email);
+    const isOrganizer = await userIsOrganizer(null, decodedToken.email);
     if (isOrganizer) {
         next();
     } else {
@@ -39,11 +39,13 @@ const getUserId = async (req) => {
 
     if (req.headers.expo && req.headers.authorization) {
         userData = await getFirebaseUserData(token);
-    } else {
-        userData = await verifyToken(token);
+
+        return userData.id;
     }
 
-    return userData.id;
+    userData = await verifyToken(token);
+
+    return userData.user_id;
 }
 
 const isAllowedMiddleware = async (req, res, next, check_fn) => {
@@ -64,7 +66,7 @@ const isAllowedMiddleware = async (req, res, next, check_fn) => {
     if (isAllowed) {
         next();
     } else {
-        return setErrorResponse("Acceso solo para organizadores.", res, 401);
+        return setErrorResponse("Acceso reestringido.", res, 401);
     }
 }
 
@@ -77,7 +79,7 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         if (userData.id) {
             next();
         } else {
-            return setErrorResponse("No autorizado", res, 400);
+            return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
         }
     } else {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {

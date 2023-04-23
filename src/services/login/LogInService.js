@@ -63,7 +63,8 @@ const handleRoleAppend = async (body, user) => {
     const createResponse = await update(User, {
         is_administrator: body.isAdministrator || user.is_administrator,
         is_organizer: body.isOrganizer || user.is_organizer,
-        is_consumer: body.isConsumer || user.is_consumer
+        is_consumer: body.isConsumer || user.is_consumer,
+        is_staff: body.isStaff || user.is_staff
     },
         {
             email: body.email
@@ -103,15 +104,16 @@ const handleLogIn = async (req, res) => {
         email = result.email;
     } else if (findResponse.is_administrator !== body.isAdministrator ||
         findResponse.is_organizer !== body.isOrganizer ||
-        findResponse.is_consumer !== body.isConsumer) {
+        findResponse.is_consumer !== body.isConsumer ||
+        findResponse.is_staff !== body.isStaff) {
         const result = await handleRoleAppend(body, findResponse);
 
         if (result.error !== undefined) {
             return setErrorResponse(ERROR_CREATING_USER_LBL, res);
         }
 
-        id = result.id;
-        email = result.email;
+        id = body.id;
+        email = body.email;
     } else {
         if (findResponse.error !== undefined) {
             return setErrorResponse(ERROR_SEARCHING_USER, res);

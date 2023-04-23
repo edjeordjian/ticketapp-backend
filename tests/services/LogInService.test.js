@@ -4,9 +4,9 @@ const assert = require("assert");
 
 const sinon = require("sinon");
 
-const { OK_LBL } = require("../../../src/constants/messages");
+const { OK_LBL } = require("../../src/constants/messages");
 
-const LogInService = rewire("../../../src/services/login/LogInService");
+const LogInService = rewire("../../src/services/login/LogInService");
 
 describe("LogInService", function () {
     let req, res;

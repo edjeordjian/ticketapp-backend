@@ -50,6 +50,12 @@ const { getHashOf } = require("../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
+const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
+const { fullTrimString } = require("../helpers/StringHelper");
+const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
+const { getTicket } = require("../../data/model/Events");
+const { USER_NOT_REGISTERED } = require("../../constants/events/eventsConstants");
+const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
 const { getUserId } = require("../../routes/Middleware");
 
 const includes = [
@@ -240,31 +246,94 @@ const handleCreate = async (req, res) => {
 };
 
 const handleSearch = async (req, res) => {
-    const { value, owner, staff } = req.query;
+    const {
+        value,
+        tags,
+        owner,
+        staff,
+        consumer
+    } = req.query;
 
     let events;
 
-    const order = [["createdAt", "DESC"]];
+    let userId = null;
+
+    const order = [
+        ["date", "ASC"],
+        ["time", "ASC"]
+    ];
 
     if (value) {
+        userId = await getUserId(req);
+
+        const valueToSearch = fullTrimString(value);
+
         events = await findAll(Events, {
             name: {
-                [Op.iLike]: `%${value}%`
-            }
+                [Op.iLike]: `%${valueToSearch}%`
+            },
+                capacity: {
+                    [Op.ne]: 0
+                }
         },
             includes,
             order
         );
-    } else if (owner) {
+    } else if (tags) {
+        userId = await getUserId(req);
+
+        const types_ids = tags.split(",");
+
+        events = await findAll(Events,
+            {
+                capacity: {
+                    [Op.ne]: 0
+                }
+            },
+            [
+                {
+                    model: Speakers,
+                    attributes: ["start", "end", "title"]
+                },
+                {
+                    model: EventTypes,
+                    attributes: ["id", "name"],
+                    where: {
+                        id: {
+                            [Op.in]: types_ids
+                        }
+                    }
+                },
+                {
+                    model: User,
+                    attributes: ["first_name", "last_name"],
+                    as: ORGANIZER_RELATION_NAME
+                },
+                {
+                    model: User,
+                    attributes: ["id"],
+                    as: ATTENDEES_RELATION_NAME
+                },
+                {
+                    model: FAQ,
+                    attributes: ["question", "answer"],
+                }
+            ],
+            order
+        );
+    }
+    else if (owner) {
         events = await findAll(Events, {
             owner_id: owner
         },
             includes,
             order
         );
-    } else if (staff) {
+    }
+    else if (staff) {
         const user = await findOne(User, {
-            id: staff
+            id: staff,
+            is_staff: true
         });
 
         if (! user) {
@@ -280,8 +349,7 @@ const handleSearch = async (req, res) => {
         const owners = await findAll(User, {
             email: {
                 [Op.in]: owner_emails
-            },
-            is_staff: true
+            }
         });
 
         if (owners.error) {
@@ -301,16 +369,61 @@ const handleSearch = async (req, res) => {
             includes,
             order
         );
+    }
+    else if (consumer) {
+        userId = await getUserId(req);
+
+        const user = await findOne(User,
+            {
+                id: consumer,
+                is_consumer: true
+            });
+
+        if (! user) {
+            return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+        }
+
+        events = await user.getEvents({
+                include: includes
+            })
+            .then(events =>
+                events.filter(e => {
+                    return ! getTicket(e).wasUsed;
+                }))
+            .catch(err => {
+                console.log(err);
+
+                return {
+                    "error": GENERIC_ERROR_LBL
+                }
+            });
+
+        userId = await getUserId(req);
+
+        events = events.filter(e => {
+            return ! getTicket(e, userId).wasUsed;
+        });
     } else {
         events = await findAll(Events,
             {
-                id: {
-                    [Op.ne]: null
+                capacity: {
+                    [Op.ne]: 0
                 }
             },
             includes,
             order
         );
+
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
+
+        /*
+        userId = await getUserId(req);
+
+        events = events.filter(e => {
+            return ! getTicket(e, userId).wasUsed;
+        }); */
     }
 
     if (events.error) {
@@ -318,7 +431,7 @@ const handleSearch = async (req, res) => {
     }
 
     const serializedEvents = await Promise.all(events.map(async e => {
-        return getSerializedEvent(e);
+        return getSerializedEvent(e, userId);
     }));
 
     const eventsResponse = {
@@ -349,21 +462,7 @@ const handleGet = async (req, res) => {
 
     const userId = await getUserId(req);
 
-    const serializedEvent = await getSerializedEvent(event).then(returnedEvent => {
-        const attendances = event.attendees.filter(attendee => attendee.id === userId);
-
-        if (attendances.length > 0) {
-            const attendance = attendances[0].attendances;
-
-            returnedEvent$ticket = {
-                id: attendance.hash_code,
-                wasUsed: attendance.attended
-            }
-        }
-
-        return returnedEvent;
-    });
-
+    const serializedEvent = await getSerializedEvent(event, userId);
 
     return setOkResponse(OK_LBL, res, serializedEvent);
 };
@@ -410,7 +509,8 @@ const handleEventSignUp = async (req, res) => {
     const userId = await getUserId(req);
 
     const user = await findOne(User, {
-        id: userId
+        id: userId,
+        is_consumer: true
     });
 
     if (!user) {
@@ -443,8 +543,9 @@ const handleEventSignUp = async (req, res) => {
         }
     });
 
-    const serializedEvent = await getSerializedEvent(event);
+    const serializedEvent = await getSerializedEvent(event, userId);
 
+    // Database is not synchronized yet, so we need to add it explicitely.
     serializedEvent.ticket = {
         id: hash_code,
         wasUsed: false
@@ -453,10 +554,64 @@ const handleEventSignUp = async (req, res) => {
     return setOkResponse(OK_LBL, res, serializedEvent);
 }
 
+const handleEventCheck = async (req, res) => {
+    const { eventId, eventCode } = req.body;
+
+    const event = await findOne(Events, {
+            id: eventId
+        },
+        includes);
+
+    if (!event) {
+        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
+    } else if (event.error) {
+        return setUnexpectedErrorResponse(event.error, res);
+    }
+
+    const attendances = event.attendees
+        .filter(attendee => attendee.attendances.hash_code === eventCode);
+
+    if (! attendances || attendances.length === 0) {
+        return setErrorResponse(INVALID_CODE_ERR_LBL, res);
+    }
+
+    const attendance = attendances[0].attendances;
+
+    if (attendance.attended) {
+        return setErrorResponse(EVENT_ALREADY_ASISTED, res);
+    }
+
+    const user = await findOne(User, {
+        id: attendance.userId,
+        is_consumer: true
+    });
+
+    if (!user) {
+        return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+    } else if (user.error) {
+        return setUnexpectedErrorResponse(user.error, res);
+    }
+
+    const updateResult = await update(Attendances,
+                                     {
+                                         attended: true
+                                     },
+                                     {
+                                         eventId: event.id
+                                     });
+
+    if (updateResult.error) {
+        return setErrorResponse(updateResult.error, res);
+    }
+
+    return setOkResponse(OK_LBL, res, {});
+}
+
 module.exports = {
     handleCreate,
     handleGet,
     handleSearch,
     handleGetTypes,
-    handleEventSignUp
+    handleEventSignUp,
+    handleEventCheck
 };
