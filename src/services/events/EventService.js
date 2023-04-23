@@ -397,9 +397,13 @@ const handleSearch = async (req, res) => {
                     "error": GENERIC_ERROR_LBL
                 }
             });
-    } else {
+
         userId = await getUserId(req);
 
+        events = events.filter(e => {
+            return ! getTicket(e, userId).wasUsed;
+        });
+    } else {
         events = await findAll(Events,
             {
                 capacity: {
@@ -414,9 +418,12 @@ const handleSearch = async (req, res) => {
             return setUnexpectedErrorResponse(events.error, res);
         }
 
+        /*
+        userId = await getUserId(req);
+
         events = events.filter(e => {
-            return ! getTicket(e).wasUsed;
-        })
+            return ! getTicket(e, userId).wasUsed;
+        }); */
     }
 
     if (events.error) {

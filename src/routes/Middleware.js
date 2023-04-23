@@ -66,7 +66,7 @@ const isAllowedMiddleware = async (req, res, next, check_fn) => {
     if (isAllowed) {
         next();
     } else {
-        return setErrorResponse("Acceso solo para organizadores.", res, 401);
+        return setErrorResponse("Acceso reestringido.", res, 401);
     }
 }
 
