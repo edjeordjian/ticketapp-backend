@@ -1,6 +1,7 @@
 const { EventTypes } = require("./EventTypes");
 
 const { Group } = require("./Group");
+
 const { User } = require("./User");
 
 const { Sequelize } = require("sequelize");

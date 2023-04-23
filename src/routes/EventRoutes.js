@@ -1,6 +1,7 @@
 const Logger = require("../services/helpers/Logger");
 
 const express = require('express');
+const { userIsStaff } = require("../services/users/UserService");
 const { handleEventCheck } = require("../services/events/EventService");
 const { EVENT_CHECK_URL } = require("../constants/URLs");
 const { firebaseAuthMiddleware } = require("./Middleware");
@@ -66,7 +67,7 @@ router.post(EVENT_SIGN_UP_URL,
 
 router.post(EVENT_CHECK_URL,
     async (req, res, next) => {
-        await isAllowedMiddleware(req, res, next, userIsConsumer)
+        await isAllowedMiddleware(req, res, next, userIsStaff)
     },
     async (req, res, next) => {
         Logger.request(`POST: ${EVENT_CHECK_URL}`);
@@ -96,7 +97,7 @@ router.get(EVENT_URL,
 
 router.get(EVENT_TYPES_URL,
     async (req, res, next) => {
-        await isAllowedMiddleware(req, res, next, userIsOrganizer)
+        await isAllowedMiddleware(req, res, next, userExists)
     },
     async (req, res, next) => {
         Logger.request(`GET: ${EVENT_TYPES_URL}`);
@@ -118,6 +119,6 @@ router.get(EVENT_GROUP_URL, async (req, res, next) => {
         Logger.request(`POST: /event/group`);
 
         await handleGetGroup(req, res);
-    })
+    });
 
 module.exports = router;

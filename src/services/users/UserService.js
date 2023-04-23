@@ -52,6 +52,32 @@ const userIsConsumer = async(id, email) => {
     return user;
 }
 
+const userIsStaff = async(id, email) => {
+    let user;
+
+    if (id) {
+        user = await findOne(User,
+            {
+                id: id,
+                is_staff: true
+            }
+        );
+    } else {
+        user = await findOne(User,
+            {
+                email: email,
+                is_staff: true
+            }
+        );
+    }
+
+    if (user === null || user.error) {
+        return false;
+    }
+
+    return user;
+}
+
 const userExists = async (id, email) => {
     let user;
 
@@ -77,5 +103,5 @@ const userExists = async (id, email) => {
 }
 
 module.exports = {
-    userIsOrganizer, userExists, userIsConsumer
+    userIsOrganizer, userExists, userIsConsumer, userIsStaff
 }
