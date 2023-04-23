@@ -84,6 +84,12 @@ describe("EventService", function() {
             "findAll": findAllStub
         });
 
+        const eventIdStub = sinon.stub().resolves(1);
+
+        EventService.__set__({
+           "getUserId": eventIdStub
+        });
+
         const response = await EventService.handleSearch(req, res);
 
         assert(OK_LBL === response.message);
