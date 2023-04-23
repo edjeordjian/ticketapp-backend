@@ -79,7 +79,7 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         if (userData.id) {
             next();
         } else {
-            return setErrorResponse("No autorizado", res, 400);
+            return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
         }
     } else {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {

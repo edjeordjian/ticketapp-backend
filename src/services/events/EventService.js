@@ -50,6 +50,9 @@ const { getHashOf } = require("../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
+const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
+const { fullTrimString } = require("../helpers/StringHelper");
+const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
 const { getTicket } = require("../../data/model/Events");
 const { USER_NOT_REGISTERED } = require("../../constants/events/eventsConstants");
 const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
@@ -255,14 +258,19 @@ const handleSearch = async (req, res) => {
 
     let userId = null;
 
-    const order = [["createdAt", "DESC"]];
+    const order = [
+        ["date", "ASC"],
+        ["time", "ASC"]
+    ];
 
     if (value) {
         userId = await getUserId(req);
 
+        const valueToSearch = fullTrimString(value);
+
         events = await findAll(Events, {
             name: {
-                [Op.iLike]: `%${value}%`
+                [Op.iLike]: `%${valueToSearch}%`
             },
                 capacity: {
                     [Op.ne]: 0
@@ -369,10 +377,19 @@ const handleSearch = async (req, res) => {
         }
 
         events = await user.getEvents({
-            include: includes
-        }).filter(e => {
-            return ! getTicket(e).wasUsed;
-        });
+                include: includes
+            })
+            .then(events =>
+                events.filter(e => {
+                    return ! getTicket(e).wasUsed;
+                }))
+            .catch(err => {
+                console.log(err);
+
+                return {
+                    "error": GENERIC_ERROR_LBL
+                }
+            });
     } else {
         userId = await getUserId(req);
 
@@ -385,6 +402,14 @@ const handleSearch = async (req, res) => {
             includes,
             order
         );
+
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
+
+        events = events.filter(e => {
+            return ! getTicket(e).wasUsed;
+        })
     }
 
     if (events.error) {
@@ -506,6 +531,12 @@ const handleEventSignUp = async (req, res) => {
 
     const serializedEvent = await getSerializedEvent(event, userId);
 
+    // Database is not synchronized yet, so we need to add it explicitely.
+    serializedEvent.ticket = {
+        id: hash_code,
+        wasUsed: false
+    }
+
     return setOkResponse(OK_LBL, res, serializedEvent);
 }
 
@@ -522,11 +553,21 @@ const handleEventCheck = async (req, res) => {
     } else if (event.error) {
         return setUnexpectedErrorResponse(event.error, res);
     }
+ª
+    const attendances = event.attendees.filter(attendee => attendee.hash_code === eventCode);
 
-    const userId = await getUserId(req);
+    if (! attendances) {
+        return setErrorResponse(INVALID_CODE_ERR_LBL, res);
+    }
+
+    const attendance = attendances[0].attendances;
+
+    if (attendance.attended) {
+        return setErrorResponse(EVENT_ALREADY_ASISTED, res);
+    }
 
     const user = await findOne(User, {
-        id: userId,
+        id: attendance.userId,
         is_consumer: true
     });
 
@@ -534,18 +575,6 @@ const handleEventCheck = async (req, res) => {
         return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
     } else if (user.error) {
         return setUnexpectedErrorResponse(user.error, res);
-    }
-
-    const attendances = event.attendees.filter(attendee => attendee.id === userId);
-
-    const attendance = attendances[0].attendances;
-
-    if (! attendances || attendance.hash_code !== eventCode) {
-        return setErrorResponse(USER_NOT_REGISTERED, res);
-    }
-
-    if (attendance.attended) {
-        return setErrorResponse(EVENT_ALREADY_ASISTED, res);
     }
 
     const updateResult = await update(Attendances,

@@ -8,6 +8,18 @@ function replaceAll(str, toReplace, newStr) {
     return str.split(toReplace).join(newStr);
 }
 
+function fullTrimString(str) {
+    const noA = replaceAll(str.toLowerCase(), "á", "a");
+
+    const noE = replaceAll(noA, "é", "a");
+
+    const noI = replaceAll(noE, "ú", "u");
+
+    const noO = replaceAll(noI, "í", "i");
+
+    return replaceAll(noO, "ó", "o");
+}
+
 // Sync = blocks the event loop
 function getBcryptOf(toHash) {
     return bcrypt.hashSync(toHash, BASE_SALT);
@@ -19,5 +31,5 @@ function getHashOf(toHash) {
 }
 
 module.exports = {
-    getBcryptOf, getHashOf, replaceAll
+    getBcryptOf, getHashOf, replaceAll, fullTrimString
 };
