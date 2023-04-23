@@ -553,10 +553,11 @@ const handleEventCheck = async (req, res) => {
     } else if (event.error) {
         return setUnexpectedErrorResponse(event.error, res);
     }
-ª
-    const attendances = event.attendees.filter(attendee => attendee.hash_code === eventCode);
 
-    if (! attendances) {
+    const attendances = event.attendees
+        .filter(attendee => attendee.attendances.hash_code === eventCode);
+
+    if (! attendances || attendances.length === 0) {
         return setErrorResponse(INVALID_CODE_ERR_LBL, res);
     }
 

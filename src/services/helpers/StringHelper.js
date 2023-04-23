@@ -27,7 +27,7 @@ function getBcryptOf(toHash) {
 
 function getHashOf(toHash) {
     // Edge case: slashes cannot be used in URLs items.
-    return replaceAll(getBcryptOf(toHash), "/", "a").split(".")[2].substring(0, 10);
+    return replaceAll(getBcryptOf(toHash), "/", "a").split(".p5.")[1].substring(0, 10);
 }
 
 module.exports = {

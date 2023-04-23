@@ -14,7 +14,7 @@ const EVENT_ALREADY_ASISTED = "La entrada ya fue utilizada.";
 
 const USER_NOT_REGISTERED = "La entrada presentada no corresponde a este evento.";
 
-const INVALID_CODE_ERR_LBL = "Código inválido.";
+const INVALID_CODE_ERR_LBL = "Entrada inválida para el evento.";
 
 const MAX_EVENT_CAPACITY = 1000000;
 
