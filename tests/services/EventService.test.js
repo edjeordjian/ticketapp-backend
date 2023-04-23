@@ -4,9 +4,13 @@ const assert = require("assert");
 
 const sinon = require("sinon");
 
-const {OK_LBL} = require("../../../src/constants/messages");
+const { EventMock } = require("../mocks/EventMock");
 
-const EventService = rewire("../../../src/services/events/EventService");
+const Event = rewire("../../src/data/model/Events");
+
+const {OK_LBL} = require("../../src/constants/messages");
+
+const EventService = rewire("../../src/services/events/EventService");
 
 
 describe("EventService", function() {
@@ -88,6 +92,28 @@ describe("EventService", function() {
 
         EventService.__set__({
            "getUserId": eventIdStub
+        });
+
+        const response = await EventService.handleSearch(req, res);
+
+        assert(OK_LBL === response.message);
+    });
+
+    it("Search event by owner", async () => {
+        req.query = {
+            owner: "Evento"
+        };
+
+        const findAllStub = sinon.stub().resolves([]);
+
+        EventService.__set__({
+            "findAll": findAllStub
+        });
+
+        const eventIdStub = sinon.stub().resolves(1);
+
+        EventService.__set__({
+            "getUserId": eventIdStub
         });
 
         const response = await EventService.handleSearch(req, res);
@@ -180,5 +206,82 @@ describe("EventService", function() {
         const response = await EventService.handleEventSignUp(req, res);
 
         assert("error" === response.error);
+    });
+
+    it("Event serialization", async () => {
+        const e = new EventMock();
+
+        Event.__set__({
+            "timeToString": sinon.stub().resolves("9:00")
+        })
+
+        Event.__set__({
+            "dateToString": sinon.stub().resolves("10/10/2010")
+        })
+
+        const serializedEvent = await Event.getSerializedEvent(e);
+
+        assert(e.name === serializedEvent.name);
+    });
+
+    it("Cannot check an unexisting event", async () => {
+        const findOneStub = sinon.stub().resolves(null);
+
+        const updateStub = sinon.stub().resolves(null);
+
+        EventService.__set__({
+            "findOne": findOneStub,
+
+            "update": updateStub
+        });
+
+        const response = await EventService.handleEventCheck(req, res);
+
+        assert("error" === response.error);
+    });
+
+    it("Cannot check an event without attendances", async () => {
+        const findOneStub = sinon.stub().resolves({
+            id: 1,
+            attendees: []
+        });
+
+        const updateStub = sinon.stub().resolves({ });
+
+        EventService.__set__({
+            "findOne": findOneStub,
+
+            "update": updateStub
+        });
+
+        const response = await EventService.handleEventCheck(req, res);
+
+        assert("error" === response.error);
+    });
+
+    it("Cannot check an event which was already checked", async () => {
+        const findOneStub = sinon.stub().resolves({
+            id: 1,
+            attendees:
+                [
+                    {
+                        attendances: {
+                            wasUsed: false
+                        }
+                    }
+                ]
+        });
+
+        const updateStub = sinon.stub().resolves({ });
+
+        EventService.__set__({
+            "findOne": findOneStub,
+
+            "update": updateStub
+        });
+
+        const response = await EventService.handleEventCheck(req, res);
+
+        assert(response);
     });
 });
