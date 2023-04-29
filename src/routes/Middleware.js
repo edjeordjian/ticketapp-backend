@@ -1,4 +1,7 @@
 const Logger = require("../helpers/Logger");
+const { ONLY_ADMIN_ERR_LBL } = require("../constants/login/logInConstants");
+const { DENIED_ACCESS_ERR_LBL } = require("../constants/login/logInConstants");
+const { userIsAdministrator } = require("../services/users/UserService");
 
 const { getFirebaseUserData } = require("../services/authentication/FirebaseService");
 
@@ -12,7 +15,14 @@ const { verifyToken } = require("../services/authentication/FirebaseService")
 
 
 const isOrganizerMiddleware = async (req, res, next) => {
-    const token = req.headers.authorization.split(' ')[1];
+    const authorization = req.headers.authorization;
+
+    if (!authorization) {
+        return setErrorResponse("Acceso solo para organizadores.", res, 401);
+    }
+
+    const token = authorization.split(' ')[1];
+
     const decodedToken = await verifyToken(token);
     const isOrganizer = await userIsOrganizer(null, decodedToken.email);
     if (isOrganizer) {
@@ -21,6 +31,28 @@ const isOrganizerMiddleware = async (req, res, next) => {
         return setErrorResponse("Acceso solo para organizadores.", res, 401);
     }
 
+}
+
+const administratorMiddleware = async (req, res, next) => {
+    const authorization = req.headers.authorization;
+
+    if (req.body.isAdministrator) {
+        if (! authorization) {
+            return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 401);
+        }
+
+        const token = authorization.split(' ')[1];
+
+        const decodedToken = await verifyToken(token);
+
+        const isAdministrator = await userIsAdministrator(decodedToken.email);
+
+        if (! isAdministrator) {
+            return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 401);
+        }
+    }
+
+    next();
 }
 
 const emptyBodyMiddleware = async (req, res, next) => {
@@ -105,7 +137,8 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         }
     }
 }
+
 module.exports = {
     firebaseAuthMiddleware, emptyBodyMiddleware, isOrganizerMiddleware, isAllowedMiddleware,
-    getUserId
-}
+    getUserId, administratorMiddleware
+};
