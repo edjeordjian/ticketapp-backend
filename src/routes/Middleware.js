@@ -49,11 +49,15 @@ const getUserId = async (req) => {
 }
 
 const isAllowedMiddleware = async (req, res, next, check_fn) => {
+    if (! req.headers.authorization) {
+        return setErrorResponse("Acceso reestringido.", res, 401);
+    }
+
     const token = req.headers.authorization.split(' ')[1];
 
     let isAllowed;
 
-    if (req.headers.expo && req.headers.authorization) {
+    if (req.headers.expo) {
         const userData = await getFirebaseUserData(token);
 
         isAllowed = await check_fn(userData.id, null);

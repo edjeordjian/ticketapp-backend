@@ -1,6 +1,8 @@
 const Logger = require("../helpers/Logger");
 
 const express = require('express');
+const { getReportCategories } = require("../services/events/EventCategoriesService");
+const { REPORTS_CATEGORIES_URL } = require("../constants/URLs");
 const { userIsStaff } = require("../services/users/UserService");
 const { handleEventCheck } = require("../services/events/EventService");
 const { EVENT_CHECK_URL } = require("../constants/URLs");
@@ -102,6 +104,16 @@ router.get(EVENT_TYPES_URL,
         Logger.request(`GET: ${EVENT_TYPES_URL}`);
 
         await handleGetTypes(req, res);
+    });
+
+router.get(REPORTS_CATEGORIES_URL,
+    async (req, res, next) => {
+        await isAllowedMiddleware(req, res, next, userExists)
+    },
+    async (req, res, next) => {
+        Logger.request(`GET: ${EVENT_TYPES_URL}`);
+
+        await getReportCategories(req, res);
     });
 
 router.post(EVENT_GROUP_ADD_USER_URL, async (req, res, next) => {

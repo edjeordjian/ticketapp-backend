@@ -1,3 +1,5 @@
+const { getSerializedEventReportCategory } = require("../../data/model/EventReportCategory");
+const { EventReportCategory } = require("../../data/model/EventReportCategory");
 const { OK_LBL } = require("../../constants/messages");
 const { Op } = require("sequelize");
 const { EventTypes } = require("../../data/model/EventTypes");
@@ -42,6 +44,14 @@ const handleGetTypes = async (req, res) => {
         "event_types");
 };
 
+const getReportCategories = async (req, res) => {
+    await getAllSerialized(req,
+        res,
+        EventReportCategory,
+        getSerializedEventReportCategory,
+        "report_categories");
+};
+
 module.exports = {
-    handleGetTypes
+    handleGetTypes, getReportCategories
 };
