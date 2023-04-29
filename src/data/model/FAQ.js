@@ -2,7 +2,7 @@ const { Sequelize } = require("sequelize");
 
 const { MAX_STR_LEN } = require("../../constants/dataConstants");
 
-const { database } = require("../database/database");
+const { database } = require("../database");
 const { Events } = require("./Events")
 
 const FAQ = database.define("FAQ", {

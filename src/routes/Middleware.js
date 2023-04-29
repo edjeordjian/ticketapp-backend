@@ -1,12 +1,12 @@
-const Logger = require("../services/helpers/Logger");
+const Logger = require("../helpers/Logger");
 
 const { getFirebaseUserData } = require("../services/authentication/FirebaseService");
 
 const { userIsOrganizer, userExists } = require("../services/users/UserService");
 
-const { setErrorResponse } = require("../services/helpers/ResponseHelper");
+const { setErrorResponse } = require("../helpers/ResponseHelper");
 
-const { isEmpty } = require("../services/helpers/ObjectHelper");
+const { isEmpty } = require("../helpers/ObjectHelper");
 
 const { verifyToken } = require("../services/authentication/FirebaseService")
 
@@ -49,11 +49,15 @@ const getUserId = async (req) => {
 }
 
 const isAllowedMiddleware = async (req, res, next, check_fn) => {
+    if (! req.headers.authorization) {
+        return setErrorResponse("Acceso reestringido.", res, 401);
+    }
+
     const token = req.headers.authorization.split(' ')[1];
 
     let isAllowed;
 
-    if (req.headers.expo && req.headers.authorization) {
+    if (req.headers.expo) {
         const userData = await getFirebaseUserData(token);
 
         isAllowed = await check_fn(userData.id, null);

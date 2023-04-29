@@ -2,7 +2,7 @@ const { Sequelize, DataTypes } = require("sequelize");
 
 const { ID_MAX_LEN, MAX_STR_LEN } = require("../../constants/dataConstants");
 
-const { database } = require("../database/database");
+const { database } = require("../database");
 
 const Group = database.define("groups", {
     id: {

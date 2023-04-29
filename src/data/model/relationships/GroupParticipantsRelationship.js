@@ -1,12 +1,12 @@
-const { EventTypes } = require("./EventTypes");
+const { EventTypes } = require("../EventTypes");
 
-const { Group } = require("./Group");
+const { Group } = require("../Group");
 
-const { User } = require("./User");
+const { User } = require("../User");
 
 const { Sequelize } = require("sequelize");
 
-const { database } = require("../database/database");
+const { database } = require("../../database");
 
 // https://sequelize.org/docs/v6/advanced-association-concepts/advanced-many-to-many/
 const defineGroupGroupParticipantRelationship = () => {

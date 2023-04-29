@@ -1,4 +1,4 @@
-const { BASE_SALT } = require("../../constants/dataConstants");
+const { BASE_SALT } = require("../constants/dataConstants");
 
 const bcrypt = require("bcrypt");
 

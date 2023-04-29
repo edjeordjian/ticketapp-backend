@@ -1,4 +1,4 @@
-const Logger = require("../services/helpers/Logger");
+const Logger = require("../helpers/Logger");
 
 const express = require('express')
 

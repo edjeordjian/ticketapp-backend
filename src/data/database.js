@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 
-const dataConstants = require("../../constants/dataConstants");
+const dataConstants = require("../constants/dataConstants");
 
 const database = new Sequelize(dataConstants.DATABASE_URL, {
     dialect: 'postgres',

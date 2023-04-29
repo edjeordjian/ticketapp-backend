@@ -1,4 +1,4 @@
-const { findOne } = require("../helpers/QueryHelper");
+const { findOne } = require("../../helpers/QueryHelper");
 const { User } = require("../../data/model/User");
 
 const userIsOrganizer = async (id, email) => {

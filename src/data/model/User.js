@@ -2,7 +2,7 @@ const { Sequelize } = require("sequelize");
 
 const { ID_MAX_LEN, MAX_STR_LEN } = require("../../constants/dataConstants");
 
-const { database } = require("../database/database");
+const { database } = require("../database");
 
 const User = database.define("users", {
     id: {
@@ -49,15 +49,19 @@ const User = database.define("users", {
     },
 
     first_name: {
-        type: Sequelize.STRING(MAX_STR_LEN),
+        type: Sequelize.STRING(MAX_STR_LEN)
     },
 
     last_name: {
-        type: Sequelize.STRING(MAX_STR_LEN),
+        type: Sequelize.STRING(MAX_STR_LEN)
     },
 
     picture_url: {
-        type: Sequelize.STRING(MAX_STR_LEN),
+        type: Sequelize.STRING(MAX_STR_LEN)
+    },
+
+    expo_token: {
+        type: Sequelize.STRING(MAX_STR_LEN)
     }
 });
 

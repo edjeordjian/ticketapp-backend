@@ -12,7 +12,7 @@ const fs = require("fs");
 
 const { TEST_ENV } = require("./generalConstants");
 
-const { TEST_URL } = require("./generalConstants");
+const TEST_URL = "postgres://postgres:postgres@db:5432/postgres";
 
 const RESET_DATABASE = false;
 
@@ -82,6 +82,14 @@ const ORGANIZER_RELATION_NAME = 'organizer';
 
 const CREATED_EVENTS_RELATION_NAME = 'createdEvents';
 
+const REPORTS_RELATION_NAME = "reports";
+
+const REPORTER_RELATION_NAME = "reporter";
+
+const EVENT_STATE_RELATION_NAME = "events";
+
+const EVENT_TO_EVENT_STATE_RELATION_NAME = "state";
+
 const RUNNING_MIGRATIONS_LBL = "Running migrations...";
 
 const GENERIC_ERROR_LBL = "Error en la consulta";
@@ -91,5 +99,6 @@ module.exports = {
     MAX_STR_LEN, FIREBASE_CONFIG, RUNNING_MIGRATIONS_LBL,
     MAX_STR_CAPACITY, BASE_SALT, ATTENDEES_RELATION_NAME,
     EVENTS_RELATION_NAME, ORGANIZER_RELATION_NAME, CREATED_EVENTS_RELATION_NAME,
-    GENERIC_ERROR_LBL
+    GENERIC_ERROR_LBL, TEST_URL, REPORTS_RELATION_NAME, REPORTER_RELATION_NAME,
+    EVENT_STATE_RELATION_NAME, EVENT_TO_EVENT_STATE_RELATION_NAME
 };

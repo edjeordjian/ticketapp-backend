@@ -1,29 +1,30 @@
 const { MAX_EVENT_CAPACITY } = require("../../constants/events/eventsConstants");
 
-const { getSerializedEventType } = require("../../data/model/EventTypes");
-
 const { getSerializedEvent } = require("../../data/model/Events");
 
 const { Op } = require("sequelize");
 
-const { objDeepCopy } = require("../helpers/ObjectHelper");
+const { objDeepCopy } = require("../../helpers/ObjectHelper");
 
 const { Speakers } = require("../../data/model/Speakers");
 
 const { Events } = require("../../data/model/Events");
 
 const { User } = require("../../data/model/User");
+
 const { FAQ } = require("../../data/model/FAQ");
 
 const { EventTypes } = require("../../data/model/EventTypes");
 
-const { logError } = require("../helpers/Logger");
+const { logError } = require("../../helpers/Logger");
 
 const { UNEXISTING_USER_ERR_LBL } = require("../../constants/login/logInConstants");
 
-const { dateFromString } = require("../helpers/DateHelper");
+const { dateFromString } = require("../../helpers/DateHelper");
 
-const { areAnyUndefined } = require("../helpers/ListHelper");
+const { areAnyUndefined } = require("../../helpers/ListHelper");
+
+const { getDistanceFromLatLonInKm } = require("../../helpers/DistanceHelper");
 
 const {
     EVENT_ALREADY_EXISTS_ERR_LBL,
@@ -37,21 +38,23 @@ const {
     setOkResponse,
     setErrorResponse,
     setUnexpectedErrorResponse
-} = require("../helpers/ResponseHelper");
+} = require("../../helpers/ResponseHelper");
 
-const { create, findOne, findAll, update } = require("../helpers/QueryHelper");
+const { create, findOne, findAll, update } = require("../../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
-const Logger = require("../../services/helpers/Logger");
+const Logger = require("../../helpers/Logger");
 const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
 const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
-const { getHashOf } = require("../helpers/StringHelper");
+const { getHashOf } = require("../../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
+const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
+const { EventState } = require("../../data/model/EventState");
 const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
-const { fullTrimString } = require("../helpers/StringHelper");
+const { fullTrimString } = require("../../helpers/StringHelper");
 const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
 const { getTicket } = require("../../data/model/Events");
 const { USER_NOT_REGISTERED } = require("../../constants/events/eventsConstants");
@@ -251,7 +254,9 @@ const handleSearch = async (req, res) => {
         tags,
         owner,
         staff,
-        consumer
+        consumer,
+        latitude,
+        longitude,
     } = req.query;
 
     let events;
@@ -272,9 +277,9 @@ const handleSearch = async (req, res) => {
             name: {
                 [Op.iLike]: `%${valueToSearch}%`
             },
-                capacity: {
-                    [Op.ne]: 0
-                }
+            capacity: {
+                [Op.ne]: 0
+            }
         },
             includes,
             order
@@ -430,9 +435,17 @@ const handleSearch = async (req, res) => {
         return setUnexpectedErrorResponse(events.error, res);
     }
 
-    const serializedEvents = await Promise.all(events.map(async e => {
-        return getSerializedEvent(e, userId);
+    let serializedEvents = await Promise.all(events.map(async e => {
+        const event = await getSerializedEvent(e, userId);
+        if (latitude && longitude) {
+            e = { ...event, distance: getDistanceFromLatLonInKm(latitude, longitude, e.latitude, e.longitude) };
+        }
+        return e;
     }));
+
+    if (latitude && longitude) {
+        serializedEvents = serializedEvents.sort((a, b) => a.distance - b.distance);
+    }
 
     const eventsResponse = {
         events: serializedEvents
@@ -465,31 +478,6 @@ const handleGet = async (req, res) => {
     const serializedEvent = await getSerializedEvent(event, userId);
 
     return setOkResponse(OK_LBL, res, serializedEvent);
-};
-
-const handleGetTypes = async (req, res) => {
-    let result = await findAll(EventTypes,
-        {
-            id: {
-                [Op.ne]: null
-            }
-        });
-
-    if (result === null) {
-        result = [];
-    } else if (result.error) {
-        return setErrorResponse(result.error, res);
-    }
-
-    const eventTypes = [];
-
-    result.forEach(e => eventTypes.push(getSerializedEventType(e)));
-
-    const response = {
-        "event_types": eventTypes
-    };
-
-    return setOkResponse(OK_LBL, res, response);
 };
 
 const handleEventSignUp = async (req, res) => {
@@ -593,12 +581,12 @@ const handleEventCheck = async (req, res) => {
     }
 
     const updateResult = await update(Attendances,
-                                     {
-                                         attended: true
-                                     },
-                                     {
-                                         eventId: event.id
-                                     });
+        {
+            attended: true
+        },
+        {
+            eventId: event.id
+        });
 
     if (updateResult.error) {
         return setErrorResponse(updateResult.error, res);
@@ -611,7 +599,6 @@ module.exports = {
     handleCreate,
     handleGet,
     handleSearch,
-    handleGetTypes,
     handleEventSignUp,
     handleEventCheck
 };
