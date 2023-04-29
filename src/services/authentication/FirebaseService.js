@@ -1,7 +1,7 @@
 const admin = require('firebase-admin');
-const Logger = require("../helpers/Logger");
+const Logger = require("../../helpers/Logger");
 const { FIREBASE_URL } = require("../../constants/URLs");
-const { logError } = require("../helpers/Logger");
+const { logError } = require("../../helpers/Logger");
 
 const fetch = require('node-fetch');
 

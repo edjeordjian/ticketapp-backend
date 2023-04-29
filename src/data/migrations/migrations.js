@@ -10,7 +10,7 @@ const queryInterface = database.getQueryInterface();
 
 const { RUNNING_MIGRATIONS_LBL } = require("../../constants/dataConstants");
 
-const { logInfo } = require("../../services/helpers/Logger");
+const { logInfo } = require("../../helpers/Logger");
 
 const { User } = require("../model/User");
 
@@ -24,6 +24,14 @@ const today = new Date();
 
 async function runMigrations () {
     logInfo(RUNNING_MIGRATIONS_LBL);
+
+    await queryInterface.addColumn(Users.tableName,
+        "expo_token",
+        {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }).catch(err => {
+       console.log(err.toString());
+    });
 }
 
 module.exports = {

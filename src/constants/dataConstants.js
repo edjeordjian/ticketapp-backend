@@ -12,7 +12,7 @@ const fs = require("fs");
 
 const { TEST_ENV } = require("./generalConstants");
 
-const { TEST_URL } = require("./generalConstants");
+const TEST_URL = "postgres://postgres:postgres@db:5432/postgres";
 
 const RESET_DATABASE = false;
 
@@ -91,5 +91,5 @@ module.exports = {
     MAX_STR_LEN, FIREBASE_CONFIG, RUNNING_MIGRATIONS_LBL,
     MAX_STR_CAPACITY, BASE_SALT, ATTENDEES_RELATION_NAME,
     EVENTS_RELATION_NAME, ORGANIZER_RELATION_NAME, CREATED_EVENTS_RELATION_NAME,
-    GENERIC_ERROR_LBL
+    GENERIC_ERROR_LBL, TEST_URL
 };

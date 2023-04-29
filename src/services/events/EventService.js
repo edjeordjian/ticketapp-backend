@@ -6,7 +6,7 @@ const { getSerializedEvent } = require("../../data/model/Events");
 
 const { Op } = require("sequelize");
 
-const { objDeepCopy } = require("../helpers/ObjectHelper");
+const { objDeepCopy } = require("../../helpers/ObjectHelper");
 
 const { Speakers } = require("../../data/model/Speakers");
 
@@ -17,13 +17,13 @@ const { FAQ } = require("../../data/model/FAQ");
 
 const { EventTypes } = require("../../data/model/EventTypes");
 
-const { logError } = require("../helpers/Logger");
+const { logError } = require("../../helpers/Logger");
 
 const { UNEXISTING_USER_ERR_LBL } = require("../../constants/login/logInConstants");
 
-const { dateFromString } = require("../helpers/DateHelper");
+const { dateFromString } = require("../../helpers/DateHelper");
 
-const { areAnyUndefined } = require("../helpers/ListHelper");
+const { areAnyUndefined } = require("../../helpers/ListHelper");
 
 const {
     EVENT_ALREADY_EXISTS_ERR_LBL,
@@ -37,21 +37,21 @@ const {
     setOkResponse,
     setErrorResponse,
     setUnexpectedErrorResponse
-} = require("../helpers/ResponseHelper");
+} = require("../../helpers/ResponseHelper");
 
-const { create, findOne, findAll, update } = require("../helpers/QueryHelper");
+const { create, findOne, findAll, update } = require("../../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
-const Logger = require("../../services/helpers/Logger");
+const Logger = require("../../helpers/Logger");
 const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
 const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
-const { getHashOf } = require("../helpers/StringHelper");
+const { getHashOf } = require("../../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
 const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
-const { fullTrimString } = require("../helpers/StringHelper");
+const { fullTrimString } = require("../../helpers/StringHelper");
 const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
 const { getTicket } = require("../../data/model/Events");
 const { USER_NOT_REGISTERED } = require("../../constants/events/eventsConstants");

@@ -3,7 +3,7 @@ const { UNEXISTING_USER_ERR_LBL,
 
 const { OK_LBL } = require("../../constants/messages");
 
-const { findAll } = require("../helpers/QueryHelper");
+const { findAll } = require("../../helpers/QueryHelper");
 
 const { Op } = require("sequelize");
 
@@ -11,13 +11,13 @@ const { User } = require("../../data/model/User");
 
 const { Group } = require("../../data/model/Group");
 
-const { findOne } = require("../helpers/QueryHelper");
+const { findOne } = require("../../helpers/QueryHelper");
 
 const {
     setOkResponse,
     setErrorResponse,
     setUnexpectedErrorResponse
-} = require("../helpers/ResponseHelper");
+} = require("../../helpers/ResponseHelper");
 
 
 const handleAddUserToGroup = async (req, res) => {

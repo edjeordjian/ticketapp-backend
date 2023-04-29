@@ -1,12 +1,12 @@
-const Logger = require("../services/helpers/Logger");
+const Logger = require("../helpers/Logger");
 
 const { getFirebaseUserData } = require("../services/authentication/FirebaseService");
 
 const { userIsOrganizer, userExists } = require("../services/users/UserService");
 
-const { setErrorResponse } = require("../services/helpers/ResponseHelper");
+const { setErrorResponse } = require("../helpers/ResponseHelper");
 
-const { isEmpty } = require("../services/helpers/ObjectHelper");
+const { isEmpty } = require("../helpers/ObjectHelper");
 
 const { verifyToken } = require("../services/authentication/FirebaseService")
 

@@ -1,4 +1,4 @@
-const { timeToString } = require("../../services/helpers/DateHelper");
+const { timeToString } = require("../../helpers/DateHelper");
 
 const { MAX_STR_CAPACITY } = require("../../constants/dataConstants");
 
@@ -8,7 +8,7 @@ const { MAX_STR_LEN } = require("../../constants/dataConstants");
 
 const { database } = require("../database/database");
 
-const { dateToString } = require("../../services/helpers/DateHelper");
+const { dateToString } = require("../../helpers/DateHelper");
 
 const Events = database.define("events", {
     id: {

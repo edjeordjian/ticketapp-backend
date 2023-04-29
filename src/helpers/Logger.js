@@ -1,6 +1,6 @@
 const simple_node_logger = require('simple-node-logger');
 
-const {DATE_FORMAT} = require("../../constants/generalConstants");
+const {DATE_FORMAT} = require("../constants/generalConstants");
 
 const {getQuickDate} = require("./DateHelper");
 
@@ -9,7 +9,7 @@ const path = require('path');
 const {INFO_LBL,
        DEBUG_LBL,
        WARN_LBL,
-       ERROR_LBL} = require("../../constants/helpers/helpersConstants");
+       ERROR_LBL} = require("../constants/helpers/helpersConstants");
 
 let logFile;
        

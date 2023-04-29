@@ -1,4 +1,4 @@
-const Logger = require("../services/helpers/Logger");
+const Logger = require("../helpers/Logger");
 
 const express = require('express');
 const { userIsStaff } = require("../services/users/UserService");
@@ -7,8 +7,8 @@ const { EVENT_CHECK_URL } = require("../constants/URLs");
 const { firebaseAuthMiddleware } = require("./Middleware");
 const { emptyBodyMiddleware } = require("./Middleware");
 const { isAllowedMiddleware } = require("./Middleware");
-const { handleGetGroup } = require("../services/events/GroupService");
-const { handleAddUserToGroup } = require("../services/events/GroupService");
+const { handleGetGroup } = require("../services/login/GroupService");
+const { handleAddUserToGroup } = require("../services/login/GroupService");
 const { isOrganizerMiddleware } = require("./Middleware");
 const { EVENT_GROUP_URL } = require("../constants/URLs");
 const { EVENT_GROUP_ADD_USER_URL } = require("../constants/URLs");
@@ -28,12 +28,12 @@ const { userIsOrganizer, userExists } = require("../services/users/UserService")
 
 const { setOkResponse,
     setErrorResponse,
-    setUnexpectedErrorResponse } = require("../services/helpers/ResponseHelper");
+    setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
 
-const { isEmpty } = require("../services/helpers/ObjectHelper");
+const { isEmpty } = require("../helpers/ObjectHelper");
 const { EVENT_URL, EVENT_SEARCH_NAME_URL } = require("../constants/URLs");
 const { verifyToken } = require("../services/authentication/FirebaseService")
-const { findOne } = require("../services/helpers/QueryHelper");
+const { findOne } = require("../helpers/QueryHelper");
 
 const router = express.Router();
 
