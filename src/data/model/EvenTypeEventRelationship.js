@@ -7,8 +7,7 @@ const {Sequelize} = require("sequelize");
 const {database} = require("../database/database");
 
 const defineEventTypeEventRelationship = () => {
-    const Event_EventType = database.define("event_event_type", {
-    });
+    const Event_EventType = database.define("event_event_type", {});
 
     Events.belongsToMany(EventTypes, {
         through: Event_EventType

@@ -61,7 +61,7 @@ const handleSignUp = async (body) => {
 }
 
 const handleExpoTokenUpdate = async (expo_token, user)  => {
-    const token = expo_token ?? "";
+    const token = expo_token ? expo_token : "";
 
     const updateResponse = await update(User,
         {

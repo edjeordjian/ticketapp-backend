@@ -15,12 +15,12 @@ let logFile;
        
 if (process.env.WIN){
     logFile = path.resolve(__dirname, "")
-        .replace("src\\services\\helpers", "")
+        .replace("src\\helpers", "")
     + "logs\\" + getQuickDate() + ".log";
 }
 else{
     logFile = path.resolve(__dirname, "")
-        .replace("src/services/helpers", "")
+        .replace("src/helpers", "")
     + "logs/" + getQuickDate() + ".log";
 }
 

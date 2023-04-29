@@ -18,6 +18,11 @@ const defineRelationships = () => {
     defineGroupGroupParticipantRelationship();
 
     defineEventFAQRelationship();
+
+    // EventReport with its type
+
+    // EventReport with the user that did it
+    // and the reported event
 };
 
 module.exports = {
