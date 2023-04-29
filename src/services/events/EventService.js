@@ -24,6 +24,8 @@ const { dateFromString } = require("../../helpers/DateHelper");
 
 const { areAnyUndefined } = require("../../helpers/ListHelper");
 
+const { getDistanceFromLatLonInKm } = require("../../helpers/DistanceHelper");
+
 const {
     EVENT_ALREADY_EXISTS_ERR_LBL,
     EVENT_WITH_NO_CAPACITY_ERR_LBL,
@@ -252,7 +254,9 @@ const handleSearch = async (req, res) => {
         tags,
         owner,
         staff,
-        consumer
+        consumer,
+        latitude,
+        longitude,
     } = req.query;
 
     let events;
@@ -273,9 +277,9 @@ const handleSearch = async (req, res) => {
             name: {
                 [Op.iLike]: `%${valueToSearch}%`
             },
-                capacity: {
-                    [Op.ne]: 0
-                }
+            capacity: {
+                [Op.ne]: 0
+            }
         },
             includes,
             order
@@ -431,9 +435,17 @@ const handleSearch = async (req, res) => {
         return setUnexpectedErrorResponse(events.error, res);
     }
 
-    const serializedEvents = await Promise.all(events.map(async e => {
-        return getSerializedEvent(e, userId);
+    let serializedEvents = await Promise.all(events.map(async e => {
+        const event = await getSerializedEvent(e, userId);
+        if (latitude && longitude) {
+            e = { ...event, distance: getDistanceFromLatLonInKm(latitude, longitude, e.latitude, e.longitude) };
+        }
+        return e;
     }));
+
+    if (latitude && longitude) {
+        serializedEvents = serializedEvents.sort((a, b) => a.distance - b.distance);
+    }
 
     const eventsResponse = {
         events: serializedEvents
@@ -569,12 +581,12 @@ const handleEventCheck = async (req, res) => {
     }
 
     const updateResult = await update(Attendances,
-                                     {
-                                         attended: true
-                                     },
-                                     {
-                                         eventId: event.id
-                                     });
+        {
+            attended: true
+        },
+        {
+            eventId: event.id
+        });
 
     if (updateResult.error) {
         return setErrorResponse(updateResult.error, res);

@@ -89,7 +89,7 @@ const Events = database.define("events", {
 
 const getTicket = (e, userId) => {
     const attendances = e.attendees
-                         .filter(attendee => attendee.id === userId);
+        .filter(attendee => attendee.id === userId);
 
     if (attendances.length > 0) {
         const attendance = attendances[0].attendances;
