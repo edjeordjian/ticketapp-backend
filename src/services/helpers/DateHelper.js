@@ -1,6 +1,6 @@
 const getQuickDate = () => {
     return new Date().toISOString()
-                     .substr(0, 10);
+        .substr(0, 10);
 };
 
 // https://stackoverflow.com/questions/5619202/parsing-a-string-to-a-date-in-javascript
@@ -24,7 +24,7 @@ const dateFromString = (strFullDate) => {
 
         month = "1";
 
-        day  = "1";
+        day = "1";
     }
 
     if (strTime) {

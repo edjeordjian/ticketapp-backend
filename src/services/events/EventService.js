@@ -24,6 +24,7 @@ const { UNEXISTING_USER_ERR_LBL } = require("../../constants/login/logInConstant
 const { dateFromString } = require("../helpers/DateHelper");
 
 const { areAnyUndefined } = require("../helpers/ListHelper");
+const { getDistanceFromLatLonInKm } = require("../helpers/DistanceHelper");
 
 const {
     EVENT_ALREADY_EXISTS_ERR_LBL,
@@ -251,7 +252,9 @@ const handleSearch = async (req, res) => {
         tags,
         owner,
         staff,
-        consumer
+        consumer,
+        latitude,
+        longitude,
     } = req.query;
 
     let events;
@@ -272,9 +275,9 @@ const handleSearch = async (req, res) => {
             name: {
                 [Op.iLike]: `%${valueToSearch}%`
             },
-                capacity: {
-                    [Op.ne]: 0
-                }
+            capacity: {
+                [Op.ne]: 0
+            }
         },
             includes,
             order
@@ -336,7 +339,7 @@ const handleSearch = async (req, res) => {
             is_staff: true
         });
 
-        if (! user) {
+        if (!user) {
             return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
         }
 
@@ -379,16 +382,16 @@ const handleSearch = async (req, res) => {
                 is_consumer: true
             });
 
-        if (! user) {
+        if (!user) {
             return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
         }
 
         events = await user.getEvents({
-                include: includes
-            })
+            include: includes
+        })
             .then(events =>
                 events.filter(e => {
-                    return ! getTicket(e).wasUsed;
+                    return !getTicket(e).wasUsed;
                 }))
             .catch(err => {
                 console.log(err);
@@ -401,7 +404,7 @@ const handleSearch = async (req, res) => {
         userId = await getUserId(req);
 
         events = events.filter(e => {
-            return ! getTicket(e, userId).wasUsed;
+            return !getTicket(e, userId).wasUsed;
         });
     } else {
         events = await findAll(Events,
@@ -430,9 +433,17 @@ const handleSearch = async (req, res) => {
         return setUnexpectedErrorResponse(events.error, res);
     }
 
-    const serializedEvents = await Promise.all(events.map(async e => {
-        return getSerializedEvent(e, userId);
+    let serializedEvents = await Promise.all(events.map(async e => {
+        const event = await getSerializedEvent(e, userId);
+        if (latitude && longitude) {
+            e = { ...event, distance: getDistanceFromLatLonInKm(latitude, longitude, e.latitude, e.longitude) };
+        }
+        return e;
     }));
+
+    if (latitude && longitude) {
+        serializedEvents = serializedEvents.sort((a, b) => a.distance - b.distance);
+    }
 
     const eventsResponse = {
         events: serializedEvents
@@ -558,8 +569,8 @@ const handleEventCheck = async (req, res) => {
     const { eventId, eventCode } = req.body;
 
     const event = await findOne(Events, {
-            id: eventId
-        },
+        id: eventId
+    },
         includes);
 
     if (!event) {
@@ -571,7 +582,7 @@ const handleEventCheck = async (req, res) => {
     const attendances = event.attendees
         .filter(attendee => attendee.attendances.hash_code === eventCode);
 
-    if (! attendances || attendances.length === 0) {
+    if (!attendances || attendances.length === 0) {
         return setErrorResponse(INVALID_CODE_ERR_LBL, res);
     }
 
@@ -593,12 +604,12 @@ const handleEventCheck = async (req, res) => {
     }
 
     const updateResult = await update(Attendances,
-                                     {
-                                         attended: true
-                                     },
-                                     {
-                                         eventId: event.id
-                                     });
+        {
+            attended: true
+        },
+        {
+            eventId: event.id
+        });
 
     if (updateResult.error) {
         return setErrorResponse(updateResult.error, res);
