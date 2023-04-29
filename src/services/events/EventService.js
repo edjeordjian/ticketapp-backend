@@ -1,7 +1,5 @@
 const { MAX_EVENT_CAPACITY } = require("../../constants/events/eventsConstants");
 
-const { getSerializedEventType } = require("../../data/model/EventTypes");
-
 const { getSerializedEvent } = require("../../data/model/Events");
 
 const { Op } = require("sequelize");
@@ -13,6 +11,7 @@ const { Speakers } = require("../../data/model/Speakers");
 const { Events } = require("../../data/model/Events");
 
 const { User } = require("../../data/model/User");
+
 const { FAQ } = require("../../data/model/FAQ");
 
 const { EventTypes } = require("../../data/model/EventTypes");
@@ -50,6 +49,8 @@ const { getHashOf } = require("../../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
+const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
+const { EventState } = require("../../data/model/EventState");
 const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
 const { fullTrimString } = require("../../helpers/StringHelper");
 const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
@@ -467,31 +468,6 @@ const handleGet = async (req, res) => {
     return setOkResponse(OK_LBL, res, serializedEvent);
 };
 
-const handleGetTypes = async (req, res) => {
-    let result = await findAll(EventTypes,
-        {
-            id: {
-                [Op.ne]: null
-            }
-        });
-
-    if (result === null) {
-        result = [];
-    } else if (result.error) {
-        return setErrorResponse(result.error, res);
-    }
-
-    const eventTypes = [];
-
-    result.forEach(e => eventTypes.push(getSerializedEventType(e)));
-
-    const response = {
-        "event_types": eventTypes
-    };
-
-    return setOkResponse(OK_LBL, res, response);
-};
-
 const handleEventSignUp = async (req, res) => {
     const { eventId } = req.body;
 
@@ -611,7 +587,6 @@ module.exports = {
     handleCreate,
     handleGet,
     handleSearch,
-    handleGetTypes,
     handleEventSignUp,
     handleEventCheck
 };

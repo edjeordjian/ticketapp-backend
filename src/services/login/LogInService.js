@@ -1,4 +1,5 @@
 const { setUnexpectedErrorResponse } = require("../../helpers/ResponseHelper");
+
 const { logInfo } = require("../../helpers/Logger");
 
 const { OK_LBL } = require("../../constants/messages");
@@ -6,20 +7,16 @@ const { OK_LBL } = require("../../constants/messages");
 const { ERROR_CREATING_USER_LBL } = require("../../constants/login/logInConstants");
 
 const { User } = require("../../data/model/User");
+
 const { Group } = require("../../data/model/Group");
 
 const { ERROR_SEARCHING_USER } = require("../../constants/login/logInConstants");
 
 const { LOGIN_SUCCESS_LBL } = require("../../constants/login/logInConstants");
 
-const { setErrorResponse } = require("../../helpers/ResponseHelper");
-
 const { setOkResponse } = require("../../helpers/ResponseHelper");
 
 const { findOne, create, update } = require("../../helpers/QueryHelper");
-
-
-
 
 const handleSignUp = async (body) => {
     const createResponse = await create(User, {

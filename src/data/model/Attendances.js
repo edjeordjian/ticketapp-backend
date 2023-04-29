@@ -6,7 +6,7 @@ const { ID_MAX_LEN } = require("../../constants/dataConstants");
 
 const { Sequelize } = require("sequelize");
 
-const { database } = require("../database/database");
+const { database } = require("../database");
 
 const { User } = require("./User");
 

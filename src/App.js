@@ -6,13 +6,13 @@ const bodyParser = require("body-parser");
 
 const cron = require('node-cron');
 
-const { database } = require("./data/database/database");
+const { database } = require("./data/database");
 
 const logInRoutes = require("./routes/LogInRoutes");
 
 const eventRoutes = require("./routes/EventRoutes");
 
-const { defineRelationships } = require("./data/database/relationships");
+const { defineRelationships } = require("./data/model/relationships/relationships");
 
 const { logInfo, logError, setLevel } = require("./helpers/Logger");
 
@@ -30,7 +30,7 @@ const { RESET_DATABASE } = require("./constants/dataConstants");
 
 const { notifyTomorrowEvents } = require("./services/events/EventNotificationService");
 
-const { ReportCategory } = require("./data/model/ReportCategories");
+const { ReportCategory } = require("./data/model/EventReportCategory");
 
 const syncDB = async () => {
     defineRelationships();

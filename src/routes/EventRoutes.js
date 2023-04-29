@@ -16,7 +16,7 @@ const { handleEventSignUp } = require("../services/events/EventService");
 const { userIsConsumer } = require("../services/users/UserService");
 const { EVENT_SIGN_UP_URL } = require("../constants/URLs");
 const { getFirebaseUserData } = require("../services/authentication/FirebaseService");
-const { handleGetTypes } = require("../services/events/EventService");
+const { handleGetTypes } = require("../services/events/EventCategoriesService");
 
 const { EVENT_TYPES_URL } = require("../constants/URLs");
 
@@ -43,7 +43,6 @@ router.use(EVENT_URL, async (req, res, next) => {
 }, async (req, res, next) => {
     await firebaseAuthMiddleware(req, res, next);
 });
-
 
 router.post(EVENT_URL,
     async (req, res, next) => {

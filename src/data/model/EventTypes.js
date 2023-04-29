@@ -1,6 +1,6 @@
 const { MAX_STR_LEN } = require("../../constants/dataConstants");
 
-const { database } = require("../database/database");
+const { database } = require("../database");
 
 const { Sequelize } = require("sequelize");
 

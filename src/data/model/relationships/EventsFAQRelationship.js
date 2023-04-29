@@ -1,8 +1,6 @@
+const { Events } = require('../Events');
 
-
-const { Events } = require('./Events');
-
-const { FAQ } = require('./FAQ');
+const { FAQ } = require('../FAQ');
 
 const defineEventFAQRelationship = () => {
   Events.hasMany(FAQ);

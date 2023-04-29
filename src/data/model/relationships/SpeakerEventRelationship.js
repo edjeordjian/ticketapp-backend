@@ -1,10 +1,10 @@
-const { Speakers } = require("./Speakers");
+const { Speakers } = require("../Speakers");
 
-const { Events } = require("./Events");
+const { Events } = require("../Events");
 
 const { Sequelize } = require("sequelize");
 
-const { database } = require("../database/database");
+const { database } = require("../../database");
 
 
 const defineEventSpeakerRelationship = () => {

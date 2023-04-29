@@ -71,6 +71,6 @@ describe("LogInService", function () {
 
         const response = await LogInService.handleLogIn(req, res);
 
-        assert(response.error != undefined);
+        assert(response.error !== undefined);
     });
 });

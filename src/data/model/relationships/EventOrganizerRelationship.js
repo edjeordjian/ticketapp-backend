@@ -1,10 +1,10 @@
-const { CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
+const { CREATED_EVENTS_RELATION_NAME } = require("../../../constants/dataConstants");
 
-const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
+const { ORGANIZER_RELATION_NAME } = require("../../../constants/dataConstants");
 
-const { Events } = require('./Events');
+const { Events } = require('../Events');
 
-const { User } = require('./User');
+const { User } = require('../User');
 
 const defineEventOrganizerRelationship = () => {
   User.hasMany(Events, {
