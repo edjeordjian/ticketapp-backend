@@ -1,4 +1,4 @@
-const { objDeepCopy, isEmpty, removeTimestamps } = require("../../../src/helpers/ObjectHelper");
+const { objDeepCopy, isEmpty, removeTimestamps } = require("../../src/helpers/ObjectHelper");
 
 const assert = require("assert");
 

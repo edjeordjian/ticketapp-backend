@@ -1,10 +1,10 @@
 const rewire = require("rewire");
 
-const QueryHelper = rewire("../../../src/services/helpers/QueryHelper");
+const QueryHelper = rewire("../../src/helpers/QueryHelper");
 
 const assert = require("assert");
 
-const { ModelMock } = require("../../mocks/ModelMock");
+const { ModelMock } = require("../mocks/ModelMock");
 
 describe("Query helper", () => {
     it("Find one wrapper",  async () => {

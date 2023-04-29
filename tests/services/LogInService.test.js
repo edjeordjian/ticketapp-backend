@@ -11,6 +11,10 @@ const LogInService = rewire("../../src/services/login/LogInService");
 describe("LogInService", function () {
     let req, res;
 
+    const setErrorResponseStub = sinon.stub().returns({
+        "error": "Ok"
+    });
+
     beforeEach(() => {
         const setOkResponseStub = sinon.stub().returns({
             "message": "Ok"
@@ -18,6 +22,10 @@ describe("LogInService", function () {
 
         LogInService.__set__({
             "setOkResponse": setOkResponseStub,
+
+            "setUnexpectedErrorResponse": setErrorResponseStub,
+
+            "setErrorResponse": setErrorResponseStub,
 
             "logInfo": sinon.stub()
         });
@@ -28,8 +36,14 @@ describe("LogInService", function () {
             }
         };
 
-        res = {
-            json: sinon.stub()
+        res = res = {
+            status: () => {
+                return {
+                    json: (a_json) => {
+                        return a_json
+                    }
+                }
+            }
         };
     });
 
@@ -43,8 +57,11 @@ describe("LogInService", function () {
             "email": "email"
         });
 
+        const handleExpoTokenUpdateStub = sinon.stub().resolves(async () => {});
+
         LogInService.__set__({
-            "findOne": findOneStub
+            "findOne": findOneStub,
+            "handleExpoTokenUpdate": handleExpoTokenUpdateStub
         });
 
         const response = await LogInService.handleLogIn(req, res);
@@ -53,10 +70,6 @@ describe("LogInService", function () {
     });
 
     it("Log in with new user", async () => {
-        const setErrorResponseStub = sinon.stub().returns({
-            "error": "Ok"
-        });
-
         const findOneStub = sinon.stub().resolves(null);
 
         const createStub = sinon.stub().resolves({

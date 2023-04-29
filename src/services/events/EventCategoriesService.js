@@ -37,7 +37,7 @@ const getAllSerialized = async (req,
 }
 
 const handleGetTypes = async (req, res) => {
-    await getAllSerialized(req,
+    return await getAllSerialized(req,
         res,
         EventTypes,
         getSerializedEventType,
@@ -45,7 +45,7 @@ const handleGetTypes = async (req, res) => {
 };
 
 const getReportCategories = async (req, res) => {
-    await getAllSerialized(req,
+    return await getAllSerialized(req,
         res,
         EventReportCategory,
         getSerializedEventReportCategory,

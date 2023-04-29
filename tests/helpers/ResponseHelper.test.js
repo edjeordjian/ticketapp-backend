@@ -2,11 +2,11 @@ const assert = require("assert");
 
 const sinon = require("sinon");
 
-const {setUnexpectedErrorResponse} = require("../../../src/helpers/ResponseHelper");
+const {setUnexpectedErrorResponse} = require("../../src/helpers/ResponseHelper");
 
-const {setErrorResponse} = require("../../../src/helpers/ResponseHelper");
+const {setErrorResponse} = require("../../src/helpers/ResponseHelper");
 
-const {setOkResponse} = require("../../../src/helpers/ResponseHelper");
+const {setOkResponse} = require("../../src/helpers/ResponseHelper");
 
 
 describe("ResponseHelper", function() {
