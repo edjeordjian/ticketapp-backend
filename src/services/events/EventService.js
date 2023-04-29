@@ -1,30 +1,30 @@
 const { MAX_EVENT_CAPACITY } = require("../../constants/events/eventsConstants");
 
-const { getSerializedEventType } = require("../../data/model/EventTypes");
-
 const { getSerializedEvent } = require("../../data/model/Events");
 
 const { Op } = require("sequelize");
 
-const { objDeepCopy } = require("../helpers/ObjectHelper");
+const { objDeepCopy } = require("../../helpers/ObjectHelper");
 
 const { Speakers } = require("../../data/model/Speakers");
 
 const { Events } = require("../../data/model/Events");
 
 const { User } = require("../../data/model/User");
+
 const { FAQ } = require("../../data/model/FAQ");
 
 const { EventTypes } = require("../../data/model/EventTypes");
 
-const { logError } = require("../helpers/Logger");
+const { logError } = require("../../helpers/Logger");
 
 const { UNEXISTING_USER_ERR_LBL } = require("../../constants/login/logInConstants");
 
-const { dateFromString } = require("../helpers/DateHelper");
+const { dateFromString } = require("../../helpers/DateHelper");
 
-const { areAnyUndefined } = require("../helpers/ListHelper");
-const { getDistanceFromLatLonInKm } = require("../helpers/DistanceHelper");
+const { areAnyUndefined } = require("../../helpers/ListHelper");
+
+const { getDistanceFromLatLonInKm } = require("../../helpers/DistanceHelper");
 
 const {
     EVENT_ALREADY_EXISTS_ERR_LBL,
@@ -38,21 +38,23 @@ const {
     setOkResponse,
     setErrorResponse,
     setUnexpectedErrorResponse
-} = require("../helpers/ResponseHelper");
+} = require("../../helpers/ResponseHelper");
 
-const { create, findOne, findAll, update } = require("../helpers/QueryHelper");
+const { create, findOne, findAll, update } = require("../../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
-const Logger = require("../../services/helpers/Logger");
+const Logger = require("../../helpers/Logger");
 const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
 const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
-const { getHashOf } = require("../helpers/StringHelper");
+const { getHashOf } = require("../../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
+const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
+const { EventState } = require("../../data/model/EventState");
 const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
-const { fullTrimString } = require("../helpers/StringHelper");
+const { fullTrimString } = require("../../helpers/StringHelper");
 const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
 const { getTicket } = require("../../data/model/Events");
 const { USER_NOT_REGISTERED } = require("../../constants/events/eventsConstants");
@@ -339,7 +341,7 @@ const handleSearch = async (req, res) => {
             is_staff: true
         });
 
-        if (!user) {
+        if (! user) {
             return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
         }
 
@@ -382,16 +384,16 @@ const handleSearch = async (req, res) => {
                 is_consumer: true
             });
 
-        if (!user) {
+        if (! user) {
             return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
         }
 
         events = await user.getEvents({
-            include: includes
-        })
+                include: includes
+            })
             .then(events =>
                 events.filter(e => {
-                    return !getTicket(e).wasUsed;
+                    return ! getTicket(e).wasUsed;
                 }))
             .catch(err => {
                 console.log(err);
@@ -404,7 +406,7 @@ const handleSearch = async (req, res) => {
         userId = await getUserId(req);
 
         events = events.filter(e => {
-            return !getTicket(e, userId).wasUsed;
+            return ! getTicket(e, userId).wasUsed;
         });
     } else {
         events = await findAll(Events,
@@ -478,31 +480,6 @@ const handleGet = async (req, res) => {
     return setOkResponse(OK_LBL, res, serializedEvent);
 };
 
-const handleGetTypes = async (req, res) => {
-    let result = await findAll(EventTypes,
-        {
-            id: {
-                [Op.ne]: null
-            }
-        });
-
-    if (result === null) {
-        result = [];
-    } else if (result.error) {
-        return setErrorResponse(result.error, res);
-    }
-
-    const eventTypes = [];
-
-    result.forEach(e => eventTypes.push(getSerializedEventType(e)));
-
-    const response = {
-        "event_types": eventTypes
-    };
-
-    return setOkResponse(OK_LBL, res, response);
-};
-
 const handleEventSignUp = async (req, res) => {
     const { eventId } = req.body;
 
@@ -569,8 +546,8 @@ const handleEventCheck = async (req, res) => {
     const { eventId, eventCode } = req.body;
 
     const event = await findOne(Events, {
-        id: eventId
-    },
+            id: eventId
+        },
         includes);
 
     if (!event) {
@@ -582,7 +559,7 @@ const handleEventCheck = async (req, res) => {
     const attendances = event.attendees
         .filter(attendee => attendee.attendances.hash_code === eventCode);
 
-    if (!attendances || attendances.length === 0) {
+    if (! attendances || attendances.length === 0) {
         return setErrorResponse(INVALID_CODE_ERR_LBL, res);
     }
 
@@ -622,7 +599,6 @@ module.exports = {
     handleCreate,
     handleGet,
     handleSearch,
-    handleGetTypes,
     handleEventSignUp,
     handleEventCheck
 };

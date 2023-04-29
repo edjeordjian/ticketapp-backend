@@ -1,24 +1,22 @@
-const { logInfo } = require("../helpers/Logger");
+const { setUnexpectedErrorResponse } = require("../../helpers/ResponseHelper");
+
+const { logInfo } = require("../../helpers/Logger");
 
 const { OK_LBL } = require("../../constants/messages");
 
 const { ERROR_CREATING_USER_LBL } = require("../../constants/login/logInConstants");
 
 const { User } = require("../../data/model/User");
+
 const { Group } = require("../../data/model/Group");
 
 const { ERROR_SEARCHING_USER } = require("../../constants/login/logInConstants");
 
 const { LOGIN_SUCCESS_LBL } = require("../../constants/login/logInConstants");
 
-const { setErrorResponse } = require("../helpers/ResponseHelper");
+const { setOkResponse } = require("../../helpers/ResponseHelper");
 
-const { setOkResponse } = require("../helpers/ResponseHelper");
-
-const { findOne, create, update } = require("../helpers/QueryHelper");
-
-
-
+const { findOne, create, update } = require("../../helpers/QueryHelper");
 
 const handleSignUp = async (body) => {
     const createResponse = await create(User, {
@@ -59,27 +57,50 @@ const handleSignUp = async (body) => {
     };
 }
 
-const handleRoleAppend = async (body, user) => {
-    const createResponse = await update(User, {
-        is_administrator: body.isAdministrator || user.is_administrator,
-        is_organizer: body.isOrganizer || user.is_organizer,
-        is_consumer: body.isConsumer || user.is_consumer,
-        is_staff: body.isStaff || user.is_staff
-    },
+const handleExpoTokenUpdate = async (expo_token, user)  => {
+    const token = expo_token ? expo_token : "";
+
+    const updateResponse = await update(User,
         {
-            email: body.email
+            expo_token: token
+        },
+        {
+            email: user.email
         });
 
-    if (createResponse.error) {
+    if (! updateResponse || updateResponse.error) {
         return {
-            error: createResponse.error
+            error: updateResponse.error
         };
     }
 
     return {
-        id: createResponse.id,
+        id: updateResponse.id,
 
-        email: createResponse.email
+        email: updateResponse.email
+    };
+}
+
+const handleRoleAppend = async (body, user) => {
+    const updateResponse = await update(User,
+        {
+            is_administrator: body.isAdministrator || user.is_administrator,
+            is_organizer: body.isOrganizer || user.is_organizer,
+            is_consumer: body.isConsumer || user.is_consumer,
+            is_staff: body.isStaff || user.is_staff
+        },
+        {
+            email: body.email
+        });
+
+    if (! updateResponse || updateResponse.error) {
+        return {
+            error: updateResponse.error
+        };
+    }
+
+    return {
+        id: updateResponse.id
     };
 }
 
@@ -96,31 +117,42 @@ const handleLogIn = async (req, res) => {
     if (findResponse === null) {
         const result = await handleSignUp(body);
 
-        if (result.error !== undefined) {
-            return setErrorResponse(ERROR_CREATING_USER_LBL, res);
+        if (result.error) {
+            return setUnexpectedErrorResponse(ERROR_CREATING_USER_LBL, res);
         }
 
         id = result.id;
         email = result.email;
-    } else if (findResponse.is_administrator !== body.isAdministrator ||
-        findResponse.is_organizer !== body.isOrganizer ||
-        findResponse.is_consumer !== body.isConsumer ||
-        findResponse.is_staff !== body.isStaff) {
-        const result = await handleRoleAppend(body, findResponse);
-
-        if (result.error !== undefined) {
-            return setErrorResponse(ERROR_CREATING_USER_LBL, res);
-        }
-
-        id = body.id;
-        email = body.email;
     } else {
-        if (findResponse.error !== undefined) {
-            return setErrorResponse(ERROR_SEARCHING_USER, res);
+        if (findResponse.error) {
+            return setUnexpectedErrorResponse(ERROR_SEARCHING_USER, res);
         }
 
         id = findResponse.id;
+
         email = findResponse.email;
+
+        const result = await handleExpoTokenUpdate(body.expoToken, findResponse);
+
+        if (result.error) {
+            return setUnexpectedErrorResponse(result.error);
+        }
+
+        if (findResponse.is_administrator !== body.isAdministrator ||
+            findResponse.is_organizer !== body.isOrganizer ||
+            findResponse.is_consumer !== body.isConsumer ||
+            findResponse.is_staff !== body.isStaff) {
+
+            const result = await handleRoleAppend(body, findResponse);
+
+            if (result.error) {
+                return setUnexpectedErrorResponse(ERROR_CREATING_USER_LBL, res);
+            }
+
+            id = body.id;
+
+            email = body.email;
+        }
     }
 
     logInfo(`${LOGIN_SUCCESS_LBL} ${email}`);

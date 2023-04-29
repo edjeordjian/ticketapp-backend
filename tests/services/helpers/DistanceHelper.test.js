@@ -1,6 +1,6 @@
 const rewire = require("rewire");
 
-const DistanceHelper = rewire("../../../src/services/helpers/DistanceHelper");
+const DistanceHelper = rewire("../../../src/helpers/DistanceHelper");
 
 const assert = require("assert");
 

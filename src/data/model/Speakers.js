@@ -2,7 +2,7 @@ const {MAX_STR_LEN} = require("../../constants/dataConstants");
 
 const {Sequelize} = require("sequelize");
 
-const {database} = require("../database/database");
+const {database} = require("../database");
 
 const Speakers = database.define("speakers", {
     id: {

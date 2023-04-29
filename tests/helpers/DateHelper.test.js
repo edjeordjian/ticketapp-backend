@@ -1,8 +1,8 @@
 const rewire = require("rewire");
 
-const { DateMock } = require("../../mocks/DateMock");
+const { DateMock } = require("../mocks/DateMock");
 
-const DateHelper = rewire("../../../src/services/helpers/DateHelper");
+const DateHelper = rewire("../../src/helpers/DateHelper");
 
 const assert = require("assert");
 

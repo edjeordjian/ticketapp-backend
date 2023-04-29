@@ -1,4 +1,4 @@
-const { timeToString } = require("../../services/helpers/DateHelper");
+const { timeToString } = require("../../helpers/DateHelper");
 
 const { MAX_STR_CAPACITY } = require("../../constants/dataConstants");
 
@@ -6,9 +6,9 @@ const { Sequelize } = require("sequelize");
 
 const { MAX_STR_LEN } = require("../../constants/dataConstants");
 
-const { database } = require("../database/database");
+const { database } = require("../database");
 
-const { dateToString } = require("../../services/helpers/DateHelper");
+const { dateToString } = require("../../helpers/DateHelper");
 
 const Events = database.define("events", {
     id: {
@@ -24,6 +24,10 @@ const Events = database.define("events", {
         type: Sequelize.STRING(MAX_STR_LEN),
         allowNull: false,
         validate: { notEmpty: true }
+    },
+
+    state_id: {
+        type: Sequelize.INTEGER
     },
 
     name: {
