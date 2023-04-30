@@ -1,4 +1,5 @@
 const { findOne } = require("../../helpers/QueryHelper");
+
 const { User } = require("../../data/model/User");
 
 const userIsOrganizer = async (id, email) => {
@@ -24,6 +25,10 @@ const userIsOrganizer = async (id, email) => {
         return false;
     }
     return user;
+}
+
+const userIsAdministrator = async (email) => {
+    return email === process.env.ADMIN_EMAIL;
 }
 
 const userIsConsumer = async(id, email) => {
@@ -103,5 +108,6 @@ const userExists = async (id, email) => {
 }
 
 module.exports = {
-    userIsOrganizer, userExists, userIsConsumer, userIsStaff
-}
+    userIsOrganizer, userExists, userIsConsumer, userIsStaff,
+    userIsAdministrator
+};
