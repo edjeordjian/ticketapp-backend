@@ -28,10 +28,11 @@ const getAllSerialized = async (req,
     const types = [];
 
     result.forEach(e => types.push(serializationFn(e)));
-
     const response = {
-        response_entry: types
+        [response_entry]: types
     };
+
+
 
     return setOkResponse(OK_LBL, res, response);
 }
