@@ -7,6 +7,7 @@ const { Op } = require("sequelize");
 const { objDeepCopy } = require("../../helpers/ObjectHelper");
 
 const { Speakers } = require("../../data/model/Speakers");
+const {Event_EventType} = require("../../data/model/relationships/EvenTypeEventRelationship");
 
 const { Events } = require("../../data/model/Events");
 
@@ -25,6 +26,8 @@ const { dateFromString } = require("../../helpers/DateHelper");
 const { areAnyUndefined } = require("../../helpers/ListHelper");
 
 const { getDistanceFromLatLonInKm } = require("../../helpers/DistanceHelper");
+const { verifyToken } = require("../authentication/FirebaseService");
+
 
 const {
     EVENT_ALREADY_EXISTS_ERR_LBL,
@@ -60,6 +63,7 @@ const { getTicket } = require("../../data/model/Events");
 const { USER_NOT_REGISTERED } = require("../../constants/events/eventsConstants");
 const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
 const { getUserId } = require("../../routes/Middleware");
+const { destroy } = require("../../helpers/QueryHelper");
 
 const includes = [
     {
@@ -595,10 +599,127 @@ const handleEventCheck = async (req, res) => {
     return setOkResponse(OK_LBL, res, {});
 }
 
+const handleUpdateEvent = async (req, res) => {
+    const body = req.body;
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = await verifyToken(token);    
+    const organizerId = decodedToken.user_id;
+
+    const event = await findOne(Events, { 
+        id: body.id, 
+        owner_id: organizerId
+    });
+    if (!event || event.error){
+        return setErrorResponse("El evento seleccionado no existe o no coincide con el organizador", res);
+    }
+    
+    if (body.faq !== undefined) {
+        const faqs = [];
+        await destroy(FAQ,{eventId: body.id});
+        body.faq.map(async f => {
+            const faqCreated = await create(FAQ, {
+                eventId: body.id,
+                question: f[0],
+                answer: f[1]
+            });
+            if (faqCreated.error !== undefined) {
+                throw new Error(faqCreated.error);
+            }
+            faqs.push(objDeepCopy(faqCreated));
+
+        });
+        const createResponse = await event.addFAQs(faqs);
+
+        if (createResponse.error !== undefined) {
+            throw new Error(createResponse.error);
+        }
+        delete body.faq;
+    }
+    let wallpaperUrl, picture1Url, picture2Url, picture3Url,
+        picture4Url;
+    let fieldsToUpdate = body;
+
+    if (body.pictures  && body.pictures.length > 0) {
+        wallpaperUrl = body.pictures[0];
+        
+            if (body.pictures.length > 1) {
+                picture1Url = body.pictures[1];
+            }
+        
+            if (body.pictures.length > 2) {
+                picture2Url = body.pictures[2];
+            }
+        
+            if (body.pictures.length > 3) {
+                picture3Url = body.pictures[3];
+            }
+        
+            if (body.pictures.length > 4) {
+                picture4Url = body.pictures[4];
+            }
+            delete fieldsToUpdate.pictures;
+            fieldsToUpdate = {
+                ...fieldsToUpdate,
+                wallpaper_url: wallpaperUrl,
+        
+                picture1_url: picture1Url,
+        
+                picture2_url: picture2Url,
+        
+                picture3_url: picture3Url,
+        
+            }
+    }
+    if (body.agenda){
+        let speakers = [];
+        await destroy(Speakers, {eventId: body.id});
+        body.agenda.map(async speaker => {
+            const createResponse = await create(Speakers, {
+                start: speaker.start,
+                end: speaker.end,
+                title: speaker.title,
+                eventId: body.id
+            });
+            if (createResponse.error !== undefined) {
+                throw new Error(createResponse.error);
+            }
+
+            speakers.push(objDeepCopy(createResponse));
+        });
+
+        const createResponse = await event.addSpeakers(speakers);
+        delete fieldsToUpdate.agenda;
+    }
+    if (body.types){
+        await destroy(Event_EventType, {eventId: body.id});
+        const tagsToAdd = await findAll(EventTypes, {
+            id: body.types
+        });
+        await event.addEvent_types(tagsToAdd);
+        delete fieldsToUpdate.types;
+    }
+    if(fieldsToUpdate.date){
+        fieldsToUpdate.date = dateFromString(body.date);
+    }
+    if(fieldsToUpdate.time){
+        fieldsToUpdate.time = dateFromString(body.time);
+    }
+    const response  = await update(Events,fieldsToUpdate,
+        {
+            id: body.id
+        });
+    Logger.logInfo(response);
+     
+
+
+    return setOkResponse("Evento actualizado correctamente",res);
+}
+
 module.exports = {
     handleCreate,
     handleGet,
     handleSearch,
     handleEventSignUp,
-    handleEventCheck
+    handleEventCheck,
+    handleUpdateEvent
 };

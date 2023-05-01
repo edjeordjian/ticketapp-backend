@@ -24,7 +24,7 @@ const { EVENT_TYPES_URL } = require("../constants/URLs");
 
 const { handleCreate,
     handleSearch,
-    handleGet } = require("../services/events/EventService");
+    handleGet, handleUpdateEvent } = require("../services/events/EventService");
 
 const { userIsOrganizer, userExists } = require("../services/users/UserService");
 
@@ -117,19 +117,27 @@ router.get(REPORTS_CATEGORIES_URL,
     });
 
 router.post(EVENT_GROUP_ADD_USER_URL, async (req, res, next) => {
-    await isOrganizerMiddleware(req, res, next, userIsOrganizer) },
+    await isOrganizerMiddleware(req, res, next) },
     async (req, res) => {
         Logger.request(`POST: /event/group/addUsers`);
         await handleAddUserToGroup(req, res);
     });
 
 router.get(EVENT_GROUP_URL, async (req, res, next) => {
-        await isOrganizerMiddleware(req, res, next, userIsOrganizer)
+        await isOrganizerMiddleware(req, res, next)
     },
     async (req, res) => {
         Logger.request(`POST: /event/group`);
 
         await handleGetGroup(req, res);
     });
+
+router.patch(EVENT_URL, async (req, res, next) => {
+        await isOrganizerMiddleware(req,res,next)
+    }, async (req, res) => {
+        Logger.request(`PATCH: /event`);
+
+        await handleUpdateEvent(req,res);
+    })
 
 module.exports = router;
