@@ -8,6 +8,8 @@ const { EventMock } = require("../mocks/EventMock");
 
 const Event = rewire("../../src/data/model/Events");
 
+const EventRepository = rewire("../../src/repository/EventRepository");
+
 const {OK_LBL} = require("../../src/constants/messages");
 
 const EventService = rewire("../../src/services/events/EventService");
@@ -147,7 +149,7 @@ describe("EventService", function() {
 
         const getSerializedEventStub = sinon.stub().resolves({});
 
-        EventService.__set__({
+        EventRepository.__set__({
             "getSerializedEvent": getSerializedEventStub
         });
 
@@ -197,7 +199,7 @@ describe("EventService", function() {
             "dateToString": sinon.stub().resolves("10/10/2010")
         })
 
-        const serializedEvent = await Event.getSerializedEvent(e);
+        const serializedEvent = await EventRepository.getSerializedEvent(e);
 
         assert(e.name === serializedEvent.name);
     });

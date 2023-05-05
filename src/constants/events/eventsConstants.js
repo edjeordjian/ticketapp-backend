@@ -22,6 +22,14 @@ const UNEXISTING_USER_ERR_LBL = "Usuario inexistente";
 
 const EVENT_STATE_ERR_LBL = "Error del estado del evento.";
 
+const CANCELLED_EVENT_LBL = "El evento fue cancelado";
+
+const EVENT_IS_TOMORROW_LBL = "¡Es mañana! Tocá acá para ver los detales.";
+
+const EVENT_WAS_MODIFIED = "Tocá acá para ver las novedades del evento.";
+
+const EVENT_SCREEN_NAME = "EventInfo";
+
 const MAX_EVENT_CAPACITY = 1000000;
 
 module.exports = {
@@ -29,5 +37,6 @@ module.exports = {
     MISSING_EVENT_ATTRIBUTE_ERR_LBL, EVENT_CREATE_ERR_LBL, EVENT_DOESNT_EXIST_ERR_LBL,
     MAX_EVENT_CAPACITY, EVENT_ALREADY_BOOKED, EVENT_ALREADY_ASISTED,
     USER_NOT_REGISTERED, INVALID_CODE_ERR_LBL, MISSING_GROUP_ERR_LBL, UNEXISTING_USER_ERR_LBL,
-    EVENT_STATE_ERR_LBL
+    EVENT_STATE_ERR_LBL, CANCELLED_EVENT_LBL, EVENT_IS_TOMORROW_LBL, EVENT_SCREEN_NAME,
+    EVENT_WAS_MODIFIED
 };

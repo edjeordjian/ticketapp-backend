@@ -14,11 +14,17 @@ const eventRoutes = require("./routes/EventRoutes");
 
 const { defineRelationships } = require("./data/model/relationships/relationships");
 
-const { logInfo, logError, setLevel } = require("./helpers/Logger");
+const {
+    logInfo,
+    logError,
+    setLevel
+} = require("./helpers/Logger");
 
-const { PORT_LBL,
+const {
+    PORT_LBL,
     NODE_PORT,
-    LOG_LEVEL } = require("./constants/generalConstants");
+    LOG_LEVEL
+} = require("./constants/generalConstants");
 
 const { runMigrations } = require("./data/migrations/migrations");
 
@@ -29,8 +35,6 @@ const { BASE_URL } = require("./constants/URLs");
 const { RESET_DATABASE } = require("./constants/dataConstants");
 
 const { notifyTomorrowEvents } = require("./services/events/EventNotificationService");
-
-const { ReportCategory } = require("./data/model/EventReportCategory");
 
 const syncDB = async () => {
     defineRelationships();

@@ -1,12 +1,13 @@
 const { MAX_EVENT_CAPACITY } = require("../../constants/events/eventsConstants");
 
-const { getSerializedEvent } = require("../../data/model/Events");
+const { getSerializedEvent } = require("../../repository/EventRepository");
 
 const { Op } = require("sequelize");
 
 const { objDeepCopy } = require("../../helpers/ObjectHelper");
 
 const { Speakers } = require("../../data/model/Speakers");
+
 const {Event_EventType} = require("../../data/model/relationships/EvenTypeEventRelationship");
 
 const { Events } = require("../../data/model/Events");
@@ -26,6 +27,7 @@ const { dateFromString } = require("../../helpers/DateHelper");
 const { areAnyUndefined } = require("../../helpers/ListHelper");
 
 const { getDistanceFromLatLonInKm } = require("../../helpers/DistanceHelper");
+
 const { verifyToken } = require("../authentication/FirebaseService");
 
 
@@ -48,50 +50,41 @@ const { create, findOne, findAll, update } = require("../../helpers/QueryHelper"
 const { OK_LBL } = require("../../constants/messages");
 
 const Logger = require("../../helpers/Logger");
-const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
-const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
-const { getHashOf } = require("../../helpers/StringHelper");
-const { Attendances } = require("../../data/model/Attendances");
-const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
-const crypto = require("crypto");
-const { getCanceledStateId } = require("./EventStateService");
-const { getUserWithEmail } = require("../users/UserService");
-const { UPDATE_EVENT_ERR_LBL } = require("../../constants/events/eventsConstants");
-const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
-const { EventState } = require("../../data/model/EventState");
-const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
-const { fullTrimString } = require("../../helpers/StringHelper");
-const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
-const { getTicket } = require("../../data/model/Events");
-const { USER_NOT_REGISTERED } = require("../../constants/events/eventsConstants");
-const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
-const { getUserId } = require("../../routes/Middleware");
-const { destroy } = require("../../helpers/QueryHelper");
 
-const includes = [
-    {
-        model: Speakers,
-        attributes: ["start", "end", "title"]
-    },
-    {
-        model: EventTypes,
-        attributes: ["id", "name"]
-    },
-    {
-        model: User,
-        attributes: ["first_name", "last_name"],
-        as: ORGANIZER_RELATION_NAME
-    },
-    {
-        model: User,
-        attributes: ["id"],
-        as: ATTENDEES_RELATION_NAME
-    },
-    {
-        model: FAQ,
-        attributes: ["question", "answer"],
-    }
-];
+const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
+
+const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
+
+const { getHashOf } = require("../../helpers/StringHelper");
+
+const { Attendances } = require("../../data/model/Attendances");
+
+const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
+
+const crypto = require("crypto");
+const { eventIncludes } = require("../../repository/EventRepository");
+
+const { notifyEventChange } = require("./EventNotificationService");
+
+const { notifyCancelledEvent } = require("./EventNotificationService");
+
+const { getCanceledStateId } = require("./EventStateService");
+
+const { getUserWithEmail } = require("../users/UserService");
+
+const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
+
+const { fullTrimString } = require("../../helpers/StringHelper");
+
+const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
+
+const { getTicket } = require("../../data/model/Events");
+
+const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
+
+const { getUserId } = require("../../routes/Middleware");
+
+const { destroy } = require("../../helpers/QueryHelper");
 
 const getAttendanceId = () => {
     const base = crypto.randomBytes(20).toString("hex");
@@ -288,7 +281,7 @@ const handleSearch = async (req, res) => {
                 [Op.ne]: 0
             }
         },
-            includes,
+            eventIncludes,
             order
         );
     } else if (tags) {
@@ -338,7 +331,7 @@ const handleSearch = async (req, res) => {
         events = await findAll(Events, {
             owner_id: owner
         },
-            includes,
+            eventIncludes,
             order
         );
     }
@@ -378,7 +371,7 @@ const handleSearch = async (req, res) => {
                     [Op.in]: owners_ids
                 }
             },
-            includes,
+            eventIncludes,
             order
         );
     }
@@ -396,7 +389,7 @@ const handleSearch = async (req, res) => {
         }
 
         events = await user.getEvents({
-                include: includes
+                include: eventIncludes
             })
             .then(events =>
                 events.filter(e => {
@@ -432,7 +425,7 @@ const handleSearch = async (req, res) => {
                     [Op.ne]: canceledId
                 }
             },
-            includes,
+            eventIncludes,
             order
         );
 
@@ -479,7 +472,7 @@ const handleGet = async (req, res) => {
     const event = await findOne(Events, {
         id: eventId
     },
-        includes
+        eventIncludes
     );
 
     if (event === null) {
@@ -501,7 +494,7 @@ const handleEventSignUp = async (req, res) => {
     const event = await findOne(Events, {
         id: eventId
     },
-        includes);
+        eventIncludes);
 
     if (!event) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
@@ -563,7 +556,7 @@ const handleEventCheck = async (req, res) => {
     const event = await findOne(Events, {
             id: eventId
         },
-        includes);
+        eventIncludes);
 
     if (!event) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
@@ -685,7 +678,8 @@ const handleUpdateEvent = async (req, res) => {
                 picture2_url: picture2Url,
         
                 picture3_url: picture3Url,
-        
+
+                picture4_url: picture4Url
             }
     }
     if (body.agenda){
@@ -726,7 +720,14 @@ const handleUpdateEvent = async (req, res) => {
         {
             id: body.id
         });
+
     Logger.logInfo(response);
+
+    const notificationResponse = await notifyEventChange(event);
+
+    if (notificationResponse.error) {
+        return setUnexpectedErrorResponse(notificationResponse.error, res);
+    }
 
     return setOkResponse("Evento actualizado correctamente",res);
 }
@@ -750,7 +751,7 @@ const cancelEvent = async (req, res) => {
         id: body.event_id,
         owner_id: organizerId
     },
-        includes);
+        eventIncludes);
 
     if (! event){
         return setErrorResponse("El evento seleccionado no existe o no coincide con el organizador", res);
@@ -775,11 +776,11 @@ const cancelEvent = async (req, res) => {
             owner_id: organizerId
         });
 
-    event.attendees;
+    const notificationResponse = await notifyCancelledEvent(event);
 
-    const userIds = event.attendees.map(attendee => attendee.attendances.userId);
-
-    // find users and send notification
+    if (notificationResponse.error) {
+        return setUnexpectedErrorResponse(notificationResponse.error, res);
+    }
 
     return setOkResponse(OK_LBL, res);
 }
