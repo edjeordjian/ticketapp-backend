@@ -1,3 +1,4 @@
+const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { eventIncludes } = require("../../repository/EventRepository");
 const { getCanceledStateId } = require("./EventStateService");
 const { Op } = require("sequelize");
@@ -130,12 +131,18 @@ const notifyEventChange = async(e, originalName) => {
         } );
 }
 
-const notifyCancelledEvent = async (e) => {
+const notifyCancelledEvent = async (e, suspended) => {
+    let label = CANCELLED_EVENT_LBL;
+
+    if (suspended) {
+        label = SUSPENDED_EVENT_LBL
+    }
+
     return await sendNotificationTo(e,
         {
             title: e.name,
 
-            body: CANCELLED_EVENT_LBL,
+            body: label,
 
             data: {
                 screenName: EVENT_SCREEN_NAME,

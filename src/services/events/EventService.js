@@ -62,6 +62,7 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { getSuspendedStateId } = require("./EventStateService");
 const { eventIncludes } = require("../../repository/EventRepository");
 
 const { notifyEventChange } = require("./EventNotificationService");
@@ -777,22 +778,28 @@ const cancelEvent = async (req, res) => {
         return setErrorResponse(event.error, res);
     }
 
-    const canceledId = await getCanceledStateId();
+    let stateId;
 
-    if (canceledId.error) {
-        return setErrorResponse(canceledId.error, res);
+    if (body.suspended) {
+        stateId = await getSuspendedStateId();
+    } else {
+        stateId = await getCanceledStateId();
+    }
+
+    if (stateId.error) {
+        return setErrorResponse(stateId.error, res);
     }
 
     await update(Events,
         {
-            state_id: canceledId
+            state_id: stateId
         },
         {
             id: body.event_id,
             owner_id: organizerId
         });
 
-    const notificationResponse = await notifyCancelledEvent(event);
+    const notificationResponse = await notifyCancelledEvent(event, body.suspended);
 
     if (notificationResponse.error) {
         return setUnexpectedErrorResponse(notificationResponse.error, res);

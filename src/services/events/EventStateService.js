@@ -5,8 +5,16 @@ const { EventState } = require("../../data/model/EventState");
 const { findOne } = require("../../helpers/QueryHelper");
 
 const getCanceledStateId = async () => {
+    return await getNameStateId("Cancelado");
+}
+
+const getSuspendedStateId = async () => {
+    return await getNameStateId("Suspendido");
+}
+
+const getNameStateId = async (name) => {
     const state = await findOne(EventState, {
-        name: "Cancelado"
+        name: name
     });
 
     if (! state) {
@@ -23,6 +31,6 @@ const getCanceledStateId = async () => {
 }
 
 module.exports = {
-    getCanceledStateId
+    getCanceledStateId, getSuspendedStateId
 };
 
