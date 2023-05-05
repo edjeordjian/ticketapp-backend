@@ -54,6 +54,9 @@ const { getHashOf } = require("../../helpers/StringHelper");
 const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 const crypto = require("crypto");
+const { getCanceledStateId } = require("./EventStateService");
+const { getUserWithEmail } = require("../users/UserService");
+const { UPDATE_EVENT_ERR_LBL } = require("../../constants/events/eventsConstants");
 const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
 const { EventState } = require("../../data/model/EventState");
 const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
@@ -413,10 +416,20 @@ const handleSearch = async (req, res) => {
             return ! getTicket(e, userId).wasUsed;
         });
     } else {
+        const canceledId = await getCanceledStateId();
+
+        if (canceledId.error) {
+            return setErrorResponse(canceledId.error, res);
+        }
+
         events = await findAll(Events,
             {
                 capacity: {
                     [Op.ne]: 0
+                },
+
+                state_id: {
+                    [Op.ne]: canceledId
                 }
             },
             includes,
@@ -426,13 +439,6 @@ const handleSearch = async (req, res) => {
         if (events.error) {
             return setUnexpectedErrorResponse(events.error, res);
         }
-
-        /*
-        userId = await getUserId(req);
-
-        events = events.filter(e => {
-            return ! getTicket(e, userId).wasUsed;
-        }); */
     }
 
     if (events.error) {
@@ -440,16 +446,21 @@ const handleSearch = async (req, res) => {
     }
 
     let serializedEvents = await Promise.all(events.map(async e => {
-        const event = await getSerializedEvent(e, userId);
-        if (latitude && longitude) {
-            e = { ...event, distance: getDistanceFromLatLonInKm(latitude, longitude, e.latitude, e.longitude) };
-        }
-        return e;
-    }));
+        let event = await getSerializedEvent(e, userId);
 
-    if (latitude && longitude) {
-        serializedEvents = serializedEvents.sort((a, b) => a.distance - b.distance);
-    }
+        if (latitude && longitude) {
+            event = { ...event,
+                distance: getDistanceFromLatLonInKm(latitude,
+                    longitude,
+                    e.latitude,
+                    e.longitude)
+            };
+        }
+
+        return event;
+    })).then(res => {
+        return res.sort((a, b) => a.distance - b.distance)
+    });
 
     const eventsResponse = {
         events: serializedEvents
@@ -603,7 +614,14 @@ const handleUpdateEvent = async (req, res) => {
     const body = req.body;
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = await verifyToken(token);    
-    const organizerId = decodedToken.user_id;
+
+    const user = await getUserWithEmail(decodedToken.email);
+
+    if (user.error) {
+        return setUnexpectedErrorResponse(user.error, res);
+    }
+
+    const organizerId = user.id;
 
     const event = await findOne(Events, { 
         id: body.id, 
@@ -709,10 +727,61 @@ const handleUpdateEvent = async (req, res) => {
             id: body.id
         });
     Logger.logInfo(response);
-     
-
 
     return setOkResponse("Evento actualizado correctamente",res);
+}
+
+const cancelEvent = async (req, res) => {
+    const body = req.body;
+
+    const token = req.headers.authorization.split(' ')[1];
+
+    const decodedToken = await verifyToken(token);
+
+    const user = await getUserWithEmail(decodedToken.email);
+
+    if (user.error) {
+        return setUnexpectedErrorResponse(user.error, res);
+    }
+
+    const organizerId = user.id;
+
+    const event = await findOne(Events, {
+        id: body.event_id,
+        owner_id: organizerId
+    },
+        includes);
+
+    if (! event){
+        return setErrorResponse("El evento seleccionado no existe o no coincide con el organizador", res);
+    }
+
+    if (event.error) {
+        return setErrorResponse(event.error, res);
+    }
+
+    const canceledId = await getCanceledStateId();
+
+    if (canceledId.error) {
+        return setErrorResponse(canceledId.error, res);
+    }
+
+    await update(Events,
+        {
+            state_id: canceledId
+        },
+        {
+            id: body.event_id,
+            owner_id: organizerId
+        });
+
+    event.attendees;
+
+    const userIds = event.attendees.map(attendee => attendee.attendances.userId);
+
+    // find users and send notification
+
+    return setOkResponse(OK_LBL, res);
 }
 
 module.exports = {
@@ -721,5 +790,6 @@ module.exports = {
     handleSearch,
     handleEventSignUp,
     handleEventCheck,
-    handleUpdateEvent
+    handleUpdateEvent,
+    cancelEvent
 };
