@@ -15,24 +15,26 @@ const {
 const { SendNotification } = require("../../helpers/SendNotification");
 
 const getAttendeesTokens = async (e) => {
-    const userIds = e.attendees.map(attendee => attendee.attendances.userId);
-
-    const users = await findAll(User,
-        {
-            id: {
-                [Op.in]: userIds
-            }
-
-        });
-
-    if (users.error) {
-        return users.error
-    }
-
     let tokens = []
 
-    if (users) {
-        tokens = users.map(user => user.expo_token);
+    if (e.attendees) {
+        const userIds = e.attendees.map(attendee => attendee.attendances.userId);
+
+        const users = await findAll(User,
+            {
+                id: {
+                    [Op.in]: userIds
+                }
+
+            });
+
+        if (users.error) {
+            return users.error
+        }
+
+        if (users) {
+            tokens = users.map(user => user.expo_token);
+        }
     }
 
     return tokens;
@@ -111,10 +113,10 @@ const notifyTomorrowEvents = async () => {
     );
 }
 
-const notifyEventChange = async(e) => {
+const notifyEventChange = async(e, originalName) => {
     return await sendNotificationTo(e,
         {
-            title: e.name,
+            title: originalName,
 
             body: EVENT_WAS_MODIFIED,
 

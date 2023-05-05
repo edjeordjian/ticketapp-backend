@@ -620,6 +620,9 @@ const handleUpdateEvent = async (req, res) => {
         id: body.id, 
         owner_id: organizerId
     });
+
+    const originalName = event.name;
+
     if (!event || event.error){
         return setErrorResponse("El evento seleccionado no existe o no coincide con el organizador", res);
     }
@@ -648,6 +651,7 @@ const handleUpdateEvent = async (req, res) => {
     }
     let wallpaperUrl, picture1Url, picture2Url, picture3Url,
         picture4Url;
+
     let fieldsToUpdate = body;
 
     if (body.pictures  && body.pictures.length > 0) {
@@ -716,14 +720,26 @@ const handleUpdateEvent = async (req, res) => {
     if(fieldsToUpdate.time){
         fieldsToUpdate.time = dateFromString(body.time);
     }
-    const response  = await update(Events,fieldsToUpdate,
+    const response  = await update(Events,
+        fieldsToUpdate,
         {
             id: body.id
         });
 
+    if (response.error) {
+        return setUnexpectedErrorResponse(response.error);
+    }
+
+    const updatedEvent = await findOne(Events,
+        {
+            id: body.id
+        },
+        eventIncludes);
+
     Logger.logInfo(response);
 
-    const notificationResponse = await notifyEventChange(event);
+    const notificationResponse = await notifyEventChange(updatedEvent,
+                                                         originalName);
 
     if (notificationResponse.error) {
         return setUnexpectedErrorResponse(notificationResponse.error, res);
