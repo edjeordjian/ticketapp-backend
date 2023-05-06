@@ -51,7 +51,7 @@ const notifyTomorrowEvents = async () => {
         now.setHours(now.getHours() - 3);
 
         // Not redundant! (edge case of 00 a.m.)
-        now.setHours(3);
+        now.setHours(0);
     }
 
     now.setUTCSeconds(0);
