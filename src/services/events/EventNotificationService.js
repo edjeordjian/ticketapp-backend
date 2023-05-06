@@ -81,20 +81,23 @@ const notifyTomorrowEvents = async () => {
 
     adaptedNow.setUTCDate(1);
 
-    console.log(adaptedNow);
+    let whereTime = {
+        [Op.gte]: adaptedNow,
 
-    console.log(nextMinute);
+        [Op.lt]:  nextMinute
+    };
+
+    if (nextMinute.getHours() === 0 && nextMinute.getMinutes() === 0) {
+        whereTime = {
+            [Op.gte]: adaptedNow
+        }
+    }
 
     let tomorrowEvents = await findAll(Events,
         {
             date: tomorrow,
 
-            time:
-                {
-                    [Op.gte]: adaptedNow,
-
-                    [Op.lt]:  nextMinute
-                },
+            time: whereTime,
 
             state_id: {
                 [Op.ne]: canceledId
