@@ -1,3 +1,4 @@
+const { IS_PRODUCTION } = require("../../constants/dataConstants");
 const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { eventIncludes } = require("../../repository/EventRepository");
 const { getCanceledStateId } = require("./EventStateService");
@@ -45,6 +46,10 @@ const notifyTomorrowEvents = async () => {
     const canceledId = await getCanceledStateId();
 
     const now = new Date();
+
+    if (IS_PRODUCTION) {
+        now.setHours(now.getHours() - 3);
+    }
 
     now.setUTCSeconds(0);
 
