@@ -1,7 +1,8 @@
+const { getStateId } = require("./EventStateService");
+const { CANCELLED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { IS_PRODUCTION } = require("../../constants/dataConstants");
 const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { eventIncludes } = require("../../repository/EventRepository");
-const { getCanceledStateId } = require("./EventStateService");
 const { Op } = require("sequelize");
 const { User } = require("../../data/model/User");
 const { Events } = require("../../data/model/Events");
@@ -43,7 +44,7 @@ const getAttendeesTokens = async (e) => {
 }
 
 const notifyTomorrowEvents = async () => {
-    const canceledId = await getCanceledStateId();
+    const canceledId = await getStateId(CANCELLED_STATUS_LBL);
 
     const now = new Date();
 
@@ -128,7 +129,7 @@ const notifyTomorrowEvents = async () => {
                 } );
         })
     );
-}
+};
 
 const notifyEventChange = async(e, originalName) => {
     return await sendNotificationTo(e,
