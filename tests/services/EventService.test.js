@@ -36,11 +36,7 @@ describe("EventService", function() {
 
             "logInfo": sinon.stub(),
 
-            "getCanceledStateId": stateIdStub,
-
-            "getCanceledStateId": stateIdStub,
-
-            "getCanceledStateId": stateIdStub
+            "getStateId": stateIdStub
         });
 
         req = {
