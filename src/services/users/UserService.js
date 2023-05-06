@@ -1,3 +1,4 @@
+const { UNEXISTING_USER_ERR_LBL } = require("../../constants/events/eventsConstants");
 const { findOne } = require("../../helpers/QueryHelper");
 
 const { User } = require("../../data/model/User");
@@ -107,7 +108,21 @@ const userExists = async (id, email) => {
     return user;
 }
 
+const getUserWithEmail = async(userEmail) => {
+    const user = await findOne(User, {
+        email: userEmail
+    });
+
+    if (! user) {
+        return {
+            error: UNEXISTING_USER_ERR_LBL
+        }
+    }
+
+    return user;
+}
+
 module.exports = {
     userIsOrganizer, userExists, userIsConsumer, userIsStaff,
-    userIsAdministrator
+    userIsAdministrator, getUserWithEmail
 };
