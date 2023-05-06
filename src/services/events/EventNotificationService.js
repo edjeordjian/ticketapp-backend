@@ -49,9 +49,6 @@ const notifyTomorrowEvents = async () => {
 
     if (IS_PRODUCTION) {
         now.setHours(now.getHours() - 3);
-
-        // Not redundant! (edge case of 00 a.m.)
-        now.setHours(0);
     }
 
     now.setUTCSeconds(0);
@@ -63,6 +60,10 @@ const notifyTomorrowEvents = async () => {
     tomorrow.setUTCHours(3);
 
     tomorrow.setUTCMinutes(0);
+
+    if (IS_PRODUCTION) {
+        tomorrow.setHours(0);
+    }
 
     let nextMinute = new Date(now.getTime() + 60 * 1000); // + 1 minute
 
