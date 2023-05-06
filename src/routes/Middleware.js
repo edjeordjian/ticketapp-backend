@@ -57,8 +57,7 @@ const administratorMiddleware = async (req, res, next) => {
 
 const emptyBodyMiddleware = async (req, res, next) => {
     if (req.method === "POST" && isEmpty(req.body)) {
-        Logger.logInfo(req.body);
-        return setErrorResponse("Error en la petición.", res, 400);
+        return setErrorResponse("Error en la petición. Body", res, 400);
     } else {
         next();
     }

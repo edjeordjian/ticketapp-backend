@@ -4,6 +4,7 @@ const { FIREBASE_URL } = require("../../constants/URLs");
 const { logError } = require("../../helpers/Logger");
 
 const fetch = require('node-fetch');
+const { async } = require('@firebase/util');
 
 require('dotenv').config({
     path: `.env${process.env.MY_ENV}`
@@ -39,8 +40,14 @@ const verifyToken = async (token) => {
 
         return false;
     }
-}
+};
+
+const getUserId = async (req) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const info = await verifyToken(token);
+    return info.user_id;
+};
 
 module.exports = {
-    verifyToken, getFirebaseUserData
+    verifyToken, getFirebaseUserData,getUserId
 }

@@ -899,6 +899,14 @@ const cronEventUpdate = async () => {
     await notifyTomorrowEvents();
 }
 
+const eventExists = async (id) =>{
+    const event = await findOne(Events, {id: id});
+    if (!event){
+        return false;
+    }
+    return true
+}
+
 module.exports = {
     handleCreate,
     handleGet,
@@ -907,5 +915,6 @@ module.exports = {
     handleEventCheck,
     handleUpdateEvent,
     cancelEvent,
-    cronEventUpdate
+    cronEventUpdate,
+    eventExists
 };
