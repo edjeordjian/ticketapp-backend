@@ -61,6 +61,7 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { INVALID_STATUS_ERR_LBL } = require("../../constants/login/logInConstants");
 const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { SUSPENDED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
@@ -822,6 +823,20 @@ const cancelEvent = async (req, res) => {
     }
 
     let stateId;
+
+    const draftStateId = await getStateId(DRAFT_STATUS_LBL);
+
+    if (event.state_id === draftStateId) {
+        const result = await destroy(Events, {
+            id: event.id
+        });
+
+        if (result.error) {
+            return setUnexpectedErrorResponse(result.error, res);
+        }
+
+        return setOkResponse(OK_LBL, res);
+    }
 
     if (body.suspended) {
         stateId = await getStateId(SUSPENDED_STATUS_LBL);
