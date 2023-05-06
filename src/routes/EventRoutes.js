@@ -1,6 +1,8 @@
 const Logger = require("../helpers/Logger");
 
 const express = require('express');
+const { cancelEvent } = require("../services/events/EventService");
+const { EVENT_CANCEL_URL } = require("../constants/URLs");
 const { getReportCategories } = require("../services/events/EventCategoriesService");
 const { REPORTS_CATEGORIES_URL } = require("../constants/URLs");
 const { userIsStaff } = require("../services/users/UserService");
@@ -17,25 +19,17 @@ const { EVENT_GROUP_ADD_USER_URL } = require("../constants/URLs");
 const { handleEventSignUp } = require("../services/events/EventService");
 const { userIsConsumer } = require("../services/users/UserService");
 const { EVENT_SIGN_UP_URL } = require("../constants/URLs");
-const { getFirebaseUserData } = require("../services/authentication/FirebaseService");
 const { handleGetTypes } = require("../services/events/EventCategoriesService");
 
 const { EVENT_TYPES_URL } = require("../constants/URLs");
 
 const { handleCreate,
     handleSearch,
-    handleGet } = require("../services/events/EventService");
+    handleGet, handleUpdateEvent } = require("../services/events/EventService");
 
 const { userIsOrganizer, userExists } = require("../services/users/UserService");
 
-const { setOkResponse,
-    setErrorResponse,
-    setUnexpectedErrorResponse } = require("../helpers/ResponseHelper");
-
-const { isEmpty } = require("../helpers/ObjectHelper");
 const { EVENT_URL, EVENT_SEARCH_NAME_URL } = require("../constants/URLs");
-const { verifyToken } = require("../services/authentication/FirebaseService")
-const { findOne } = require("../helpers/QueryHelper");
 
 const router = express.Router();
 
@@ -117,19 +111,35 @@ router.get(REPORTS_CATEGORIES_URL,
     });
 
 router.post(EVENT_GROUP_ADD_USER_URL, async (req, res, next) => {
-    await isOrganizerMiddleware(req, res, next, userIsOrganizer) },
+    await isOrganizerMiddleware(req, res, next) },
     async (req, res) => {
         Logger.request(`POST: /event/group/addUsers`);
         await handleAddUserToGroup(req, res);
     });
 
 router.get(EVENT_GROUP_URL, async (req, res, next) => {
-        await isOrganizerMiddleware(req, res, next, userIsOrganizer)
+        await isOrganizerMiddleware(req, res, next)
     },
     async (req, res) => {
         Logger.request(`POST: /event/group`);
 
         await handleGetGroup(req, res);
+    });
+
+router.patch(EVENT_URL, async (req, res, next) => {
+        await isOrganizerMiddleware(req, res, next)
+    }, async (req, res) => {
+        Logger.request(`PATCH: /event`);
+
+        await handleUpdateEvent(req, res);
+    });
+
+router.post(EVENT_CANCEL_URL, async (req, res, next) => {
+        await isOrganizerMiddleware(req, res, next)
+    }, async (req, res) => {
+        Logger.request(`POST: /event/cancel`);
+
+        await cancelEvent(req, res);
     });
 
 module.exports = router;

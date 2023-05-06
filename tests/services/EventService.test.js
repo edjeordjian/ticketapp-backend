@@ -8,6 +8,8 @@ const { EventMock } = require("../mocks/EventMock");
 
 const Event = rewire("../../src/data/model/Events");
 
+const EventRepository = rewire("../../src/repository/EventRepository");
+
 const {OK_LBL} = require("../../src/constants/messages");
 
 const EventService = rewire("../../src/services/events/EventService");
@@ -25,12 +27,20 @@ describe("EventService", function() {
            "error": "error"
         });
 
+        const stateIdStub = sinon.stub().returns(1);
+
         EventService.__set__({
             "setOkResponse": setOkResponseStub,
 
             "setErrorResponse": setErrorResponseStub,
 
-            "logInfo": sinon.stub()
+            "logInfo": sinon.stub(),
+
+            "getCanceledStateId": stateIdStub,
+
+            "getCanceledStateId": stateIdStub,
+
+            "getCanceledStateId": stateIdStub
         });
 
         req = {
@@ -189,15 +199,11 @@ describe("EventService", function() {
     it("Event serialization", async () => {
         const e = new EventMock();
 
-        Event.__set__({
-            "timeToString": sinon.stub().resolves("9:00")
-        })
+        e.time = new Date();
 
-        Event.__set__({
-            "dateToString": sinon.stub().resolves("10/10/2010")
-        })
+        e.date = new Date();
 
-        const serializedEvent = await Event.getSerializedEvent(e);
+        const serializedEvent = await EventRepository.getSerializedEvent(e);
 
         assert(e.name === serializedEvent.name);
     });

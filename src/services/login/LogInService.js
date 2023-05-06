@@ -29,8 +29,6 @@ const handleSignUp = async (body) => {
         last_name: body.lastName,
         picture_url: body.pictureUrl
     }).then(async (user) => {
-        logInfo(body);
-
         if (body.isOrganizer) {
             const group = await create(Group, {
                 organizer_email: body.email

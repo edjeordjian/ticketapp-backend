@@ -38,7 +38,7 @@ const dateFromString = (strFullDate) => {
     }
 
     return new Date(year, month - 1, day, hours, minutes, seconds);
-}
+};
 
 const dateToString = (aDate) => {
     return aDate.toLocaleDateString('es-AR',
@@ -47,7 +47,7 @@ const dateToString = (aDate) => {
             month: '2-digit',
             day: '2-digit'
         });
-}
+};
 
 const timeToString = (aTime) => {
     let hours = aTime.getHours();
@@ -63,8 +63,7 @@ const timeToString = (aTime) => {
     }
 
     return `${hours}:${minutes}`
-}
-
+};
 
 module.exports = {
     getQuickDate, dateFromString, dateToString, timeToString
