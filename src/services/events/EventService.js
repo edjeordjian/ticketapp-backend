@@ -171,7 +171,7 @@ const handleCreate = async (req, res) => {
 
     const stateId = await getStateId(stateName);
 
-    if (stateId) {
+    if (! stateId) {
         return setErrorResponse(INVALID_STATUS_ERR_LBL, res);
     }
 
