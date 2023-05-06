@@ -5,7 +5,7 @@ const dataConstants = require("../constants/dataConstants");
 const database = new Sequelize(dataConstants.DATABASE_URL, {
     dialect: 'postgres',
 
-    logging: true,
+    logging: false,
 
     operatorsAliases: Sequelize.Op,
 
