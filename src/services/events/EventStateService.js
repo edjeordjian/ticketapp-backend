@@ -12,6 +12,14 @@ const getSuspendedStateId = async () => {
     return await getNameStateId("Suspendido");
 }
 
+const getFinishedStateId = async () => {
+    return await getNameStateId("Finalizado");
+}
+
+const getPublishedStateId = async () => {
+    return await getNameStateId("Publicado");
+}
+
 const getNameStateId = async (name) => {
     const state = await findOne(EventState, {
         name: name
@@ -31,6 +39,7 @@ const getNameStateId = async (name) => {
 }
 
 module.exports = {
-    getCanceledStateId, getSuspendedStateId
+    getCanceledStateId, getSuspendedStateId, getFinishedStateId,
+    getPublishedStateId
 };
 

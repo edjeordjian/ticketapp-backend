@@ -11,6 +11,7 @@ const { database } = require("./data/database");
 const logInRoutes = require("./routes/LogInRoutes");
 
 const eventRoutes = require("./routes/EventRoutes");
+const { cronEventUpdate } = require("./services/events/EventService");
 
 const { defineRelationships } = require("./data/model/relationships/relationships");
 
@@ -66,7 +67,7 @@ app.use(BASE_URL, eventRoutes);
 setLevel(LOG_LEVEL);
 
 // Once every minute
-cron.schedule('* * * * *', notifyTomorrowEvents);
+cron.schedule('* * * * *', cronEventUpdate);
 
 syncDB().then(() => {
     app.listen(NODE_PORT, () => {

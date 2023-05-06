@@ -30,7 +30,6 @@ const { getDistanceFromLatLonInKm } = require("../../helpers/DistanceHelper");
 
 const { verifyToken } = require("../authentication/FirebaseService");
 
-
 const {
     EVENT_ALREADY_EXISTS_ERR_LBL,
     EVENT_WITH_NO_CAPACITY_ERR_LBL,
@@ -62,14 +61,20 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
-const { getSuspendedStateId } = require("./EventStateService");
+
+const { notifyTomorrowEvents } = require("./EventNotificationService");
+
 const { eventIncludes } = require("../../repository/EventRepository");
 
 const { notifyEventChange } = require("./EventNotificationService");
 
 const { notifyCancelledEvent } = require("./EventNotificationService");
 
-const { getCanceledStateId } = require("./EventStateService");
+const {
+    getCanceledStateId,
+    getSuspendedStateId,
+    getPublishedStateId
+    } = require("./EventStateService");
 
 const { getUserWithEmail } = require("../users/UserService");
 
@@ -285,7 +290,8 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
-    } else if (tags) {
+    }
+    else if (tags) {
         userId = await getUserId(req);
 
         const types_ids = tags.split(",");
@@ -409,7 +415,8 @@ const handleSearch = async (req, res) => {
         events = events.filter(e => {
             return ! getTicket(e, userId).wasUsed;
         });
-    } else {
+    }
+    else {
         const canceledId = await getCanceledStateId();
 
         if (canceledId.error) {
@@ -808,6 +815,39 @@ const cancelEvent = async (req, res) => {
     return setOkResponse(OK_LBL, res);
 }
 
+const cronEventUpdate = async () => {
+    const publishedId = await getPublishedStateId();
+
+    const now = new Date();
+
+    now.setUTCSeconds(0);
+
+    now.setUTCMilliseconds(0);
+
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000); // - 1 day
+
+    yesterday.setUTCHours(3);
+
+    yesterday.setUTCMinutes(0);
+
+    let eventsToFinish = await findAll(Events,
+        {
+            date: yesterday,
+
+            state_id: {
+                [Op.eq]: [publishedId],
+            }
+        },
+        eventIncludes
+    );
+
+    if (eventsToFinish.error) {
+        return eventsToFinish.error;
+    }
+
+    await notifyTomorrowEvents();
+}
+
 module.exports = {
     handleCreate,
     handleGet,
@@ -815,5 +855,6 @@ module.exports = {
     handleEventSignUp,
     handleEventCheck,
     handleUpdateEvent,
-    cancelEvent
+    cancelEvent,
+    cronEventUpdate
 };
