@@ -72,6 +72,10 @@ const notifyTomorrowEvents = async () => {
 
     adaptedNow.setUTCDate(1);
 
+    console.log(adaptedNow);
+
+    console.log(nextMinute);
+
     let tomorrowEvents = await findAll(Events,
         {
             date: tomorrow,
