@@ -18,6 +18,38 @@ class DateMock {
     toLocaleDateString(obj, obj2) {
         return "Sat Apr 08 2023 20:24:10 GMT-0300 (Argentina Standard Time)"
     }
+
+    setUTCSeconds(a) {
+        return;
+    }
+
+    setUTCHours(a) {
+        return;
+    }
+
+    setUTCMilliseconds(a) {
+        return;
+    }
+
+    setUTCMinutes(e) {
+        return;
+    }
+
+    getTime(a) {
+        return "5"
+    }
+
+    setUTCFullYear(e) {
+        return;
+    }
+
+    setUTCMonth(e) {
+        return;
+    }
+
+    setUTCDate(e) {
+        return;
+    }
 }
 
 module.exports = {

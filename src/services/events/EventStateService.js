@@ -25,4 +25,3 @@ const getStateId = async (name) => {
 module.exports = {
     getStateId
 };
-
