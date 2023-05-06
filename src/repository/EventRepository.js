@@ -1,3 +1,5 @@
+const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../constants/dataConstants");
+const { EventState } = require("../data/model/EventState");
 const { FAQ } = require("../data/model/FAQ");
 
 const { ATTENDEES_RELATION_NAME } = require("../constants/dataConstants");
@@ -36,6 +38,11 @@ const eventIncludes = [
     {
         model: FAQ,
         attributes: ["question", "answer"],
+    },
+    {
+        model: EventState,
+        attributes: ["id", "name"],
+        as: EVENT_TO_EVENT_STATE_RELATION_NAME
     }
 ];
 
@@ -130,7 +137,16 @@ const getSerializedEvent = async (e, userId = null) => {
             }
         }) : [],
 
-        ticket: ticket
+        ticket: ticket,
+
+        state: e.state ?
+            {
+            "id": e.state.id,
+
+            "name": e.state.name
+            }
+            :
+            {}
     }
 };
 

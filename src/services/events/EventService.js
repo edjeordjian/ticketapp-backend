@@ -61,6 +61,14 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { INVALID_STATUS_ERR_LBL } = require("../../constants/login/logInConstants");
+const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { SUSPENDED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { CANCELLED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { getStateId } = require("./EventStateService");
+const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
+const { EventState } = require("../../data/model/EventState");
 
 const { notifyTomorrowEvents } = require("./EventNotificationService");
 
@@ -69,12 +77,6 @@ const { eventIncludes } = require("../../repository/EventRepository");
 const { notifyEventChange } = require("./EventNotificationService");
 
 const { notifyCancelledEvent } = require("./EventNotificationService");
-
-const {
-    getCanceledStateId,
-    getSuspendedStateId,
-    getPublishedStateId
-    } = require("./EventStateService");
 
 const { getUserWithEmail } = require("../users/UserService");
 
@@ -165,6 +167,14 @@ const handleCreate = async (req, res) => {
         picture4Url = body.pictures[4];
     }
 
+    const stateName = body.status ? body.status : "Borrador";
+
+    const stateId = await getStateId(stateName);
+
+    if (stateId) {
+        return setErrorResponse(INVALID_STATUS_ERR_LBL, res);
+    }
+
     return await create(Events, {
         owner_id: body.ownerId,
 
@@ -192,7 +202,9 @@ const handleCreate = async (req, res) => {
 
         picture3_url: picture3Url,
 
-        picture4_url: picture4Url
+        picture4_url: picture4Url,
+
+        state_id: stateId
     }).then(async createdEvent => {
         const createResponse = await createdEvent.addEvent_types(tagsToAdd);
 
@@ -274,6 +286,12 @@ const handleSearch = async (req, res) => {
         ["time", "ASC"]
     ];
 
+    const publishedId = await getStateId(SUSPENDED_STATUS_LBL);
+
+    if (publishedId.error) {
+        return setErrorResponse(publishedId.error, res);
+    }
+
     if (value) {
         userId = await getUserId(req);
 
@@ -283,8 +301,13 @@ const handleSearch = async (req, res) => {
             name: {
                 [Op.iLike]: `%${valueToSearch}%`
             },
+
             capacity: {
                 [Op.ne]: 0
+            },
+
+            state_id: {
+                [Op.eq]: publishedId
             }
         },
             eventIncludes,
@@ -300,6 +323,10 @@ const handleSearch = async (req, res) => {
             {
                 capacity: {
                     [Op.ne]: 0
+                },
+
+                state_id: {
+                    [Op.eq]: publishedId
                 }
             },
             [
@@ -329,6 +356,11 @@ const handleSearch = async (req, res) => {
                 {
                     model: FAQ,
                     attributes: ["question", "answer"],
+                },
+                {
+                    model: EventState,
+                    attributes: ["id", "name"],
+                    as: EVENT_TO_EVENT_STATE_RELATION_NAME
                 }
             ],
             order
@@ -376,6 +408,9 @@ const handleSearch = async (req, res) => {
             {
                 owner_id: {
                     [Op.in]: owners_ids
+                },
+                state_id: {
+                    [Op.eq]: publishedId
                 }
             },
             eventIncludes,
@@ -396,6 +431,14 @@ const handleSearch = async (req, res) => {
         }
 
         events = await user.getEvents({
+                where: {
+                    state_id: {
+                        [Op.eq]: publishedId
+                    },
+                    capacity: {
+                        [Op.ne]: 0
+                    }
+                },
                 include: eventIncludes
             })
             .then(events =>
@@ -417,12 +460,6 @@ const handleSearch = async (req, res) => {
         });
     }
     else {
-        const canceledId = await getCanceledStateId();
-
-        if (canceledId.error) {
-            return setErrorResponse(canceledId.error, res);
-        }
-
         events = await findAll(Events,
             {
                 capacity: {
@@ -430,7 +467,7 @@ const handleSearch = async (req, res) => {
                 },
 
                 state_id: {
-                    [Op.ne]: canceledId
+                    [Op.eq]: publishedId
                 }
             },
             eventIncludes,
@@ -787,10 +824,24 @@ const cancelEvent = async (req, res) => {
 
     let stateId;
 
+    const draftStateId = await getStateId(DRAFT_STATUS_LBL);
+
+    if (event.state_id === draftStateId) {
+        const result = await destroy(Events, {
+            id: event.id
+        });
+
+        if (result.error) {
+            return setUnexpectedErrorResponse(result.error, res);
+        }
+
+        return setOkResponse(OK_LBL, res);
+    }
+
     if (body.suspended) {
-        stateId = await getSuspendedStateId();
+        stateId = await getStateId(SUSPENDED_STATUS_LBL);
     } else {
-        stateId = await getCanceledStateId();
+        stateId = await getStateId(CANCELLED_STATUS_LBL);
     }
 
     if (stateId.error) {
@@ -816,7 +867,7 @@ const cancelEvent = async (req, res) => {
 }
 
 const cronEventUpdate = async () => {
-    const publishedId = await getPublishedStateId();
+    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
 
     const now = new Date();
 

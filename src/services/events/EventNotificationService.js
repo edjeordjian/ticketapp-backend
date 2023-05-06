@@ -1,6 +1,8 @@
+const { getStateId } = require("./EventStateService");
+const { CANCELLED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { IS_PRODUCTION } = require("../../constants/dataConstants");
 const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { eventIncludes } = require("../../repository/EventRepository");
-const { getCanceledStateId } = require("./EventStateService");
 const { Op } = require("sequelize");
 const { User } = require("../../data/model/User");
 const { Events } = require("../../data/model/Events");
@@ -42,9 +44,13 @@ const getAttendeesTokens = async (e) => {
 }
 
 const notifyTomorrowEvents = async () => {
-    const canceledId = await getCanceledStateId();
+    const canceledId = await getStateId(CANCELLED_STATUS_LBL);
 
     const now = new Date();
+
+    if (IS_PRODUCTION) {
+        now.setHours(now.getHours() - 3);
+    }
 
     now.setUTCSeconds(0);
 
@@ -55,6 +61,10 @@ const notifyTomorrowEvents = async () => {
     tomorrow.setUTCHours(3);
 
     tomorrow.setUTCMinutes(0);
+
+    if (IS_PRODUCTION) {
+        tomorrow.setHours(0);
+    }
 
     let nextMinute = new Date(now.getTime() + 60 * 1000); // + 1 minute
 
@@ -72,16 +82,23 @@ const notifyTomorrowEvents = async () => {
 
     adaptedNow.setUTCDate(1);
 
+    let whereTime = {
+        [Op.gte]: adaptedNow,
+
+        [Op.lt]:  nextMinute
+    };
+
+    if (nextMinute.getHours() === 0 && nextMinute.getMinutes() === 0) {
+        whereTime = {
+            [Op.gte]: adaptedNow
+        }
+    }
+
     let tomorrowEvents = await findAll(Events,
         {
             date: tomorrow,
 
-            time:
-                {
-                    [Op.gte]: adaptedNow,
-
-                    [Op.lt]:  nextMinute
-                },
+            time: whereTime,
 
             state_id: {
                 [Op.ne]: canceledId
@@ -112,7 +129,7 @@ const notifyTomorrowEvents = async () => {
                 } );
         })
     );
-}
+};
 
 const notifyEventChange = async(e, originalName) => {
     return await sendNotificationTo(e,

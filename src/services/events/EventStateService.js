@@ -4,23 +4,7 @@ const { EventState } = require("../../data/model/EventState");
 
 const { findOne } = require("../../helpers/QueryHelper");
 
-const getCanceledStateId = async () => {
-    return await getNameStateId("Cancelado");
-}
-
-const getSuspendedStateId = async () => {
-    return await getNameStateId("Suspendido");
-}
-
-const getFinishedStateId = async () => {
-    return await getNameStateId("Finalizado");
-}
-
-const getPublishedStateId = async () => {
-    return await getNameStateId("Publicado");
-}
-
-const getNameStateId = async (name) => {
+const getStateId = async (name) => {
     const state = await findOne(EventState, {
         name: name
     });
@@ -36,10 +20,9 @@ const getNameStateId = async (name) => {
     }
 
     return state.id;
-}
+};
 
 module.exports = {
-    getCanceledStateId, getSuspendedStateId, getFinishedStateId,
-    getPublishedStateId
+    getStateId
 };
 
