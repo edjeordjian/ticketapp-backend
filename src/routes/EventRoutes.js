@@ -2,7 +2,7 @@ const Logger = require("../helpers/Logger");
 
 const express = require('express');
 const { cancelEvent } = require("../services/events/EventService");
-const { EVENT_CANCEL_URL } = require("../constants/URLs");
+const { EVENT_CANCEL_URL, EVENT_REPORT } = require("../constants/URLs");
 const { getReportCategories } = require("../services/events/EventCategoriesService");
 const { REPORTS_CATEGORIES_URL } = require("../constants/URLs");
 const { userIsStaff } = require("../services/users/UserService");
@@ -20,6 +20,7 @@ const { handleEventSignUp } = require("../services/events/EventService");
 const { userIsConsumer } = require("../services/users/UserService");
 const { EVENT_SIGN_UP_URL } = require("../constants/URLs");
 const { handleGetTypes } = require("../services/events/EventCategoriesService");
+const {handleCreateEventReport} = require("../services/events/EventReportService");
 
 const { EVENT_TYPES_URL } = require("../constants/URLs");
 
@@ -30,6 +31,7 @@ const { handleCreate,
 const { userIsOrganizer, userExists } = require("../services/users/UserService");
 
 const { EVENT_URL, EVENT_SEARCH_NAME_URL } = require("../constants/URLs");
+const { async } = require("@firebase/util");
 
 const router = express.Router();
 
@@ -141,5 +143,12 @@ router.post(EVENT_CANCEL_URL, async (req, res, next) => {
 
         await cancelEvent(req, res);
     });
+
+router.post(EVENT_REPORT, async (req, res, next) => {
+    await isAllowedMiddleware(req, res, next, userIsConsumer);
+}, async (req, res) => {
+    Logger.request(`POST /event/report`);
+    await handleCreateEventReport(req,res);
+});
 
 module.exports = router;
