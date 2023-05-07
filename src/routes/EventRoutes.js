@@ -145,7 +145,7 @@ router.post(EVENT_CANCEL_URL, async (req, res, next) => {
     });
 
 router.post(EVENT_REPORT, async (req, res, next) => {
-    await isAllowedMiddleware(req, res, next,userExists);
+    await isAllowedMiddleware(req, res, next, userIsConsumer);
 }, async (req, res) => {
     Logger.request(`POST /event/report`);
     await handleCreateEventReport(req,res);
