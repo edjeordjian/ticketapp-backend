@@ -36,20 +36,14 @@ const isOrganizerMiddleware = async (req, res, next) => {
 const administratorMiddleware = async (req, res, next) => {
     const authorization = req.headers.authorization;
 
-    if (req.body.isAdministrator) {
-        if (! authorization) {
-            return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 401);
-        }
+    if (! authorization) {
+        return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 401);
+    }
 
-        const token = authorization.split(' ')[1];
+    const isAdministrator = await userIsAdministrator(authorization);
 
-        const decodedToken = await verifyToken(token);
-
-        const isAdministrator = await userIsAdministrator(decodedToken.email);
-
-        if (! isAdministrator) {
-            return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 401);
-        }
+    if (! isAdministrator) {
+        return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 401);
     }
 
     next();
@@ -61,22 +55,6 @@ const emptyBodyMiddleware = async (req, res, next) => {
     } else {
         next();
     }
-}
-
-const getUserId = async (req) => {
-    const token = req.headers.authorization.split(' ')[1];
-
-    let userData;
-
-    if (req.headers.expo && req.headers.authorization) {
-        userData = await getFirebaseUserData(token);
-
-        return userData.id;
-    }
-
-    userData = await verifyToken(token);
-
-    return userData.user_id;
 }
 
 const isAllowedMiddleware = async (req, res, next, check_fn) => {
@@ -139,5 +117,5 @@ const firebaseAuthMiddleware = async (req, res, next) => {
 
 module.exports = {
     firebaseAuthMiddleware, emptyBodyMiddleware, isOrganizerMiddleware, isAllowedMiddleware,
-    getUserId, administratorMiddleware
+    administratorMiddleware
 };

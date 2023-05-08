@@ -17,7 +17,7 @@ const EventReport = database.define("event_report", {
         allowNull: false,
         validate: { notEmpty: true },
     },
-    event_id:{
+    event_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         validate: { notEmpty: true },

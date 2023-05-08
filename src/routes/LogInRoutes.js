@@ -6,9 +6,9 @@ const { administratorMiddleware } = require("./Middleware");
 
 const {handleLogIn} = require("../services/login/LogInService");
 
-const router = express.Router()
-
 const {SIGN_IN_URL} = require("../constants/URLs");
+
+const router = express.Router();
 
 router.post(SIGN_IN_URL,
     async (req, res, next) => {
