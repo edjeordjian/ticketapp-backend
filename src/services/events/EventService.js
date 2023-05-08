@@ -286,7 +286,7 @@ const handleSearch = async (req, res) => {
         ["time", "ASC"]
     ];
 
-    const publishedId = await getStateId(SUSPENDED_STATUS_LBL);
+    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
 
     if (publishedId.error) {
         return setErrorResponse(publishedId.error, res);
@@ -434,9 +434,6 @@ const handleSearch = async (req, res) => {
                 where: {
                     state_id: {
                         [Op.eq]: publishedId
-                    },
-                    capacity: {
-                        [Op.ne]: 0
                     }
                 },
                 include: eventIncludes
