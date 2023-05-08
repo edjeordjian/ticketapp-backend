@@ -33,17 +33,19 @@ const isOrganizerMiddleware = async (req, res, next) => {
 
 }
 
-const administratorMiddleware = async (req, res, next) => {
+const administratorMiddleware = async (req, res, next, logIn) => {
     const authorization = req.headers.authorization;
 
-    if (! authorization) {
-        return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 401);
-    }
+    if (authorization.split(' ')[1]) {
+        if (logIn && ! req.body.isAdministrator) {
+            return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 401);
+        }
 
-    const isAdministrator = await userIsAdministrator(authorization);
+        const isAdministrator = await userIsAdministrator(authorization);
 
-    if (! isAdministrator) {
-        return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 401);
+        if (! isAdministrator) {
+            return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 401);
+        }
     }
 
     next();

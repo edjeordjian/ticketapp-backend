@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post(SIGN_IN_URL,
     async (req, res, next) => {
-        await administratorMiddleware(req, res, next)
+        await administratorMiddleware(req, res, next, true)
     },
     async (req, res) => {
         Logger.request(SIGN_IN_URL);
