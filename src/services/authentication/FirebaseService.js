@@ -4,6 +4,8 @@ const { FIREBASE_URL } = require("../../constants/URLs");
 const { logError } = require("../../helpers/Logger");
 
 const fetch = require('node-fetch');
+const { User } = require("../../data/model/User");
+const { findOne } = require("../../helpers/QueryHelper");
 const { async } = require('@firebase/util');
 
 require('dotenv').config({
@@ -44,8 +46,29 @@ const verifyToken = async (token) => {
 
 const getUserId = async (req) => {
     const token = req.headers.authorization.split(' ')[1];
-    const info = await verifyToken(token);
-    return info.user_id;
+
+    let userData;
+
+    if (req.headers.expo) {
+        userData = await getFirebaseUserData(token);
+
+        return userData.id;
+    }
+
+    userData = await verifyToken(token);
+
+    const user = await findOne(User,
+        {
+            email: userData.email,
+        }
+    );
+
+    if (user === null || user.error) {
+        logError(user.error);
+        return -1;
+    }
+
+    return user.id;
 };
 
 module.exports = {

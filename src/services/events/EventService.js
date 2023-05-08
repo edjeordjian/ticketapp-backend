@@ -61,6 +61,7 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { getUserId } = require("../authentication/FirebaseService");
 const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { INVALID_STATUS_ERR_LBL } = require("../../constants/login/logInConstants");
 const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
@@ -89,8 +90,6 @@ const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
 const { getTicket } = require("../../data/model/Events");
 
 const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
-
-const { getUserId } = require("../../routes/Middleware");
 
 const { destroy } = require("../../helpers/QueryHelper");
 
@@ -273,6 +272,7 @@ const handleSearch = async (req, res) => {
         owner,
         staff,
         consumer,
+        admin,
         latitude,
         longitude,
     } = req.query;
@@ -459,6 +459,12 @@ const handleSearch = async (req, res) => {
             return ! getTicket(e, userId).wasUsed;
         });
     }
+    else if (admin) {
+        events = await findAll(Events,
+            eventIncludes,
+            order
+        );
+    }
     else {
         events = await findAll(Events,
             {
@@ -473,10 +479,6 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
-
-        if (events.error) {
-            return setUnexpectedErrorResponse(events.error, res);
-        }
     }
 
     if (events.error) {

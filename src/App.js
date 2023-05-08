@@ -11,6 +11,9 @@ const { database } = require("./data/database");
 const logInRoutes = require("./routes/LogInRoutes");
 
 const eventRoutes = require("./routes/EventRoutes");
+
+const userRoutes = require("./routes/UserRoutes");
+
 const { cronEventUpdate } = require("./services/events/EventService");
 
 const { defineRelationships } = require("./data/model/relationships/relationships");
@@ -63,6 +66,8 @@ app.use(bodyParser.json());
 app.use(BASE_URL, logInRoutes);
 
 app.use(BASE_URL, eventRoutes);
+
+app.use(BASE_URL, userRoutes);
 
 setLevel(LOG_LEVEL);
 

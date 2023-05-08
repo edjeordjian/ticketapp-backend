@@ -21,11 +21,13 @@ const defineEventReportUserEventRelationship = () => {
             foreignKey: "reporter_id",
             as: REPORTER_RELATION_NAME
         });
+
     Events.hasMany(EventReport,
         {
             foreignKey: "event_id",
             as: EVENTS_REPORT_RELATION_NAME
         });
+
     EventReport.belongsTo(Events,
         {
             foreignKey: "event_id",
