@@ -1,7 +1,7 @@
 const Logger = require("../helpers/Logger");
 
 const express = require('express');
-const { cancelEvent } = require("../services/events/EventService");
+const { cancelEvent, handleGetReportedEvents } = require("../services/events/EventService");
 const { EVENT_CANCEL_URL, EVENT_REPORT } = require("../constants/URLs");
 const { getReportCategories } = require("../services/events/EventCategoriesService");
 const { REPORTS_CATEGORIES_URL } = require("../constants/URLs");
@@ -20,7 +20,7 @@ const { handleEventSignUp } = require("../services/events/EventService");
 const { userIsConsumer } = require("../services/users/UserService");
 const { EVENT_SIGN_UP_URL } = require("../constants/URLs");
 const { handleGetTypes } = require("../services/events/EventCategoriesService");
-const {handleCreateEventReport} = require("../services/events/EventReportService");
+const { handleCreateEventReport, handleGetReports} = require("../services/events/EventReportService");
 
 const { EVENT_TYPES_URL } = require("../constants/URLs");
 
@@ -145,10 +145,23 @@ router.post(EVENT_CANCEL_URL, async (req, res, next) => {
     });
 
 router.post(EVENT_REPORT, async (req, res, next) => {
-    await isAllowedMiddleware(req, res, next, userIsConsumer);
+    await isAllowedMiddleware(req, res, next, userExists);
 }, async (req, res) => {
     Logger.request(`POST /event/report`);
     await handleCreateEventReport(req,res);
 });
 
+router.get(EVENT_REPORT, async (req, res, next) => {
+    await isAllowedMiddleware(req,res,next,userIsOrganizer); // cambiar a administrator
+}, async (req,res) =>{
+    Logger.request(`GET /event/report`);
+
+    await handleGetReports(req,res);
+});
+
+router.get(`/events/reports`, async (req, res, next) => {
+    await isAllowedMiddleware(req,res,next,userExists);
+}, async (req,res) =>{
+    await handleGetReportedEvents(req,res);
+});
 module.exports = router;

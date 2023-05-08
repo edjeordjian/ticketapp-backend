@@ -3,7 +3,7 @@ const { EventReport } = require("../../data/model/EventReport");
 const { logError, logInfo } = require("../../helpers/Logger");
 const { setOkResponse, setErrorResponse } = require("../../helpers/ResponseHelper");
 const { getUserId } =  require("../authentication/FirebaseService");
-const {create, findOne} = require("../../helpers/QueryHelper");
+const {create, findOne, findAll} = require("../../helpers/QueryHelper");
 const { EventReportCategory } = require("../../data/model/EventReportCategory");
 const { eventExists } = require("./EventService");
 
@@ -43,6 +43,21 @@ const handleCreateEventReport = async (req, res) =>{
 
     return setOkResponse(OK_LBL,res);
 }
+
+const handleGetReports = async (req, res) => {
+    let conditions= {};
+    const reporter = req.query.reporter_id;
+    const event_id =  req.query.event_id;
+    if (reporter){
+        conditions = {...conditions,reporter_id: reporter};
+    }
+    if (event_id){
+        conditions = {...conditions, event_id: event_id};
+    }
+    const reports = await findAll(EventReport, {reporter_id: reporter})
+    return setOkResponse(OK_LBL,res, reports);
+}
+
 module.exports = {
-    handleCreateEventReport
+    handleCreateEventReport, handleGetReports
 }

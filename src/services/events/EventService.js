@@ -16,13 +16,16 @@ const { User } = require("../../data/model/User");
 
 const { FAQ } = require("../../data/model/FAQ");
 
+const { database } = require("../../data/database");
+
 const { EventTypes } = require("../../data/model/EventTypes");
+const { EventReport } = require("../../data/model/EventReport");
 
 const { logError } = require("../../helpers/Logger");
 
 const { UNEXISTING_USER_ERR_LBL } = require("../../constants/login/logInConstants");
 
-const { dateFromString } = require("../../helpers/DateHelper");
+const { dateFromString, dateToString } = require("../../helpers/DateHelper");
 
 const { areAnyUndefined } = require("../../helpers/ListHelper");
 
@@ -30,12 +33,14 @@ const { getDistanceFromLatLonInKm } = require("../../helpers/DistanceHelper");
 
 const { verifyToken } = require("../authentication/FirebaseService");
 
+
 const {
     EVENT_ALREADY_EXISTS_ERR_LBL,
     EVENT_WITH_NO_CAPACITY_ERR_LBL,
     MISSING_EVENT_ATTRIBUTE_ERR_LBL,
     EVENT_DOESNT_EXIST_ERR_LBL,
-    EVENT_CREATE_ERR_LBL
+    EVENT_CREATE_ERR_LBL,
+    
 } = require("../../constants/events/eventsConstants");
 
 const {
@@ -50,7 +55,7 @@ const { OK_LBL } = require("../../constants/messages");
 
 const Logger = require("../../helpers/Logger");
 
-const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
+const { ATTENDEES_RELATION_NAME,CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
 
 const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
 
@@ -907,6 +912,46 @@ const eventExists = async (id) =>{
     return true
 }
 
+const handleGetReportedEvents = async (req,res) => {
+    let response = await findAll(Events,{},[],[],{
+        include: [{
+          model: EventReport,
+          as: 'events_reports',
+          attributes: []
+        },
+        {
+            model: User,
+            as: ORGANIZER_RELATION_NAME,
+            attributes: ["id","email"]
+        }
+    ],
+        attributes: [
+          'id',
+          "name",
+          "date",
+          "organizer.email",
+          [database.fn('COUNT', database.col('events.id')), 'report_count']
+        ],
+        group: ['events.id','organizer.email',"organizer.id", "events.name","events.date" ],
+        order: [[database.literal('report_count'), 'DESC']]
+      });
+    eventsFormatted = [];
+    for (const e of response){
+        eventsFormatted.push({
+            id: e.id,
+            name: e.name,
+            date: dateToString(e.date),
+            report_count: e.report_count,
+            organizer_id: e.organizer.id,
+            organizer_email: e.organizer.email
+        })
+    }
+      setOkResponse(OK_LBL,res,{events: eventsFormatted});
+
+}
+
+
+
 module.exports = {
     handleCreate,
     handleGet,
@@ -916,5 +961,5 @@ module.exports = {
     handleUpdateEvent,
     cancelEvent,
     cronEventUpdate,
-    eventExists
+    eventExists,handleGetReportedEvents
 };

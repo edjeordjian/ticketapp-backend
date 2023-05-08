@@ -28,22 +28,24 @@ const findOne = async (model,
 const findAll = async (model,
     condition,
     include = [],
-    order = [['createdAt', 'ASC']]) => {
-    const response = await model.findAll({
+    order = [['createdAt', 'ASC']],
+    customBody = undefined) => {
+    const body = customBody? customBody : {
         where: condition,
 
         include: include,
 
-        order: order
-    }).catch(error => {
-        logError(error.name);
+        order: order,
+    }
+    const response = await model.findAll(body).catch(error => {
+            logError(error.name);
 
-        logError(error.message);
+            logError(error);
 
-        return {
-            error: "Error en la consulta."
-        }
-    });
+            return {
+                error: "Error en la consulta."
+            }
+        });
 
     return response;
 };
