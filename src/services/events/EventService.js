@@ -87,7 +87,7 @@ const { fullTrimString } = require("../../helpers/StringHelper");
 
 const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
 
-const { getTicket } = require("../../data/model/Events");
+const { getTicket } = require("../../repository/EventRepository");
 
 const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
 
