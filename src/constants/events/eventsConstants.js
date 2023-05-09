@@ -26,7 +26,7 @@ const CANCELLED_EVENT_LBL = "El evento fue cancelado";
 
 const SUSPENDED_EVENT_LBL = "El evento fue suspendido";
 
-const EVENT_IS_TOMORROW_LBL = "¡Es mañana! Tocá acá para ver los detales.";
+const EVENT_IS_TOMORROW_LBL = "¡Es mañana! Tocá acá para ver los detalles.";
 
 const EVENT_WAS_MODIFIED = "Tocá acá para ver las novedades del evento.";
 

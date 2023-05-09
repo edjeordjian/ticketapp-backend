@@ -654,6 +654,8 @@ const handleUpdateEvent = async (req, res) => {
 
     const user = await getUserWithEmail(decodedToken.email);
 
+    let importantChange = false;
+
     if (user.error) {
         return setUnexpectedErrorResponse(user.error, res);
     }
@@ -666,6 +668,10 @@ const handleUpdateEvent = async (req, res) => {
     });
 
     const originalName = event.name;
+
+    if (originalName !== body.name) {
+        importantChange = true;
+    }
 
     if (!event || event.error){
         return setErrorResponse("El evento seleccionado no existe o no coincide con el organizador", res);
@@ -749,6 +755,8 @@ const handleUpdateEvent = async (req, res) => {
 
         const createResponse = await event.addSpeakers(speakers);
         delete fieldsToUpdate.agenda;
+
+        importantChange = true;
     }
     if (body.types){
         await destroy(Event_EventType, {eventId: body.id});
@@ -760,9 +768,13 @@ const handleUpdateEvent = async (req, res) => {
     }
     if(fieldsToUpdate.date){
         fieldsToUpdate.date = dateFromString(body.date);
+
+        importantChange = true;
     }
     if(fieldsToUpdate.time){
         fieldsToUpdate.time = dateFromString(body.time);
+
+        importantChange = true;
     }
     const response  = await update(Events,
         fieldsToUpdate,
@@ -774,19 +786,23 @@ const handleUpdateEvent = async (req, res) => {
         return setUnexpectedErrorResponse(response.error);
     }
 
-    const updatedEvent = await findOne(Events,
-        {
-            id: body.id
-        },
-        eventIncludes);
+    if (importantChange) {
+        const updatedEvent = await findOne(Events,
+            {
+                id: body.id
+            },
+            eventIncludes);
 
-    Logger.logInfo(response);
+        if (updatedEvent.error) {
+            return setUnexpectedErrorResponse(updatedEvent.error, res);
+        }
 
-    const notificationResponse = await notifyEventChange(updatedEvent,
-                                                         originalName);
+        const notificationResponse = await notifyEventChange(updatedEvent,
+            originalName);
 
-    if (notificationResponse.error) {
-        return setUnexpectedErrorResponse(notificationResponse.error, res);
+        if (notificationResponse.error) {
+            return setUnexpectedErrorResponse(notificationResponse.error, res);
+        }
     }
 
     return setOkResponse("Evento actualizado correctamente",res);
