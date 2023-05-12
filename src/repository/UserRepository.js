@@ -1,28 +1,4 @@
 const { dateToString } = require("../helpers/DateHelper");
-const { setCharAt } = require("../helpers/StringHelper");
-
-
-const getRoles = (user) => {
-    let roles = "";
-
-    if (user.is_administrator) {
-        roles += "Administrador,";
-    }
-
-    if (user.is_organizer) {
-        roles += "Organizador,";
-    }
-
-    if (user.is_consumer) {
-        roles += "Consumidor,";
-    }
-
-    if (user.is_staff) {
-        roles += "Staff,";
-    }
-
-    return setCharAt(roles, roles.lastIndexOf(","), "");
-}
 
 const getReportData = (report) => {
     return {
@@ -40,7 +16,7 @@ const getEventData = (report) => {
     return {
         id: event.id,
         name: event.name,
-        mainPicutre: event.picture1_url
+        mainPicture: event.wallpaper_url
     }
 }
 
@@ -62,8 +38,6 @@ const getSerializedUserWithReports = (user) => {
         name: `${user.first_name} ${user.last_name}`,
 
         email: user.email,
-
-        roles: getRoles(user),
 
         isBlocked: user.is_blocked,
 
