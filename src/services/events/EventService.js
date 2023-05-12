@@ -507,7 +507,10 @@ const handleSearch = async (req, res) => {
 };
 
 const handleGet = async (req, res) => {
-    const { eventId } = req.query;
+    const {
+        eventId,
+        withReports
+    } = req.query;
 
     if (!eventId) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
@@ -527,7 +530,7 @@ const handleGet = async (req, res) => {
 
     const userId = await getUserId(req);
 
-    const serializedEvent = await getSerializedEvent(event, userId);
+    const serializedEvent = await getSerializedEvent(event, userId, withReports);
 
     return setOkResponse(OK_LBL, res, serializedEvent);
 };

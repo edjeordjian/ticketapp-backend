@@ -53,11 +53,7 @@ const userIsOrganizer = async (id, email) => {
     return user;
 }
 
-const userIsAdministrator = async (authorization) => {
-    const token = authorization.split(' ')[1];
-
-    const decodedToken = await verifyToken(token);
-
+const userIsAdministrator = async (decodedToken) => {
     if (decodedToken.email !== process.env.ADMIN_EMAIL) {
         return false;
     }

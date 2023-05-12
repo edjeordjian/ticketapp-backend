@@ -1,4 +1,5 @@
 const Logger = require("../helpers/Logger");
+const { EXPIRED_TOKEN_ERR_LBL } = require("../constants/login/logInConstants");
 const { ONLY_ADMIN_ERR_LBL } = require("../constants/login/logInConstants");
 const { DENIED_ACCESS_ERR_LBL } = require("../constants/login/logInConstants");
 const { userIsAdministrator } = require("../services/users/UserService");
@@ -41,7 +42,15 @@ const administratorMiddleware = async (req, res, next, logIn) => {
             return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 401);
         }
 
-        const isAdministrator = await userIsAdministrator(authorization);
+        const token = authorization.split(' ')[1];
+
+        const decodedToken = await verifyToken(token);
+
+        if (! decodedToken) {
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 401);
+        }
+
+        const isAdministrator = await userIsAdministrator(decodedToken);
 
         if (! isAdministrator) {
             return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 401);
@@ -94,7 +103,7 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         if (userData.id) {
             next();
         } else {
-            return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 400);
         }
     } else {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -104,7 +113,7 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         }
         const decodedToken = await verifyToken(token);
         if (decodedToken === false) {
-            return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 400);
         } else {
             const exists = await userExists(null, decodedToken.email);
             if (exists) {

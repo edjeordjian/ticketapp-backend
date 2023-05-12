@@ -1,14 +1,6 @@
-const { dateToString } = require("../helpers/DateHelper");
+const { getReportDataForUser } = require("./ReportRepository");
 
-const getReportData = (report) => {
-    return {
-        eventName: report.events_reports.name,
-        eventId: report.events_reports.id,
-        reason: report.report_categories[0].name,
-        text: report.text,
-        date: dateToString(report.createdAt)
-    }
-}
+const { dateToString } = require("../helpers/DateHelper");
 
 const getEventData = (report) => {
     const event = report.events_reports;
@@ -45,7 +37,7 @@ const getSerializedUserWithReports = (user) => {
 
         lastReportDate: lastReport ? dateToString(lastReport) : "",
 
-        reports: reports.map(getReportData),
+        reports: reports.map(getReportDataForUser),
 
         events: reports.map(getEventData)
     }
