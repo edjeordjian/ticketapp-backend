@@ -30,17 +30,6 @@ const today = new Date();
 
 async function runMigrations() {
     logInfo(RUNNING_MIGRATIONS_LBL);
-
-    await queryInterface.addColumn(User.tableName,
-        "is_blocked",
-        {
-            type: Sequelize.BOOLEAN,
-            allowNull: false,
-            validate: { notEmpty: true },
-            defaultValue: false
-        }).catch(err => {
-        console.log(err.toString());
-    });
 }
 
 module.exports = {
