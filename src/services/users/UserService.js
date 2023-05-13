@@ -1,3 +1,6 @@
+const { CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
+const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
+const { getDateOnly } = require("../../helpers/DateHelper");
 const { logError } = require("../../helpers/Logger");
 const { verifyToken } = require("../authentication/FirebaseService");
 const { Events } = require("../../data/model/Events");
@@ -53,11 +56,7 @@ const userIsOrganizer = async (id, email) => {
     return user;
 }
 
-const userIsAdministrator = async (authorization) => {
-    const token = authorization.split(' ')[1];
-
-    const decodedToken = await verifyToken(token);
-
+const userIsAdministrator = async (decodedToken) => {
     if (decodedToken.email !== process.env.ADMIN_EMAIL) {
         return false;
     }
@@ -169,29 +168,65 @@ const getUserWithEmail = async(userEmail) => {
 }
 
 const getUsers = async (req, res) => {
-    const users = await findAll(User,
-        {},
+    let users = await findAll(User,
         {
-            model: EventReport,
-            attributes: ["text", "createdAt"],
-            as: REPORTS_RELATION_NAME,
-            include: [
-                {
-                    model: Events,
-                    as: EVENTS_REPORT_RELATION_NAME
-                },
-                {
-                    model: EventReportCategory
-                }
-            ]
-        }
+        },
+        [
+            {
+                model: EventReport,
+                attributes: ["text", "createdAt"],
+                as: REPORTS_RELATION_NAME,
+                include: [
+                    {
+                        model: Events,
+                        as: EVENTS_REPORT_RELATION_NAME
+                    },
+                    {
+                        model: EventReportCategory
+                    }
+                ]
+            },
+            {
+                model: Events,
+                as: CREATED_EVENTS_RELATION_NAME
+            }
+        ]
         );
 
     if (users.error) {
         return setUnexpectedErrorResponse(users.error, res);
     }
 
-    const serializedUsers = users.map(user => getSerializedUserWithReports(user));
+    let startDate = req.query.startDate;
+
+    let endDate = req.query.endDate;
+
+    if (startDate && endDate) {
+        startDate = new Date(startDate).toISOString();
+
+        endDate = new Date(endDate).toISOString();
+
+        users.map(user => {
+            user.reports = user.reports.filter(report => {
+                    const reportDate = getDateOnly(report.createdAt).toISOString()
+
+                    return reportDate >= startDate && reportDate <= endDate;
+                }
+            );
+        });
+    }
+
+    users.sort((user1, user2) => {
+        const a = user1.reports ? user1.reports.length : 0;
+
+        const b = user2.reports ? user2.reports.length : 0;
+
+        return a - b;
+    })
+
+    const serializedUsers = await Promise.all(
+        users.map(async user => await getSerializedUserWithReports(user))
+    );
 
     const responseBody = {
         list: serializedUsers

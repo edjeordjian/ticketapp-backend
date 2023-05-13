@@ -4,8 +4,8 @@ const { Events } = require("../Events");
 const { EventReport } = require("../EventReport");
 
 const {
-    REPORTS_RELATION_NAME,
-    REPORTER_RELATION_NAME, EVENTS_REPORT_RELATION_NAME
+    REPORTS_RELATION_NAME, REPORTER_RELATION_NAME,
+    EVENTS_REPORT_RELATION_NAME
     } = require("../../../constants/dataConstants");
 
 

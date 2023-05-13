@@ -12,8 +12,10 @@ const ONLY_ADMIN_ERR_LBL = "Acceso solo para administradores.";
 
 const INVALID_STATUS_ERR_LBL = "El estado indicado para el evento no existe";
 
+const EXPIRED_TOKEN_ERR_LBL = "Token expirado. Por favor volver a ingresar.";
+
 module.exports = {
     ERROR_CREATING_USER_LBL, LOGIN_SUCCESS_LBL, ERROR_SEARCHING_USER,
     UNEXISTING_USER_ERR_LBL, DENIED_ACCESS_ERR_LBL, ONLY_ADMIN_ERR_LBL,
-    INVALID_STATUS_ERR_LBL
+    INVALID_STATUS_ERR_LBL, EXPIRED_TOKEN_ERR_LBL
 };
