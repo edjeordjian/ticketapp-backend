@@ -65,6 +65,21 @@ const timeToString = (aTime) => {
     return `${hours}:${minutes}`
 };
 
+const getDateOnly = (aDate) => {
+    const anotherDate = new Date(aDate);
+
+    anotherDate.setUTCHours(0);
+
+    anotherDate.setUTCMinutes(0);
+
+    anotherDate.setUTCSeconds(0);
+
+    anotherDate.setUTCMilliseconds(0);
+
+    return anotherDate;
+}
+
 module.exports = {
-    getQuickDate, dateFromString, dateToString, timeToString
+    getQuickDate, dateFromString, dateToString, timeToString,
+    getDateOnly
 };

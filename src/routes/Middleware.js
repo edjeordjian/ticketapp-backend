@@ -1,4 +1,5 @@
 const Logger = require("../helpers/Logger");
+const { EXPIRED_TOKEN_ERR_LBL } = require("../constants/login/logInConstants");
 const { ONLY_ADMIN_ERR_LBL } = require("../constants/login/logInConstants");
 const { DENIED_ACCESS_ERR_LBL } = require("../constants/login/logInConstants");
 const { userIsAdministrator } = require("../services/users/UserService");
@@ -33,11 +34,11 @@ const isOrganizerMiddleware = async (req, res, next) => {
 
 }
 
-const administratorMiddleware = async (req, res, next) => {
+const administratorMiddleware = async (req, res, next, logIn) => {
     const authorization = req.headers.authorization;
 
-    if (req.body.isAdministrator) {
-        if (! authorization) {
+    if (authorization.split(' ')[1]) {
+        if (logIn && ! req.body.isAdministrator) {
             return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 401);
         }
 
@@ -45,7 +46,11 @@ const administratorMiddleware = async (req, res, next) => {
 
         const decodedToken = await verifyToken(token);
 
-        const isAdministrator = await userIsAdministrator(decodedToken.email);
+        if (! decodedToken) {
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 401);
+        }
+
+        const isAdministrator = await userIsAdministrator(decodedToken);
 
         if (! isAdministrator) {
             return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 401);
@@ -57,27 +62,10 @@ const administratorMiddleware = async (req, res, next) => {
 
 const emptyBodyMiddleware = async (req, res, next) => {
     if (req.method === "POST" && isEmpty(req.body)) {
-        Logger.logInfo(req.body);
-        return setErrorResponse("Error en la petición.", res, 400);
+        return setErrorResponse("Error en la petición. Body", res, 400);
     } else {
         next();
     }
-}
-
-const getUserId = async (req) => {
-    const token = req.headers.authorization.split(' ')[1];
-
-    let userData;
-
-    if (req.headers.expo && req.headers.authorization) {
-        userData = await getFirebaseUserData(token);
-
-        return userData.id;
-    }
-
-    userData = await verifyToken(token);
-
-    return userData.user_id;
 }
 
 const isAllowedMiddleware = async (req, res, next, check_fn) => {
@@ -115,7 +103,7 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         if (userData.id) {
             next();
         } else {
-            return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 400);
         }
     } else {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -125,7 +113,7 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         }
         const decodedToken = await verifyToken(token);
         if (decodedToken === false) {
-            return setErrorResponse("Token inválido. Por favor volver a ingresar.", res, 400);
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 400);
         } else {
             const exists = await userExists(null, decodedToken.email);
             if (exists) {
@@ -140,5 +128,5 @@ const firebaseAuthMiddleware = async (req, res, next) => {
 
 module.exports = {
     firebaseAuthMiddleware, emptyBodyMiddleware, isOrganizerMiddleware, isAllowedMiddleware,
-    getUserId, administratorMiddleware
+    administratorMiddleware
 };

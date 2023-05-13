@@ -59,12 +59,6 @@ describe("Middleware", () => {
         assert(isEmptyBody.error);
     });
 
-    it("Checks gets user id", async () => {
-        const userId = await Middleware.getUserId(req);
-
-        assert(userId === "1");
-    });
-
     it("Checks if it is not allowed", async () => {
         const isAllowedMiddleware = await Middleware.isAllowedMiddleware(req, res, next, (_, __) => false);
 

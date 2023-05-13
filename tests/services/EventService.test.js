@@ -41,6 +41,9 @@ describe("EventService", function() {
 
         req = {
             body: {
+            },
+            headers: {
+                authorization: ""
             }
         };
 
@@ -263,5 +266,156 @@ describe("EventService", function() {
         const response = await EventService.handleEventCheck(req, res);
 
         assert(response);
+    });
+
+    it("Update event", async () => {
+        const findOneStub = sinon.stub().resolves(new EventMock());
+
+        const destroyStub = sinon.stub().resolves({
+           "name": "name"
+        });
+
+        req.body = {
+            faq: [],
+            agenda: []
+        };
+
+        const verifyTokenStub = sinon.stub().resolves("100");
+
+        const getUserWithEmailStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        const notifyEventChangeStub = sinon.stub().resolves(() => {});
+
+        EventService.__set__({
+            "verifyToken": verifyTokenStub,
+
+            "getUserWithEmail": getUserWithEmailStub,
+
+            "findOne": findOneStub,
+
+            "destroy": destroyStub,
+
+            "notifyEventChange": notifyEventChangeStub
+        });
+
+        const response = await EventService.handleUpdateEvent(req, res);
+
+        assert(response);
+    });
+
+    it("Cancel event", async () => {
+        const findOneStub = sinon.stub().resolves(new EventMock());
+
+        const updateStub = sinon.stub().resolves({});
+
+        const destroyStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        req.body = {
+            faq: [],
+            agenda: []
+        };
+
+        const verifyTokenStub = sinon.stub().resolves("100");
+
+        const getUserWithEmailStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        const notifyCancelledEventStub = sinon.stub().resolves(() => {});
+
+        EventService.__set__({
+            "verifyToken": verifyTokenStub,
+
+            "getUserWithEmail": getUserWithEmailStub,
+
+            "findOne": findOneStub,
+
+            "destroy": destroyStub,
+
+            "update": updateStub,
+
+            "notifyCancelledEvent": notifyCancelledEventStub
+        });
+
+        const response = await EventService.cancelEvent(req, res);
+
+        assert(response);
+    });
+
+    it("Cancel unexisting event", async () => {
+        const findOneStub = sinon.stub().resolves({
+            error: "message"
+        });
+
+        const updateStub = sinon.stub().resolves({});
+
+        const destroyStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        req.body = {
+            faq: [],
+            agenda: []
+        };
+
+        const verifyTokenStub = sinon.stub().resolves("100");
+
+        const getUserWithEmailStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        const notifyCancelledEventStub = sinon.stub().resolves(() => {});
+
+        EventService.__set__({
+            "verifyToken": verifyTokenStub,
+
+            "getUserWithEmail": getUserWithEmailStub,
+
+            "findOne": findOneStub,
+
+            "destroy": destroyStub,
+
+            "update": updateStub,
+
+            "notifyCancelledEvent": notifyCancelledEventStub
+        });
+
+        const response = await EventService.cancelEvent(req, res);
+
+        assert(response.error);
+    });
+
+    it("Cron event update error", async () => {
+        const findAllStub = sinon.stub().resolves({
+            error: "message"
+        });
+
+        const notifyTomorrowEventsStub = sinon.stub().resolves(() => {});
+
+        EventService.__set__({
+            "findAll": findAllStub,
+
+            "notifyTomorrowEvents": notifyTomorrowEventsStub
+        });
+
+        const result = await EventService.cronEventUpdate(req, res);
+
+        assert(result);
+    });
+
+    it("Cron event update", async () => {
+        const findAllStub = sinon.stub().resolves({});
+
+        EventService.__set__({
+            "findAll": findAllStub
+        });
+
+        await EventService.cronEventUpdate(req, res);
+
+        assert(true);
     });
 });

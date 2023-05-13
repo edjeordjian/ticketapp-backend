@@ -61,6 +61,8 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { getDateOnly } = require("../../helpers/DateHelper");
+const { getUserId } = require("../authentication/FirebaseService");
 const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { INVALID_STATUS_ERR_LBL } = require("../../constants/login/logInConstants");
 const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
@@ -86,11 +88,9 @@ const { fullTrimString } = require("../../helpers/StringHelper");
 
 const { GENERIC_ERROR_LBL } = require("../../constants/dataConstants");
 
-const { getTicket } = require("../../data/model/Events");
+const { getTicket } = require("../../repository/EventRepository");
 
 const { EVENT_ALREADY_ASISTED } = require("../../constants/events/eventsConstants");
-
-const { getUserId } = require("../../routes/Middleware");
 
 const { destroy } = require("../../helpers/QueryHelper");
 
@@ -273,8 +273,10 @@ const handleSearch = async (req, res) => {
         owner,
         staff,
         consumer,
+        admin,
         latitude,
         longitude,
+        withReports
     } = req.query;
 
     let events;
@@ -286,7 +288,7 @@ const handleSearch = async (req, res) => {
         ["time", "ASC"]
     ];
 
-    const publishedId = await getStateId(SUSPENDED_STATUS_LBL);
+    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
 
     if (publishedId.error) {
         return setErrorResponse(publishedId.error, res);
@@ -434,9 +436,6 @@ const handleSearch = async (req, res) => {
                 where: {
                     state_id: {
                         [Op.eq]: publishedId
-                    },
-                    capacity: {
-                        [Op.ne]: 0
                     }
                 },
                 include: eventIncludes
@@ -459,6 +458,32 @@ const handleSearch = async (req, res) => {
             return ! getTicket(e, userId).wasUsed;
         });
     }
+    else if (admin) {
+        events = await findAll(Events,
+            {},
+            eventIncludes,
+            order
+        );
+
+        let startDate = req.query.startDate;
+
+        let endDate = req.query.endDate;
+
+        if (startDate && endDate) {
+            startDate = new Date(startDate).toISOString();
+
+            endDate = new Date(endDate).toISOString();
+
+            events.map(event => {
+                event.reports = event.reports.filter(report => {
+                        const reportDate = getDateOnly(report.createdAt).toISOString()
+
+                        return reportDate >= startDate && reportDate <= endDate;
+                    }
+                );
+            });
+        }
+    }
     else {
         events = await findAll(Events,
             {
@@ -473,10 +498,6 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
-
-        if (events.error) {
-            return setUnexpectedErrorResponse(events.error, res);
-        }
     }
 
     if (events.error) {
@@ -484,7 +505,7 @@ const handleSearch = async (req, res) => {
     }
 
     let serializedEvents = await Promise.all(events.map(async e => {
-        let event = await getSerializedEvent(e, userId);
+        let event = await getSerializedEvent(e, userId, withReports);
 
         if (latitude && longitude) {
             event = { ...event,
@@ -508,7 +529,10 @@ const handleSearch = async (req, res) => {
 };
 
 const handleGet = async (req, res) => {
-    const { eventId } = req.query;
+    const {
+        eventId,
+        withReports
+    } = req.query;
 
     if (!eventId) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
@@ -528,7 +552,7 @@ const handleGet = async (req, res) => {
 
     const userId = await getUserId(req);
 
-    const serializedEvent = await getSerializedEvent(event, userId);
+    const serializedEvent = await getSerializedEvent(event, userId, withReports);
 
     return setOkResponse(OK_LBL, res, serializedEvent);
 };
@@ -655,6 +679,8 @@ const handleUpdateEvent = async (req, res) => {
 
     const user = await getUserWithEmail(decodedToken.email);
 
+    let importantChange = false;
+
     if (user.error) {
         return setUnexpectedErrorResponse(user.error, res);
     }
@@ -667,6 +693,10 @@ const handleUpdateEvent = async (req, res) => {
     });
 
     const originalName = event.name;
+
+    if (originalName !== body.name) {
+        importantChange = true;
+    }
 
     if (!event || event.error){
         return setErrorResponse("El evento seleccionado no existe o no coincide con el organizador", res);
@@ -750,6 +780,8 @@ const handleUpdateEvent = async (req, res) => {
 
         const createResponse = await event.addSpeakers(speakers);
         delete fieldsToUpdate.agenda;
+
+        importantChange = true;
     }
     if (body.types){
         await destroy(Event_EventType, {eventId: body.id});
@@ -761,9 +793,13 @@ const handleUpdateEvent = async (req, res) => {
     }
     if(fieldsToUpdate.date){
         fieldsToUpdate.date = dateFromString(body.date);
+
+        importantChange = true;
     }
     if(fieldsToUpdate.time){
         fieldsToUpdate.time = dateFromString(body.time);
+
+        importantChange = true;
     }
     const response  = await update(Events,
         fieldsToUpdate,
@@ -775,19 +811,23 @@ const handleUpdateEvent = async (req, res) => {
         return setUnexpectedErrorResponse(response.error);
     }
 
-    const updatedEvent = await findOne(Events,
-        {
-            id: body.id
-        },
-        eventIncludes);
+    if (importantChange) {
+        const updatedEvent = await findOne(Events,
+            {
+                id: body.id
+            },
+            eventIncludes);
 
-    Logger.logInfo(response);
+        if (updatedEvent.error) {
+            return setUnexpectedErrorResponse(updatedEvent.error, res);
+        }
 
-    const notificationResponse = await notifyEventChange(updatedEvent,
-                                                         originalName);
+        const notificationResponse = await notifyEventChange(updatedEvent,
+            originalName);
 
-    if (notificationResponse.error) {
-        return setUnexpectedErrorResponse(notificationResponse.error, res);
+        if (notificationResponse.error) {
+            return setUnexpectedErrorResponse(notificationResponse.error, res);
+        }
     }
 
     return setOkResponse("Evento actualizado correctamente",res);
@@ -899,6 +939,14 @@ const cronEventUpdate = async () => {
     await notifyTomorrowEvents();
 }
 
+const eventExists = async (id) =>{
+    const event = await findOne(Events, {id: id});
+    if (!event){
+        return false;
+    }
+    return true
+}
+
 module.exports = {
     handleCreate,
     handleGet,
@@ -907,5 +955,6 @@ module.exports = {
     handleEventCheck,
     handleUpdateEvent,
     cancelEvent,
-    cronEventUpdate
+    cronEventUpdate,
+    eventExists
 };

@@ -1,3 +1,10 @@
+const { getLastReportDate } = require("./ReportRepository");
+const { EventReportCategory } = require("../data/model/EventReportCategory");
+const { getReportDataForEvent } = require("./ReportRepository");
+const { REPORTER_RELATION_NAME } = require("../constants/dataConstants");
+const { EVENTS_REPORT_RELATION_NAME } = require("../constants/dataConstants");
+const { REPORTS_RELATION_NAME } = require("../constants/dataConstants");
+const { EventReport } = require("../data/model/EventReport");
 const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../constants/dataConstants");
 const { EventState } = require("../data/model/EventState");
 const { FAQ } = require("../data/model/FAQ");
@@ -43,10 +50,25 @@ const eventIncludes = [
         model: EventState,
         attributes: ["id", "name"],
         as: EVENT_TO_EVENT_STATE_RELATION_NAME
+    },
+    {
+        model: EventReport,
+        attributes: ["text", "createdAt"],
+        as: EVENTS_REPORT_RELATION_NAME,
+        include: [
+            {
+                model: User,
+                as: REPORTER_RELATION_NAME
+            },
+            {
+                model: EventReportCategory
+            }
+        ]
     }
 ];
 
-const getTicket = (e, userId) => {
+const getTicket = (e,
+                   userId) => {
     const attendances = e.attendees
         .filter(attendee => attendee.id === userId);
 
@@ -62,7 +84,9 @@ const getTicket = (e, userId) => {
     return {};
 }
 
-const getSerializedEvent = async (e, userId = null) => {
+const getSerializedEvent = async (e,
+                                  userId = null,
+                                  withReports = false) => {
     const pictures = [];
 
     if (e.wallpaper_url) {
@@ -93,7 +117,7 @@ const getSerializedEvent = async (e, userId = null) => {
         ticket = getTicket(e, userId);
     }
 
-    return {
+    const result = {
         id: e.id,
 
         name: e.name,
@@ -148,6 +172,20 @@ const getSerializedEvent = async (e, userId = null) => {
             :
             {}
     }
+
+    if (withReports) {
+        result.reports = e.events_reports.map(report => {
+            return getReportDataForEvent(report, e);
+        });
+
+        result.reportsNumber = result.reports.length;
+
+        if (result.reportsNumber > 0) {
+            result.lastReportDate = dateToString(getLastReportDate(e.events_reports));
+        }
+    }
+
+    return result;
 };
 
 module.exports = {

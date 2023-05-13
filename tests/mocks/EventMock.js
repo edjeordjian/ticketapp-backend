@@ -14,6 +14,18 @@ class EventMock {
             last_name: "Last"
         };
     }
+
+    addFAQs(x) {
+        return {};
+    }
+
+    addSpeakers(x) {
+        return {};
+    }
+
+    addEvent_types(x) {
+        return {};
+    }
 }
 
 module.exports = {
