@@ -31,12 +31,13 @@ const today = new Date();
 async function runMigrations() {
     logInfo(RUNNING_MIGRATIONS_LBL);
 
-    await queryInterface.addColumn(EventReport.tableName,
-        "event_id",
+    await queryInterface.addColumn(User.tableName,
+        "is_blocked",
         {
-            type: Sequelize.INTEGER,
+            type: Sequelize.BOOLEAN,
             allowNull: false,
-            validate: { notEmpty: true }
+            validate: { notEmpty: true },
+            defaultValue: false
         }).catch(err => {
         console.log(err.toString());
     });
