@@ -26,6 +26,8 @@ const CANCELLED_EVENT_LBL = "El evento fue cancelado";
 
 const SUSPENDED_EVENT_LBL = "El evento fue suspendido";
 
+const UNSUSPENDED_EVENT_LBL = "Se levantó la suspensión del evento";
+
 const EVENT_IS_TOMORROW_LBL = "¡Es mañana! Tocá acá para ver los detalles.";
 
 const EVENT_WAS_MODIFIED = "Tocá acá para ver las novedades del evento.";
@@ -40,5 +42,5 @@ module.exports = {
     MAX_EVENT_CAPACITY, EVENT_ALREADY_BOOKED, EVENT_ALREADY_ASISTED,
     USER_NOT_REGISTERED, INVALID_CODE_ERR_LBL, MISSING_GROUP_ERR_LBL, UNEXISTING_USER_ERR_LBL,
     EVENT_STATE_ERR_LBL, CANCELLED_EVENT_LBL, EVENT_IS_TOMORROW_LBL, EVENT_SCREEN_NAME,
-    EVENT_WAS_MODIFIED, SUSPENDED_EVENT_LBL
+    EVENT_WAS_MODIFIED, SUSPENDED_EVENT_LBL, UNSUSPENDED_EVENT_LBL
 };

@@ -61,6 +61,12 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { suspendGivenEvent } = require("./EventNotificationService");
+const { UNSUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const { notifiyEventStatus } = require("./EventNotificationService");
+const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const { CANCELLED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const { getUserWithEmail } = require("../login/LogInService");
 const { getSortedByReportsWithDate } = require("./EventReportService");
 const { getDateOnly } = require("../../helpers/DateHelper");
 const { getUserId } = require("../authentication/FirebaseService");
@@ -80,8 +86,6 @@ const { eventIncludes } = require("../../repository/EventRepository");
 const { notifyEventChange } = require("./EventNotificationService");
 
 const { notifyCancelledEvent } = require("./EventNotificationService");
-
-const { getUserWithEmail } = require("../users/UserService");
 
 const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
 
@@ -875,6 +879,31 @@ const handleUpdateEvent = async (req, res) => {
     return setOkResponse("Evento actualizado correctamente",res);
 }
 
+const suspendEvent = async (req, res) => {
+    const body = req.body;
+
+    const event = await findOne(Events, {
+            id: body.eventId
+        },
+        eventIncludes);
+
+    if (! event) {
+        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
+    }
+
+    if (event.error) {
+        return setErrorResponse(event.error, res);
+    }
+
+    const label = suspendGivenEvent(event, body.suspend);
+
+    if (label.error) {
+        return setUnexpectedErrorResponse(label.error, res);
+    }
+
+    return setOkResponse(label.message, res);
+}
+
 const cancelEvent = async (req, res) => {
     const body = req.body;
 
@@ -891,7 +920,7 @@ const cancelEvent = async (req, res) => {
     const organizerId = user.id;
 
     const event = await findOne(Events, {
-        id: body.event_id,
+        id: body.eventId,
         owner_id: organizerId
     },
         eventIncludes);
@@ -920,26 +949,26 @@ const cancelEvent = async (req, res) => {
         return setOkResponse(OK_LBL, res);
     }
 
-    if (body.suspended) {
-        stateId = await getStateId(SUSPENDED_STATUS_LBL);
-    } else {
-        stateId = await getStateId(CANCELLED_STATUS_LBL);
-    }
+    stateId = await getStateId(CANCELLED_STATUS_LBL);
 
     if (stateId.error) {
         return setErrorResponse(stateId.error, res);
     }
 
-    await update(Events,
+    const updateResult = await update(Events,
         {
             state_id: stateId
         },
         {
-            id: body.event_id,
+            id: body.eventId,
             owner_id: organizerId
         });
 
-    const notificationResponse = await notifyCancelledEvent(event, body.suspended);
+    if (updateResult.error) {
+        return setErrorResponse(updateResult.error, res);
+    }
+
+    const notificationResponse = await notifiyEventStatus(event, CANCELLED_EVENT_LBL);
 
     if (notificationResponse.error) {
         return setUnexpectedErrorResponse(notificationResponse.error, res);
@@ -998,5 +1027,6 @@ module.exports = {
     handleUpdateEvent,
     cancelEvent,
     cronEventUpdate,
-    eventExists
+    eventExists,
+    suspendEvent
 };

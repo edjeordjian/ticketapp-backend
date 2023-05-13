@@ -1,6 +1,8 @@
 const Logger = require("../helpers/Logger");
 
 const express = require('express');
+const { administratorMiddleware } = require("./Middleware");
+const { EVENT_SUSPEND_URL } = require("../constants/URLs");
 const { cancelEvent } = require("../services/events/EventService");
 const { EVENT_CANCEL_URL, EVENT_REPORT } = require("../constants/URLs");
 const { getReportCategories } = require("../services/events/EventCategoriesService");
@@ -143,6 +145,14 @@ router.post(EVENT_CANCEL_URL, async (req, res, next) => {
 
         await cancelEvent(req, res);
     });
+
+router.patch(EVENT_SUSPEND_URL, async (req, res, next) => {
+    await administratorMiddleware(req, res, next)
+}, async (req, res) => {
+    Logger.request(`PATCH: /event/suspend`);
+
+    await cancelEvent(req, res);
+});
 
 router.post(EVENT_REPORT, async (req, res, next) => {
     await isAllowedMiddleware(req, res, next, userIsConsumer);
