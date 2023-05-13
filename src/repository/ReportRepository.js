@@ -21,6 +21,17 @@ const getReportDataForEvent = (report) => {
     }
 }
 
+const getLastReportDate = (reports) => {
+    if (reports.length <= 0) {
+        return null
+    }
+
+    return reports.map(report => report.createdAt)
+        .reduce((date1, date2) => {
+            return date1 > date2
+        });
+}
+
 module.exports = {
-    getReportDataForUser, getReportDataForEvent
+    getReportDataForUser, getReportDataForEvent, getLastReportDate
 };

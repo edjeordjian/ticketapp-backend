@@ -1,3 +1,4 @@
+const { getLastReportDate } = require("./ReportRepository");
 const { EventReportCategory } = require("../data/model/EventReportCategory");
 const { getReportDataForEvent } = require("./ReportRepository");
 const { REPORTER_RELATION_NAME } = require("../constants/dataConstants");
@@ -174,6 +175,12 @@ const getSerializedEvent = async (e,
 
     if (withReports) {
         result.reports = e.events_reports.map(getReportDataForEvent);
+
+        result.reportsNumber = result.reports.length;
+
+        if (result.reportsNumber > 0) {
+            result.lastReportDate = dateToString(getLastReportDate(e.events_reports));
+        }
     }
 
     return result;

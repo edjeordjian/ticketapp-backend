@@ -61,6 +61,7 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { getDateOnly } = require("../../helpers/DateHelper");
 const { getUserId } = require("../authentication/FirebaseService");
 const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { INVALID_STATUS_ERR_LBL } = require("../../constants/login/logInConstants");
@@ -275,6 +276,7 @@ const handleSearch = async (req, res) => {
         admin,
         latitude,
         longitude,
+        withReports
     } = req.query;
 
     let events;
@@ -458,9 +460,29 @@ const handleSearch = async (req, res) => {
     }
     else if (admin) {
         events = await findAll(Events,
+            {},
             eventIncludes,
             order
         );
+
+        let startDate = req.query.startDate;
+
+        let endDate = req.query.endDate;
+
+        if (startDate && endDate) {
+            startDate = new Date(startDate).toISOString();
+
+            endDate = new Date(endDate).toISOString();
+
+            events.map(event => {
+                event.reports = event.reports.filter(report => {
+                        const reportDate = getDateOnly(report.createdAt).toISOString()
+
+                        return reportDate >= startDate && reportDate <= endDate;
+                    }
+                );
+            });
+        }
     }
     else {
         events = await findAll(Events,
@@ -483,7 +505,7 @@ const handleSearch = async (req, res) => {
     }
 
     let serializedEvents = await Promise.all(events.map(async e => {
-        let event = await getSerializedEvent(e, userId);
+        let event = await getSerializedEvent(e, userId, withReports);
 
         if (latitude && longitude) {
             event = { ...event,

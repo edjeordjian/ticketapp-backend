@@ -1,3 +1,5 @@
+const { getLastReportDate } = require("./ReportRepository");
+
 const { getReportDataForUser } = require("./ReportRepository");
 
 const { dateToString } = require("../helpers/DateHelper");
@@ -18,10 +20,7 @@ const getSerializedUserWithReports = (user) => {
     let lastReport;
 
     if (reports.length > 0) {
-        lastReport = reports.map(report => report.createdAt)
-            .reduce((date1, date2) => {
-                return date1 > date2
-            });
+        lastReport = getLastReportDate(reports);
     }
 
     return {
