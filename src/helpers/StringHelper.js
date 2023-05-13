@@ -31,7 +31,7 @@ function setCharAt(str, index, chr) {
 function fullTrimString(str) {
     const noA = replaceAll(str.toLowerCase(), "á", "a");
 
-    const noE = replaceAll(noA, "é", "a");
+    const noE = replaceAll(noA, "é", "e");
 
     const noI = replaceAll(noE, "ú", "u");
 
