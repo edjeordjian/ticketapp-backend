@@ -1,6 +1,18 @@
 /* Save here your old migrations.
 */
 
+async function m7() {
+    await queryInterface.addColumn(EventReport.tableName,
+        "event_id",
+        {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            validate: { notEmpty: true }
+        }).catch(err => {
+        console.log(err.toString());
+    });
+}
+
 async function m6() {
     await queryInterface.addColumn(Events.tableName,
         "state_id",
