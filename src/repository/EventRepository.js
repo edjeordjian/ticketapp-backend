@@ -174,7 +174,9 @@ const getSerializedEvent = async (e,
     }
 
     if (withReports) {
-        result.reports = e.events_reports.map(getReportDataForEvent);
+        result.reports = e.events_reports.map(report => {
+            return getReportDataForEvent(report, e);
+        });
 
         result.reportsNumber = result.reports.length;
 

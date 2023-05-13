@@ -10,10 +10,12 @@ const getReportDataForUser = (report) => {
     }
 };
 
-const getReportDataForEvent = (report) => {
+const getReportDataForEvent = (report, event) => {
     const reporter = report.reporter;
 
     return {
+        eventId: event.id,
+        eventName: event.name,
         reporter: `${reporter.first_name} ${reporter.last_name}`,
         reason: report.report_categories[0].name,
         text: report.text,

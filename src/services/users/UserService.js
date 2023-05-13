@@ -1,3 +1,5 @@
+const { CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
+const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
 const { getDateOnly } = require("../../helpers/DateHelper");
 const { logError } = require("../../helpers/Logger");
 const { verifyToken } = require("../authentication/FirebaseService");
@@ -169,20 +171,26 @@ const getUsers = async (req, res) => {
     let users = await findAll(User,
         {
         },
-        {
-            model: EventReport,
-            attributes: ["text", "createdAt"],
-            as: REPORTS_RELATION_NAME,
-            include: [
-                {
-                    model: Events,
-                    as: EVENTS_REPORT_RELATION_NAME
-                },
-                {
-                    model: EventReportCategory
-                }
-            ]
-        }
+        [
+            {
+                model: EventReport,
+                attributes: ["text", "createdAt"],
+                as: REPORTS_RELATION_NAME,
+                include: [
+                    {
+                        model: Events,
+                        as: EVENTS_REPORT_RELATION_NAME
+                    },
+                    {
+                        model: EventReportCategory
+                    }
+                ]
+            },
+            {
+                model: Events,
+                as: CREATED_EVENTS_RELATION_NAME
+            }
+        ]
         );
 
     if (users.error) {
@@ -216,7 +224,9 @@ const getUsers = async (req, res) => {
         return a - b;
     })
 
-    const serializedUsers = users.map(user => getSerializedUserWithReports(user));
+    const serializedUsers = await Promise.all(
+        users.map(async user => await getSerializedUserWithReports(user))
+    );
 
     const responseBody = {
         list: serializedUsers

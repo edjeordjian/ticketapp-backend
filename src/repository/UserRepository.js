@@ -4,17 +4,15 @@ const { getReportDataForUser } = require("./ReportRepository");
 
 const { dateToString } = require("../helpers/DateHelper");
 
-const getEventData = (report) => {
-    const event = report.events_reports;
-
+const getEventData = (e) => {
     return {
-        id: event.id,
-        name: event.name,
-        mainPicture: event.wallpaper_url
+        id: e.id,
+        name: e.name,
+        mainPicture: e.wallpaper_url
     }
 }
 
-const getSerializedUserWithReports = (user) => {
+const getSerializedUserWithReports = async (user) => {
     const reports = user.reports ? user.reports : [];
 
     let lastReport;
@@ -38,7 +36,7 @@ const getSerializedUserWithReports = (user) => {
 
         reports: reports.map(getReportDataForUser),
 
-        events: reports.map(getEventData)
+        events: user.createdEvents.map(getEventData)
     }
 };
 
