@@ -12,7 +12,7 @@ describe("code functions", () => {
         assert.strictEqual(typeof result, "string");
       });
     });
-  
+    
     describe("getHashOf", () => {
       it("should return a string", () => {
         const result = getHashOf("test");

@@ -30,7 +30,7 @@ const getLastReportDate = (reports) => {
 
     return reports.map(report => report.createdAt)
         .reduce((date1, date2) => {
-            return date1 > date2
+            return date1 > date2? date1: date2;
         });
 }
 
