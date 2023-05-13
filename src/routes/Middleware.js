@@ -1,4 +1,6 @@
 const Logger = require("../helpers/Logger");
+const { BLOCKED_USER } = require("../constants/messages");
+const { userIsBlocked } = require("../services/users/UserService");
 const { EXPIRED_TOKEN_ERR_LBL } = require("../constants/login/logInConstants");
 const { ONLY_ADMIN_ERR_LBL } = require("../constants/login/logInConstants");
 const { DENIED_ACCESS_ERR_LBL } = require("../constants/login/logInConstants");
@@ -37,9 +39,15 @@ const isOrganizerMiddleware = async (req, res, next) => {
 const administratorMiddleware = async (req, res, next, logIn) => {
     const authorization = req.headers.authorization;
 
-    if (authorization.split(' ')[1]) {
-        if (logIn && ! req.body.isAdministrator) {
-            return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 401);
+    const body = req.body;
+
+    if (! logIn && ! req.headers.isadministrator) {
+        return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 404);
+    }
+
+    if (req.headers.isadministrator) {
+        if (! authorization || authorization.split(' ').length < 2){
+            return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 404);
         }
 
         const token = authorization.split(' ')[1];
@@ -47,14 +55,16 @@ const administratorMiddleware = async (req, res, next, logIn) => {
         const decodedToken = await verifyToken(token);
 
         if (! decodedToken) {
-            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 401);
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 404);
         }
 
         const isAdministrator = await userIsAdministrator(decodedToken);
 
         if (! isAdministrator) {
-            return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 401);
+            return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 404);
         }
+    } else if (await userExists(null, body.email) && await userIsBlocked(body.email)) {
+        return setErrorResponse(BLOCKED_USER, res, 404);
     }
 
     next();

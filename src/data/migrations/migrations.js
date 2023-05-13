@@ -30,16 +30,6 @@ const today = new Date();
 
 async function runMigrations() {
     logInfo(RUNNING_MIGRATIONS_LBL);
-
-    await queryInterface.addColumn(EventReport.tableName,
-        "event_id",
-        {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-            validate: { notEmpty: true }
-        }).catch(err => {
-        console.log(err.toString());
-    });
 }
 
 module.exports = {

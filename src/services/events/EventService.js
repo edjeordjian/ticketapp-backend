@@ -61,6 +61,7 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { getSortedByReportsWithDate } = require("./EventReportService");
 const { getDateOnly } = require("../../helpers/DateHelper");
 const { getUserId } = require("../authentication/FirebaseService");
 const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
@@ -315,6 +316,10 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
+
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
     else if (tags) {
         userId = await getUserId(req);
@@ -367,6 +372,10 @@ const handleSearch = async (req, res) => {
             ],
             order
         );
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
     else if (owner) {
         events = await findAll(Events, {
@@ -375,6 +384,10 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
     else if (staff) {
         const user = await findOne(User, {
@@ -385,7 +398,11 @@ const handleSearch = async (req, res) => {
         if (! user) {
             return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
         }
-
+        
+        if (user.error) {
+            return setUnexpectedErrorResponse(user.error, res);
+        }
+        
         const groups = await user.getGroups();
 
         const owner_emails = groups.map(group => {
@@ -418,6 +435,10 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
     else if (consumer) {
         userId = await getUserId(req);
@@ -429,7 +450,11 @@ const handleSearch = async (req, res) => {
             });
 
         if (! user) {
-            return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+            return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+        }
+        
+        if (user.error) {
+            return setUnexpectedErrorResponse(events.error, res);
         }
 
         events = await user.getEvents({
@@ -451,7 +476,11 @@ const handleSearch = async (req, res) => {
                     "error": GENERIC_ERROR_LBL
                 }
             });
-
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
+        
         userId = await getUserId(req);
 
         events = events.filter(e => {
@@ -464,6 +493,10 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
 
         let startDate = req.query.startDate;
 
@@ -483,6 +516,14 @@ const handleSearch = async (req, res) => {
                 );
             });
         }
+
+        events.sort((x1, x2) => {
+            const a = x1.reports ? x1.reports.length : 0;
+
+            const b = x2.reports ? x2.reports.length : 0;
+
+            return a - b;
+        });
     }
     else {
         events = await findAll(Events,
@@ -498,28 +539,29 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
-    }
-
-    if (events.error) {
-        return setUnexpectedErrorResponse(events.error, res);
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
 
     let serializedEvents = await Promise.all(events.map(async e => {
-        let event = await getSerializedEvent(e, userId, withReports);
+        return await getSerializedEvent(e, userId, withReports);
+    }));
 
-        if (latitude && longitude) {
-            event = { ...event,
+    if (latitude && longitude) {
+        serializedEvents.map(e => {
+            return {
+                ...e,
                 distance: getDistanceFromLatLonInKm(latitude,
-                    longitude,
-                    e.latitude,
-                    e.longitude)
-            };
-        }
+                                                    longitude,
+                                                    e.latitude,
+                                                    e.longitude)
+            }
+        });
 
-        return event;
-    })).then(res => {
-        return res.sort((a, b) => a.distance - b.distance)
-    });
+        serializedEvents.sort((a, b) => a.distance - b.distance);
+    }
 
     const eventsResponse = {
         events: serializedEvents

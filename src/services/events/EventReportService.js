@@ -1,3 +1,4 @@
+const { getDateOnly } = require("../../helpers/DateHelper");
 const { OK_LBL } = require("../../constants/messages");
 const { EventReport } = require("../../data/model/EventReport");
 const { logError, logInfo } = require("../../helpers/Logger");
@@ -44,6 +45,31 @@ const handleCreateEventReport = async (req, res) => {
     return setOkResponse(OK_LBL,res);
 }
 
+const getSortedByReportsWithDate = (startDate, endDate, aList) => {
+    if (startDate && endDate) {
+        startDate = new Date(startDate).toISOString();
+
+        endDate = new Date(endDate).toISOString();
+
+        aList.map(x => {
+                x.reports = x.reports.filter(report => {
+                    const reportDate = getDateOnly(report.createdAt).toISOString()
+
+                    return reportDate >= startDate && reportDate <= endDate;
+                }
+            );
+        });
+    }
+
+    aList.sort((x1, x2) => {
+        const a = x1.reports ? x1.reports.length : 0;
+
+        const b = x2.reports ? x2.reports.length : 0;
+
+        return a - b;
+    });
+};
+
 module.exports = {
-    handleCreateEventReport
+    handleCreateEventReport, getSortedByReportsWithDate
 }

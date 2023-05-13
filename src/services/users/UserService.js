@@ -1,3 +1,7 @@
+const { ACTIVATED_USER } = require("../../constants/messages");
+const { BLOCKED_USER } = require("../../constants/messages");
+const { getSortedByReportsWithDate } = require("../events/EventReportService");
+const { setErrorResponse } = require("../../helpers/ResponseHelper");
 const { CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
 const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
 const { getDateOnly } = require("../../helpers/DateHelper");
@@ -26,7 +30,8 @@ const {
 
 const {
     findOne,
-    findAll
+    findAll,
+    update
 } = require("../../helpers/QueryHelper");
 
 const { User } = require("../../data/model/User");
@@ -153,6 +158,16 @@ const userExists = async (id, email) => {
     return user;
 }
 
+const userIsBlocked = async (email) => {
+    const user = await findOne(User, {
+        email: email,
+
+        is_blocked: true
+    });
+
+    return user;
+}
+
 const getUserWithEmail = async(userEmail) => {
     const user = await findOne(User, {
         email: userEmail
@@ -197,32 +212,9 @@ const getUsers = async (req, res) => {
         return setUnexpectedErrorResponse(users.error, res);
     }
 
-    let startDate = req.query.startDate;
-
-    let endDate = req.query.endDate;
-
-    if (startDate && endDate) {
-        startDate = new Date(startDate).toISOString();
-
-        endDate = new Date(endDate).toISOString();
-
-        users.map(user => {
-            user.reports = user.reports.filter(report => {
-                    const reportDate = getDateOnly(report.createdAt).toISOString()
-
-                    return reportDate >= startDate && reportDate <= endDate;
-                }
-            );
-        });
-    }
-
-    users.sort((user1, user2) => {
-        const a = user1.reports ? user1.reports.length : 0;
-
-        const b = user2.reports ? user2.reports.length : 0;
-
-        return a - b;
-    })
+    getSortedByReportsWithDate(req.query.startDate,
+                               req.query.endDate,
+                               users);
 
     const serializedUsers = await Promise.all(
         users.map(async user => await getSerializedUserWithReports(user))
@@ -235,7 +227,41 @@ const getUsers = async (req, res) => {
     return setOkResponse(OK_LBL, res, responseBody);
 }
 
+const blockUser = async (req, res) => {
+    const body = req.body;
+
+    const user = await findOne(User,
+        {
+            email: body.email
+        });
+
+    if (! user) {
+        return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+    }
+
+    if (user.error) {
+        return setUnexpectedErrorResponse(user.error, res);
+    }
+
+    const result = await update(User,
+        {
+            is_blocked: body.block
+        },
+        {
+            email: body.email
+        });
+
+    if (result.error) {
+        return setUnexpectedErrorResponse(result.error, res);
+    }
+
+    const responseMessage = body.block ? BLOCKED_USER : ACTIVATED_USER;
+
+    return setOkResponse(responseMessage, res);
+}
+
 module.exports = {
     userIsOrganizer, userExists, userIsConsumer, userIsStaff,
-    userIsAdministrator, getUserWithEmail, getUsers
+    userIsAdministrator, getUserWithEmail, getUsers, blockUser,
+    userIsBlocked
 };
