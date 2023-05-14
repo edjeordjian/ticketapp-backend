@@ -194,6 +194,10 @@ const getSerializedEvent = async (e,
     }
 
     if (withReports) {
+        if (! e.reports) {
+            e.reports = e.events_reports;
+        }
+
         result.reports = e.reports.map(report => {
             return getReportDataForEvent(report, e);
         });

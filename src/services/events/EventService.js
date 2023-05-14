@@ -508,6 +508,10 @@ const handleSearch = async (req, res) => {
 
         let endDate = req.query.endDate;
 
+        events.map(event => {
+            event.reports = event.events_reports;
+        });
+
         if (startDate && endDate) {
             startDate = new Date(startDate).toISOString();
 
@@ -528,7 +532,7 @@ const handleSearch = async (req, res) => {
 
             const b = x2.reports ? x2.reports.length : 0;
 
-            return a - b;
+            return b - a;
         });
     }
     else {
@@ -556,7 +560,7 @@ const handleSearch = async (req, res) => {
     }));
 
     if (latitude && longitude) {
-        serializedEvents.map(e => {
+        serializedEvents = serializedEvents.map(e => {
             return {
                 ...e,
                 distance: getDistanceFromLatLonInKm(latitude,

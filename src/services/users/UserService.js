@@ -77,10 +77,10 @@ const userIsAdministrator = async (decodedToken) => {
         }
     );
 
-    if (! user || user.error) {
-        logError(user.error);
-
+    if (! user) {
         return false;
+    } else if (user.error) {
+        logError(user.error);
     }
 
     return true;

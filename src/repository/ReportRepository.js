@@ -56,7 +56,7 @@ const getSortedByReportsWithDate = (startDate, endDate, aList) => {
 
         const b = x2.reports ? x2.reports.length : 0;
 
-        return a - b;
+        return b - a;
     });
 };
 

@@ -54,7 +54,7 @@ const handleCreateEventReport = async (req, res) => {
         return setErrorResponse("Error al crear la denuncia",res);
     }
 
-    return setOkResponse(OK_LBL,res);
+    return setOkResponse("Denuncia creada", res);
 }
 
 module.exports = {
