@@ -61,6 +61,8 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { IS_PRODUCTION } = require("../../constants/dataConstants");
+const { FINISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { suspendGivenEvent } = require("./EventNotificationService");
 const { UNSUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { notifiyEventStatus } = require("./EventNotificationService");
@@ -982,9 +984,11 @@ const cancelEvent = async (req, res) => {
 }
 
 const cronEventUpdate = async () => {
-    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
-
     const now = new Date();
+
+    if (IS_PRODUCTION) {
+        now.setHours(now.getHours() - 3);
+    }
 
     now.setUTCSeconds(0);
 
@@ -996,9 +1000,25 @@ const cronEventUpdate = async () => {
 
     yesterday.setUTCMinutes(0);
 
+    if (IS_PRODUCTION) {
+        yesterday.setHours(0);
+    }
+
+    let adaptedNow = new Date(now.getTime());
+
+    adaptedNow.setUTCFullYear(2020);
+
+    adaptedNow.setUTCMonth(0);
+
+    adaptedNow.setUTCDate(1);
+
+    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
+
     let eventsToFinish = await findAll(Events,
         {
             date: yesterday,
+
+            time: adaptedNow,
 
             state_id: {
                 [Op.eq]: [publishedId],
@@ -1009,6 +1029,22 @@ const cronEventUpdate = async () => {
 
     if (eventsToFinish.error) {
         return eventsToFinish.error;
+    }
+
+    const eventsToFinishIds = eventsToFinish.map(e => e.id);
+
+    const finishedId = await getStateId(FINISHED_STATUS_LBL);
+
+    const updateResult = await update(Events, {
+        state_id: finishedId
+    }, {
+        id: {
+            [Op.in]: eventsToFinishIds
+        }
+    });
+
+    if (updateResult.error) {
+        return updateResult.error;
     }
 
     await notifyTomorrowEvents();
