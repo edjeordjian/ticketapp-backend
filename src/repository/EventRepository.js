@@ -86,6 +86,18 @@ const getTicket = (e,
     return {};
 }
 
+const wasReportedByUser = (e, userId) => {
+    if (! e.events_reports) {
+        return false;
+    }
+
+    const userReports = e.events_reports.filter(report => {
+        return report.reporter.id === userId
+    });
+
+    return userReports.length !== 0;
+}
+
 const getSerializedEvent = async (e,
                                   userId = null,
                                   withReports = false) => {
@@ -175,6 +187,10 @@ const getSerializedEvent = async (e,
             }
             :
             {}
+    }
+
+    if (userId) {
+        result.wasReported = wasReportedByUser(e, userId);
     }
 
     if (withReports) {
