@@ -1,3 +1,5 @@
+const { Events } = require("../../data/model/Events");
+const { getDateOnly } = require("../../helpers/DateHelper");
 const { OK_LBL } = require("../../constants/messages");
 const { EventReport } = require("../../data/model/EventReport");
 const { logError, logInfo } = require("../../helpers/Logger");
@@ -5,7 +7,18 @@ const { setOkResponse, setErrorResponse } = require("../../helpers/ResponseHelpe
 const { getUserId } =  require("../authentication/FirebaseService");
 const {create, findOne} = require("../../helpers/QueryHelper");
 const { EventReportCategory } = require("../../data/model/EventReportCategory");
-const { eventExists } = require("./EventService");
+
+const eventExists = async (id) =>{
+    const event = await findOne(Events, {
+        id: id
+    });
+
+    if (! event) {
+        return false;
+    }
+
+    return true
+}
 
 const handleCreateEventReport = async (req, res) => {
     const body = req.body;
@@ -41,7 +54,7 @@ const handleCreateEventReport = async (req, res) => {
         return setErrorResponse("Error al crear la denuncia",res);
     }
 
-    return setOkResponse(OK_LBL,res);
+    return setOkResponse("Denuncia creada", res);
 }
 
 module.exports = {

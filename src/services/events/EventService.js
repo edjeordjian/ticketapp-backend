@@ -61,6 +61,15 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { IS_PRODUCTION } = require("../../constants/dataConstants");
+const { FINISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { suspendGivenEvent } = require("./EventNotificationService");
+const { UNSUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const { notifiyEventStatus } = require("./EventNotificationService");
+const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const { CANCELLED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const { getUserWithEmail } = require("../login/LogInService");
+const { getSortedByReportsWithDate } = require("./EventReportService");
 const { getDateOnly } = require("../../helpers/DateHelper");
 const { getUserId } = require("../authentication/FirebaseService");
 const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
@@ -79,8 +88,6 @@ const { eventIncludes } = require("../../repository/EventRepository");
 const { notifyEventChange } = require("./EventNotificationService");
 
 const { notifyCancelledEvent } = require("./EventNotificationService");
-
-const { getUserWithEmail } = require("../users/UserService");
 
 const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
 
@@ -315,6 +322,10 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
+
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
     else if (tags) {
         userId = await getUserId(req);
@@ -367,6 +378,10 @@ const handleSearch = async (req, res) => {
             ],
             order
         );
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
     else if (owner) {
         events = await findAll(Events, {
@@ -375,6 +390,10 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
     else if (staff) {
         const user = await findOne(User, {
@@ -385,7 +404,11 @@ const handleSearch = async (req, res) => {
         if (! user) {
             return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
         }
-
+        
+        if (user.error) {
+            return setUnexpectedErrorResponse(user.error, res);
+        }
+        
         const groups = await user.getGroups();
 
         const owner_emails = groups.map(group => {
@@ -418,6 +441,10 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
     else if (consumer) {
         userId = await getUserId(req);
@@ -429,7 +456,11 @@ const handleSearch = async (req, res) => {
             });
 
         if (! user) {
-            return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+            return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+        }
+        
+        if (user.error) {
+            return setUnexpectedErrorResponse(events.error, res);
         }
 
         events = await user.getEvents({
@@ -451,7 +482,11 @@ const handleSearch = async (req, res) => {
                     "error": GENERIC_ERROR_LBL
                 }
             });
-
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
+        
         userId = await getUserId(req);
 
         events = events.filter(e => {
@@ -464,10 +499,18 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
 
         let startDate = req.query.startDate;
 
         let endDate = req.query.endDate;
+
+        events.map(event => {
+            event.reports = event.events_reports;
+        });
 
         if (startDate && endDate) {
             startDate = new Date(startDate).toISOString();
@@ -475,14 +518,22 @@ const handleSearch = async (req, res) => {
             endDate = new Date(endDate).toISOString();
 
             events.map(event => {
-                event.reports = event.reports.filter(report => {
-                        const reportDate = getDateOnly(report.createdAt).toISOString()
+                event.reports = event.events_reports.filter(report => {
+                        const reportDate = getDateOnly(report.createdAt).toISOString();
 
                         return reportDate >= startDate && reportDate <= endDate;
                     }
                 );
             });
         }
+
+        events.sort((x1, x2) => {
+            const a = x1.reports ? x1.reports.length : 0;
+
+            const b = x2.reports ? x2.reports.length : 0;
+
+            return b - a;
+        });
     }
     else {
         events = await findAll(Events,
@@ -498,28 +549,29 @@ const handleSearch = async (req, res) => {
             eventIncludes,
             order
         );
-    }
-
-    if (events.error) {
-        return setUnexpectedErrorResponse(events.error, res);
+        
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
     }
 
     let serializedEvents = await Promise.all(events.map(async e => {
-        let event = await getSerializedEvent(e, userId, withReports);
+        return await getSerializedEvent(e, userId, withReports);
+    }));
 
-        if (latitude && longitude) {
-            event = { ...event,
+    if (latitude && longitude) {
+        serializedEvents = serializedEvents.map(e => {
+            return {
+                ...e,
                 distance: getDistanceFromLatLonInKm(latitude,
-                    longitude,
-                    e.latitude,
-                    e.longitude)
-            };
-        }
+                                                    longitude,
+                                                    e.latitude,
+                                                    e.longitude)
+            }
+        });
 
-        return event;
-    })).then(res => {
-        return res.sort((a, b) => a.distance - b.distance)
-    });
+        serializedEvents.sort((a, b) => a.distance - b.distance);
+    }
 
     const eventsResponse = {
         events: serializedEvents
@@ -679,8 +731,6 @@ const handleUpdateEvent = async (req, res) => {
 
     const user = await getUserWithEmail(decodedToken.email);
 
-    let importantChange = false;
-
     if (user.error) {
         return setUnexpectedErrorResponse(user.error, res);
     }
@@ -693,10 +743,6 @@ const handleUpdateEvent = async (req, res) => {
     });
 
     const originalName = event.name;
-
-    if (originalName !== body.name) {
-        importantChange = true;
-    }
 
     if (!event || event.error){
         return setErrorResponse("El evento seleccionado no existe o no coincide con el organizador", res);
@@ -728,6 +774,10 @@ const handleUpdateEvent = async (req, res) => {
         picture4Url;
 
     let fieldsToUpdate = body;
+
+    if (body.status) {
+        fieldsToUpdate.state_id = await getStateId(body.status);
+    }
 
     if (body.pictures  && body.pictures.length > 0) {
         wallpaperUrl = body.pictures[0];
@@ -780,8 +830,6 @@ const handleUpdateEvent = async (req, res) => {
 
         const createResponse = await event.addSpeakers(speakers);
         delete fieldsToUpdate.agenda;
-
-        importantChange = true;
     }
     if (body.types){
         await destroy(Event_EventType, {eventId: body.id});
@@ -793,13 +841,9 @@ const handleUpdateEvent = async (req, res) => {
     }
     if(fieldsToUpdate.date){
         fieldsToUpdate.date = dateFromString(body.date);
-
-        importantChange = true;
     }
     if(fieldsToUpdate.time){
         fieldsToUpdate.time = dateFromString(body.time);
-
-        importantChange = true;
     }
     const response  = await update(Events,
         fieldsToUpdate,
@@ -811,7 +855,7 @@ const handleUpdateEvent = async (req, res) => {
         return setUnexpectedErrorResponse(response.error);
     }
 
-    if (importantChange) {
+    if (body.sendNotification) {
         const updatedEvent = await findOne(Events,
             {
                 id: body.id
@@ -833,6 +877,31 @@ const handleUpdateEvent = async (req, res) => {
     return setOkResponse("Evento actualizado correctamente",res);
 }
 
+const suspendEvent = async (req, res) => {
+    const body = req.body;
+
+    const event = await findOne(Events, {
+            id: body.eventId
+        },
+        eventIncludes);
+
+    if (! event) {
+        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
+    }
+
+    if (event.error) {
+        return setErrorResponse(event.error, res);
+    }
+
+    const label = await suspendGivenEvent(event, body.suspend);
+
+    if (label.error) {
+        return setUnexpectedErrorResponse(label.error, res);
+    }
+
+    return setOkResponse(label.message, res);
+}
+
 const cancelEvent = async (req, res) => {
     const body = req.body;
 
@@ -849,7 +918,7 @@ const cancelEvent = async (req, res) => {
     const organizerId = user.id;
 
     const event = await findOne(Events, {
-        id: body.event_id,
+        id: body.eventId,
         owner_id: organizerId
     },
         eventIncludes);
@@ -878,26 +947,26 @@ const cancelEvent = async (req, res) => {
         return setOkResponse(OK_LBL, res);
     }
 
-    if (body.suspended) {
-        stateId = await getStateId(SUSPENDED_STATUS_LBL);
-    } else {
-        stateId = await getStateId(CANCELLED_STATUS_LBL);
-    }
+    stateId = await getStateId(CANCELLED_STATUS_LBL);
 
     if (stateId.error) {
         return setErrorResponse(stateId.error, res);
     }
 
-    await update(Events,
+    const updateResult = await update(Events,
         {
             state_id: stateId
         },
         {
-            id: body.event_id,
+            id: body.eventId,
             owner_id: organizerId
         });
 
-    const notificationResponse = await notifyCancelledEvent(event, body.suspended);
+    if (updateResult.error) {
+        return setErrorResponse(updateResult.error, res);
+    }
+
+    const notificationResponse = await notifiyEventStatus(event, CANCELLED_EVENT_LBL);
 
     if (notificationResponse.error) {
         return setUnexpectedErrorResponse(notificationResponse.error, res);
@@ -907,9 +976,11 @@ const cancelEvent = async (req, res) => {
 }
 
 const cronEventUpdate = async () => {
-    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
-
     const now = new Date();
+
+    if (IS_PRODUCTION) {
+        now.setHours(now.getHours() - 3);
+    }
 
     now.setUTCSeconds(0);
 
@@ -921,9 +992,25 @@ const cronEventUpdate = async () => {
 
     yesterday.setUTCMinutes(0);
 
+    if (IS_PRODUCTION) {
+        yesterday.setHours(0);
+    }
+
+    let adaptedNow = new Date(now.getTime());
+
+    adaptedNow.setUTCFullYear(2020);
+
+    adaptedNow.setUTCMonth(0);
+
+    adaptedNow.setUTCDate(1);
+
+    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
+
     let eventsToFinish = await findAll(Events,
         {
             date: yesterday,
+
+            time: adaptedNow,
 
             state_id: {
                 [Op.eq]: [publishedId],
@@ -936,15 +1023,23 @@ const cronEventUpdate = async () => {
         return eventsToFinish.error;
     }
 
-    await notifyTomorrowEvents();
-}
+    const eventsToFinishIds = eventsToFinish.map(e => e.id);
 
-const eventExists = async (id) =>{
-    const event = await findOne(Events, {id: id});
-    if (!event){
-        return false;
+    const finishedId = await getStateId(FINISHED_STATUS_LBL);
+
+    const updateResult = await update(Events, {
+        state_id: finishedId
+    }, {
+        id: {
+            [Op.in]: eventsToFinishIds
+        }
+    });
+
+    if (updateResult.error) {
+        return updateResult.error;
     }
-    return true
+
+    await notifyTomorrowEvents();
 }
 
 module.exports = {
@@ -956,5 +1051,5 @@ module.exports = {
     handleUpdateEvent,
     cancelEvent,
     cronEventUpdate,
-    eventExists
+    suspendEvent
 };

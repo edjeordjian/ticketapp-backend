@@ -1,16 +1,21 @@
+const { SUSPENDED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const { UNSUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { getStateId } = require("./EventStateService");
 const { CANCELLED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { IS_PRODUCTION } = require("../../constants/dataConstants");
-const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { eventIncludes } = require("../../repository/EventRepository");
 const { Op } = require("sequelize");
 const { User } = require("../../data/model/User");
 const { Events } = require("../../data/model/Events");
-const { findAll } = require("../../helpers/QueryHelper");
+const {
+    findAll,
+    update
+} = require("../../helpers/QueryHelper");
 const { OK_LBL } = require("../../constants/messages");
 const {
     EVENT_WAS_MODIFIED,
-    CANCELLED_EVENT_LBL,
     EVENT_IS_TOMORROW_LBL,
     EVENT_SCREEN_NAME
 } = require("../../constants/events/eventsConstants");
@@ -148,13 +153,7 @@ const notifyEventChange = async(e, originalName) => {
         } );
 }
 
-const notifyCancelledEvent = async (e, suspended) => {
-    let label = CANCELLED_EVENT_LBL;
-
-    if (suspended) {
-        label = SUSPENDED_EVENT_LBL
-    }
-
+const notifiyEventStatus = async (e, label) => {
     return await sendNotificationTo(e,
         {
             title: e.name,
@@ -199,8 +198,55 @@ const sendNotificationTo = async (e, body) => {
     };
 }
 
-module.exports = {
-    notifyTomorrowEvents, notifyCancelledEvent, notifyEventChange,
-    getAttendeesTokens
-};
+const suspendGivenEvent = async (e, suspend) => {
+    let stateId;
 
+    if (! suspend) {
+        stateId = await getStateId(PUBLISHED_STATUS_LBL);
+    } else {
+        stateId = await getStateId(SUSPENDED_STATUS_LBL);
+    }
+
+    if (stateId.error) {
+        return stateId;
+    }
+
+    const updateResult = await update(Events,
+        {
+            state_id: stateId
+        },
+        {
+            id: e.id
+        });
+
+    if (updateResult.error) {
+        return updateResult;
+    }
+
+    let notificationResponse;
+
+    let label;
+
+    if (! suspend) {
+        label = UNSUSPENDED_EVENT_LBL;
+
+        notificationResponse = await notifiyEventStatus(e, label);
+    } else {
+        label = SUSPENDED_EVENT_LBL;
+
+        notificationResponse = await notifiyEventStatus(e, label);
+    }
+
+    if (notificationResponse.error) {
+        return notificationResponse;
+    }
+
+    return {
+        message: label
+    };
+}
+
+module.exports = {
+    notifyTomorrowEvents, notifiyEventStatus, notifyEventChange,
+    getAttendeesTokens, suspendGivenEvent
+};

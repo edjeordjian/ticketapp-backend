@@ -118,7 +118,7 @@ describe("Event notification service", () => {
             "sendNotificationTo": sendNotificationToStub
         });
 
-        const result = await EventNotificationService.notifyCancelledEvent({
+        const result = await EventNotificationService.notifiyEventStatus({
             id: 1,
             name: "name"
         });

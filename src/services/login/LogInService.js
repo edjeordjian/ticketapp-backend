@@ -1,3 +1,4 @@
+const { UNEXISTING_USER_ERR_LBL } = require("../../constants/events/eventsConstants");
 const { setUnexpectedErrorResponse } = require("../../helpers/ResponseHelper");
 
 const { logInfo } = require("../../helpers/Logger");
@@ -168,6 +169,20 @@ const handleLogIn = async (req, res) => {
     return setOkResponse(OK_LBL, res, userData);
 };
 
+const getUserWithEmail = async(userEmail) => {
+    const user = await findOne(User, {
+        email: userEmail
+    });
+
+    if (! user) {
+        return {
+            error: UNEXISTING_USER_ERR_LBL
+        }
+    }
+
+    return user;
+}
+
 module.exports = {
-    handleLogIn
+    handleLogIn, getUserWithEmail
 };

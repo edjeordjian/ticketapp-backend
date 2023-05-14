@@ -1,3 +1,4 @@
+const { getDateOnly } = require("../helpers/DateHelper");
 const { dateToString } = require("../helpers/DateHelper");
 
 const getReportDataForUser = (report) => {
@@ -30,10 +31,36 @@ const getLastReportDate = (reports) => {
 
     return reports.map(report => report.createdAt)
         .reduce((date1, date2) => {
-            return date1 > date2
+            return date1 > date2? date1: date2;
         });
 }
 
+const getSortedByReportsWithDate = (startDate, endDate, aList) => {
+    if (startDate && endDate) {
+        startDate = new Date(startDate).toISOString();
+
+        endDate = new Date(endDate).toISOString();
+
+        aList.map(x => {
+            x.reports = x.reports.filter(report => {
+                    const reportDate = getDateOnly(report.createdAt).toISOString()
+
+                    return reportDate >= startDate && reportDate <= endDate;
+                }
+            );
+        });
+    }
+
+    aList.sort((x1, x2) => {
+        const a = x1.reports ? x1.reports.length : 0;
+
+        const b = x2.reports ? x2.reports.length : 0;
+
+        return b - a;
+    });
+};
+
 module.exports = {
-    getReportDataForUser, getReportDataForEvent, getLastReportDate
+    getReportDataForUser, getReportDataForEvent, getLastReportDate,
+    getSortedByReportsWithDate
 };
