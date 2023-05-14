@@ -1,6 +1,7 @@
 const Logger = require("../helpers/Logger");
 
 const express = require('express');
+const { suspendEvent } = require("../services/events/EventService");
 const { administratorMiddleware } = require("./Middleware");
 const { EVENT_SUSPEND_URL } = require("../constants/URLs");
 const { cancelEvent } = require("../services/events/EventService");
@@ -151,7 +152,7 @@ router.patch(EVENT_SUSPEND_URL, async (req, res, next) => {
 }, async (req, res) => {
     Logger.request(`PATCH: /event/suspend`);
 
-    await cancelEvent(req, res);
+    await suspendEvent(req, res);
 });
 
 router.post(EVENT_REPORT, async (req, res, next) => {

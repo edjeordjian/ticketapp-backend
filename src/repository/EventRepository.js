@@ -1,3 +1,5 @@
+const { SUSPENDED_STATUS_LBL } = require("../constants/events/EventStatusConstants");
+const { getStateId } = require("../services/events/EventStateService");
 const { getLastReportDate } = require("./ReportRepository");
 const { EventReportCategory } = require("../data/model/EventReportCategory");
 const { getReportDataForEvent } = require("./ReportRepository");
@@ -142,6 +144,8 @@ const getSerializedEvent = async (e,
 
         types_names: e.event_types.map(type => type.name),
 
+        isBlocked: e.state ? e.state.name === SUSPENDED_STATUS_LBL: false,
+
         organizerName: `${owner.first_name} ${owner.last_name}`,
 
         agenda: e.speakers ? e.speakers.map(speaker => {
@@ -174,7 +178,7 @@ const getSerializedEvent = async (e,
     }
 
     if (withReports) {
-        result.reports = e.events_reports.map(report => {
+        result.reports = e.reports.map(report => {
             return getReportDataForEvent(report, e);
         });
 

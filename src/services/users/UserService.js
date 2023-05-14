@@ -1,3 +1,4 @@
+const { getSortedByReportsWithDate } = require("../../repository/ReportRepository");
 const { suspendGivenEvent } = require("../events/EventNotificationService");
 const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { getStateId } = require("../events/EventStateService");
@@ -5,7 +6,7 @@ const { eventIncludes } = require("../../repository/EventRepository");
 const { Op } = require("sequelize");
 const { ACTIVATED_USER } = require("../../constants/messages");
 const { BLOCKED_USER } = require("../../constants/messages");
-const { getSortedByReportsWithDate } = require("../events/EventReportService");
+
 const { setErrorResponse } = require("../../helpers/ResponseHelper");
 const { CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
 const { logError } = require("../../helpers/Logger");

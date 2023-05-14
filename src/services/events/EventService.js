@@ -512,8 +512,8 @@ const handleSearch = async (req, res) => {
             endDate = new Date(endDate).toISOString();
 
             events.map(event => {
-                event.reports = event.reports.filter(report => {
-                        const reportDate = getDateOnly(report.createdAt).toISOString()
+                event.reports = event.events_reports.filter(report => {
+                        const reportDate = getDateOnly(report.createdAt).toISOString();
 
                         return reportDate >= startDate && reportDate <= endDate;
                     }
@@ -775,6 +775,10 @@ const handleUpdateEvent = async (req, res) => {
 
     let fieldsToUpdate = body;
 
+    if (body.status) {
+        fieldsToUpdate.state_id = await getStateId(body.status);
+    }
+
     if (body.pictures  && body.pictures.length > 0) {
         wallpaperUrl = body.pictures[0];
         
@@ -895,7 +899,7 @@ const suspendEvent = async (req, res) => {
         return setErrorResponse(event.error, res);
     }
 
-    const label = suspendGivenEvent(event, body.suspend);
+    const label = await suspendGivenEvent(event, body.suspend);
 
     if (label.error) {
         return setUnexpectedErrorResponse(label.error, res);

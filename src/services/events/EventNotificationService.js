@@ -9,7 +9,10 @@ const { eventIncludes } = require("../../repository/EventRepository");
 const { Op } = require("sequelize");
 const { User } = require("../../data/model/User");
 const { Events } = require("../../data/model/Events");
-const { findAll } = require("../../helpers/QueryHelper");
+const {
+    findAll,
+    update
+} = require("../../helpers/QueryHelper");
 const { OK_LBL } = require("../../constants/messages");
 const {
     EVENT_WAS_MODIFIED,
@@ -213,7 +216,7 @@ const suspendGivenEvent = async (e, suspend) => {
             state_id: stateId
         },
         {
-            id: body.eventId
+            id: e.id
         });
 
     if (updateResult.error) {
@@ -224,7 +227,7 @@ const suspendGivenEvent = async (e, suspend) => {
 
     let label;
 
-    if (! body.suspend) {
+    if (! suspend) {
         label = UNSUSPENDED_EVENT_LBL;
 
         notificationResponse = await notifiyEventStatus(e, label);
@@ -235,10 +238,12 @@ const suspendGivenEvent = async (e, suspend) => {
     }
 
     if (notificationResponse.error) {
-        return {
-            message: notificationResponse
-        };
+        return notificationResponse;
     }
+
+    return {
+        message: label
+    };
 }
 
 module.exports = {
