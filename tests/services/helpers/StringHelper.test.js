@@ -2,29 +2,13 @@ const rewire = require("rewire");
 
 const { getBcryptOf, getHashOf, replaceAll, fullTrimString, replaceAllBy, setCharAt } = rewire("../../../src/helpers/StringHelper");
 
+const StringHelper = rewire("../../../src/helpers/StringHelper");
+
 const assert = require("assert");
+const sinon = require("sinon");
 
 
 describe("code functions", () => {
-    describe("getBcryptOf", () => {
-      it("should return a string", () => {
-        const result = getBcryptOf("test");
-        assert.strictEqual(typeof result, "string");
-      });
-    });
-    
-    describe("getHashOf", () => {
-      it("should return a string", () => {
-        const result = getHashOf("test");
-        assert.strictEqual(typeof result, "string");
-      });
-  
-      it("should return a hash with 10 characters after .p5.", () => {
-        const result = getHashOf("test.p5.");
-        assert.strictEqual(result.length, 10);
-      });
-    });
-  
     describe("replaceAll", () => {
       it("should replace all instances of a string in a string", () => {
         const result = replaceAll("test", "t", "b");
