@@ -408,10 +408,16 @@ describe("EventService", function() {
     });
 
     it("Cron event update", async () => {
-        const findAllStub = sinon.stub().resolves({});
+        const findAllStub = sinon.stub().resolves([]);
+
+        const updateStub = sinon.stub().resolves([]);
+
+        const getStateId = sinon.stub().resolves(0);
 
         EventService.__set__({
-            "findAll": findAllStub
+            "findAll": findAllStub,
+            "getStateId": getStateId,
+            "update": updateStub
         });
 
         await EventService.cronEventUpdate(req, res);

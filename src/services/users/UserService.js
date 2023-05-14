@@ -1,12 +1,16 @@
+const { getSortedByReportsWithDate } = require("../../repository/ReportRepository");
+const { suspendGivenEvent } = require("../events/EventNotificationService");
+const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const { getStateId } = require("../events/EventStateService");
+const { eventIncludes } = require("../../repository/EventRepository");
+const { Op } = require("sequelize");
 const { ACTIVATED_USER } = require("../../constants/messages");
 const { BLOCKED_USER } = require("../../constants/messages");
-const { getSortedByReportsWithDate } = require("../events/EventReportService");
+
 const { setErrorResponse } = require("../../helpers/ResponseHelper");
 const { CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
-const { ORGANIZER_RELATION_NAME } = require("../../constants/dataConstants");
-const { getDateOnly } = require("../../helpers/DateHelper");
 const { logError } = require("../../helpers/Logger");
-const { verifyToken } = require("../authentication/FirebaseService");
+
 const { Events } = require("../../data/model/Events");
 
 const { setOkResponse } = require("../../helpers/ResponseHelper");
@@ -73,10 +77,10 @@ const userIsAdministrator = async (decodedToken) => {
         }
     );
 
-    if (! user || user.error) {
-        logError(user.error);
-
+    if (! user) {
         return false;
+    } else if (user.error) {
+        logError(user.error);
     }
 
     return true;
@@ -168,20 +172,6 @@ const userIsBlocked = async (email) => {
     return user;
 }
 
-const getUserWithEmail = async(userEmail) => {
-    const user = await findOne(User, {
-        email: userEmail
-    });
-
-    if (! user) {
-        return {
-            error: UNEXISTING_USER_ERR_LBL
-        }
-    }
-
-    return user;
-}
-
 const getUsers = async (req, res) => {
     let users = await findAll(User,
         {
@@ -255,6 +245,33 @@ const blockUser = async (req, res) => {
         return setUnexpectedErrorResponse(result.error, res);
     }
 
+    if (body.block && user.is_organizer) {
+        const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
+
+        if (publishedId.error) {
+            return setErrorResponse(publishedId.error, res);
+        }
+
+        const eventsToSuspend = await user.getEvents({
+            where: {
+                state_id: {
+                    [Op.eq]: publishedId
+                }
+            },
+            include: eventIncludes
+        });
+
+        if (eventsToSuspend.error) {
+            return setErrorResponse(publishedId.error, res);
+        }
+
+        await Promise.all(
+            eventsToSuspend.map(async e => {
+                await suspendGivenEvent(e, true);
+            })
+        );
+    }
+
     const responseMessage = body.block ? BLOCKED_USER : ACTIVATED_USER;
 
     return setOkResponse(responseMessage, res);
@@ -262,6 +279,5 @@ const blockUser = async (req, res) => {
 
 module.exports = {
     userIsOrganizer, userExists, userIsConsumer, userIsStaff,
-    userIsAdministrator, getUserWithEmail, getUsers, blockUser,
-    userIsBlocked
+    userIsAdministrator, getUsers, blockUser, userIsBlocked
 };

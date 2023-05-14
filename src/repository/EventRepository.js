@@ -1,3 +1,5 @@
+const { SUSPENDED_STATUS_LBL } = require("../constants/events/EventStatusConstants");
+const { getStateId } = require("../services/events/EventStateService");
 const { getLastReportDate } = require("./ReportRepository");
 const { EventReportCategory } = require("../data/model/EventReportCategory");
 const { getReportDataForEvent } = require("./ReportRepository");
@@ -84,6 +86,18 @@ const getTicket = (e,
     return {};
 }
 
+const wasReportedByUser = (e, userId) => {
+    if (! e.events_reports) {
+        return false;
+    }
+
+    const userReports = e.events_reports.filter(report => {
+        return report.reporter.id === userId
+    });
+
+    return userReports.length !== 0;
+}
+
 const getSerializedEvent = async (e,
                                   userId = null,
                                   withReports = false) => {
@@ -142,6 +156,8 @@ const getSerializedEvent = async (e,
 
         types_names: e.event_types.map(type => type.name),
 
+        isBlocked: e.state ? e.state.name === SUSPENDED_STATUS_LBL: false,
+
         organizerName: `${owner.first_name} ${owner.last_name}`,
 
         agenda: e.speakers ? e.speakers.map(speaker => {
@@ -173,8 +189,16 @@ const getSerializedEvent = async (e,
             {}
     }
 
+    if (userId) {
+        result.wasReported = wasReportedByUser(e, userId);
+    }
+
     if (withReports) {
-        result.reports = e.events_reports.map(report => {
+        if (! e.reports) {
+            e.reports = e.events_reports;
+        }
+
+        result.reports = e.reports.map(report => {
             return getReportDataForEvent(report, e);
         });
 
