@@ -86,7 +86,7 @@ const dateToMomentFormat = (dateString) => {
     return `${year}-${month}-${day}`;
 }
 
-const momentToHumanDateFromat = (dateString) => {
+const momentToHumanDateFormat = (dateString) => {
     const [year, month, day] = dateString.split("-");
 
     return `${day}/${month}/${year}`;
@@ -94,5 +94,5 @@ const momentToHumanDateFromat = (dateString) => {
 
 module.exports = {
     getQuickDate, dateFromString, dateToString, timeToString,
-    getDateOnly, dateToMomentFormat, momentToHumanDateFromat
+    getDateOnly, dateToMomentFormat, momentToHumanDateFormat
 };

@@ -1,4 +1,4 @@
-const { momentToHumanDateFromat } = require("../helpers/DateHelper");
+const { momentToHumanDateFormat } = require("../helpers/DateHelper");
 const { dateToMomentFormat } = require("../helpers/DateHelper");
 const { getDateOnly } = require("../helpers/DateHelper");
 const { dateToString } = require("../helpers/DateHelper");
@@ -36,7 +36,7 @@ const getLastReportDate = (reports) => {
             return date1 > date2? date1: date2;
         });
 
-    return momentToHumanDateFromat(result);
+    return momentToHumanDateFormat(result);
 }
 
 const getSortedByReportsWithDate = (startDate, endDate, aList) => {
