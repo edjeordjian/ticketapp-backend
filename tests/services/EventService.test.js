@@ -424,4 +424,52 @@ describe("EventService", function() {
 
         assert(true);
     });
+
+    it("Suspend event", async () => {
+        const findOneStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        const suspendGivenEventStub = sinon.stub().resolves("");
+
+        EventService.__set__({
+            "findOne": findOneStub,
+
+            "suspendGivenEvent": suspendGivenEventStub
+        });
+
+        const response = await EventService.suspendEvent(req, res);
+
+        assert(response);
+    });
+
+    it("Cancel event", async () => {
+        const findOneStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        const suspendGivenEventStub = sinon.stub().resolves("");
+
+        const getStateIdStub = sinon.stub().resolves("");
+
+        const destroyStub = sinon.stub().resolves({});
+
+        const updateStub = sinon.stub().resolves({});
+
+        EventService.__set__({
+            "findOne": findOneStub,
+
+            "verifyToken": suspendGivenEventStub,
+
+            "getStateId": getStateIdStub,
+
+            "destroy": destroyStub,
+
+            "update": updateStub
+        });
+
+        const response = await EventService.cancelEvent(req, res);
+
+        assert(response);
+    });
 });
