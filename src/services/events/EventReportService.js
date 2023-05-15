@@ -23,7 +23,7 @@ const eventExists = async (id) =>{
 const handleCreateEventReport = async (req, res) => {
     const body = req.body;
     const id = await getUserId(req);
-    console.log(id);
+
     if (!body.event_id || !(await eventExists(body.event_id))){
         return setErrorResponse("El campo event_id tiene que especificar un evento existente",res);
     }

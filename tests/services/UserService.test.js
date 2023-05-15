@@ -3,10 +3,47 @@ const sinon = require("sinon");
 const rewire = require("rewire");
 
 const assert = require("assert");
+const { EventMock } = require("../mocks/EventMock");
 
 const UserService = rewire("../../src/services/users/UserService");
 
 describe("UserService", () => {
+    let req, res;
+
+    beforeEach(() => {
+        const setOkResponseStub = sinon.stub().returns({
+            "message": "Ok"
+        });
+
+        const setErrorResponseStub = sinon.stub().returns({
+            "error": "error"
+        });
+
+        const stateIdStub = sinon.stub().returns(1);
+
+        UserService.__set__({
+            "setOkResponse": setOkResponseStub,
+
+            "setErrorResponse": setErrorResponseStub,
+
+            "logInfo": sinon.stub(),
+
+            "getStateId": stateIdStub
+        });
+
+        req = {
+            body: {
+            },
+            headers: {
+                authorization: ""
+            }
+        };
+
+        res = {
+            json: sinon.stub()
+        };
+    });
+
     afterEach(() => {
         sinon.restore();
     })
@@ -128,4 +165,49 @@ describe("UserService", () => {
 
         assert(response);
     });
+
+    it("Cancel event", async () => {
+        const findOneStub = sinon.stub().resolves(new EventMock());
+
+        const updateStub = sinon.stub().resolves({});
+
+        const destroyStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        const getStateIdStub = sinon.stub().resolves(1);
+
+        const verifyTokenStub = sinon.stub().resolves("100");
+
+        const getUserWithEmailStub = sinon.stub().resolves({
+            "name": "name"
+        });
+
+        const suspendGivenEventStub = sinon.stub().resolves(() => {});
+
+        const notifyCancelledEventStub = sinon.stub().resolves(() => {});
+
+        UserService.__set__({
+            "verifyToken": verifyTokenStub,
+
+            "getUserWithEmail": getUserWithEmailStub,
+
+            "findOne": findOneStub,
+
+            "destroy": destroyStub,
+
+            "update": updateStub,
+
+            "notifyCancelledEvent": notifyCancelledEventStub,
+
+            "getStateId": getStateIdStub,
+
+            "suspendGivenEvent": suspendGivenEventStub
+        });
+
+        const response = await UserService.blockUser(req, res);
+
+        assert(response);
+    });
+
 });
