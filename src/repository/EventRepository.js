@@ -205,7 +205,7 @@ const getSerializedEvent = async (e,
         result.reportsNumber = result.reports.length;
 
         if (result.reportsNumber > 0) {
-            result.lastReportDate = dateToString(getLastReportDate(e.events_reports));
+            result.lastReportDate = getLastReportDate(result.reports);
         }
     }
 

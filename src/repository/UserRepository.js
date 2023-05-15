@@ -13,7 +13,9 @@ const getEventData = (e) => {
 }
 
 const getSerializedUserWithReports = async (user) => {
-    const reports = user.reports ? user.reports : [];
+    let reports = user.reports ? user.reports : [];
+
+    reports = reports.map(getReportDataForUser);
 
     let lastReport;
 
@@ -32,9 +34,9 @@ const getSerializedUserWithReports = async (user) => {
 
         reportsNumber: reports.length,
 
-        lastReportDate: lastReport ? dateToString(lastReport) : "",
+        lastReportDate: lastReport ? lastReport : "",
 
-        reports: reports.map(getReportDataForUser)
+        reports: reports
     }
 };
 

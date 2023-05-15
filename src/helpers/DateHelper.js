@@ -68,18 +68,31 @@ const timeToString = (aTime) => {
 const getDateOnly = (aDate) => {
     const anotherDate = new Date(aDate);
 
-    anotherDate.setUTCHours(0);
+    // 0 hours in Argentina = + 3 hours in UTC / ISO date
+    anotherDate.setHours(0);
 
-    anotherDate.setUTCMinutes(0);
+    anotherDate.setMinutes(0);
 
-    anotherDate.setUTCSeconds(0);
+    anotherDate.setSeconds(0);
 
-    anotherDate.setUTCMilliseconds(0);
+    anotherDate.setMilliseconds(0);
 
     return anotherDate;
 }
 
+const dateToMomentFormat = (dateString) => {
+    const [day, month, year] = dateString.split("/");
+
+    return `${year}-${month}-${day}`;
+}
+
+const momentToHumanDateFormat = (dateString) => {
+    const [year, month, day] = dateString.split("-");
+
+    return `${day}/${month}/${year}`;
+}
+
 module.exports = {
     getQuickDate, dateFromString, dateToString, timeToString,
-    getDateOnly
+    getDateOnly, dateToMomentFormat, momentToHumanDateFormat
 };

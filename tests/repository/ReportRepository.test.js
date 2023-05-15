@@ -1,6 +1,9 @@
 const rewire = require("rewire");
 const assert = require('assert');
-const { getReportDataForUser, getReportDataForEvent, getLastReportDate } = rewire("../../src/repository/ReportRepository");
+const {
+  getReportDataForUser,
+  getReportDataForEvent,
+  getLastReportDate } = rewire("../../src/repository/ReportRepository");
 const { dateToString } = require('../../src/helpers/DateHelper');
 
 describe('getReportDataForUser', () => {
@@ -50,9 +53,14 @@ describe('getLastReportDate', () => {
   });
 
   it('should return the correct last date', () => {
-    const reports = [      { createdAt: new Date('2022-01-01') },      { createdAt: new Date('2022-02-01') },      { createdAt: new Date('2022-03-01') },    ];
-    const lastDate = getLastReportDate(reports);
+    const reports = [
+      { date: "01/01/2022" },
+      { date: "01/01/2022" },
+      { date: "01/01/2022" }
+      ];
 
-    assert.strictEqual(lastDate, reports[2].createdAt);
+    const date = getLastReportDate(reports);
+
+    assert.strictEqual(date, reports[2].date);
   });
 });
