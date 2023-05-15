@@ -1,3 +1,5 @@
+const { momentToHumanDateFromat } = require("../helpers/DateHelper");
+const { dateToMomentFormat } = require("../helpers/DateHelper");
 const { getDateOnly } = require("../helpers/DateHelper");
 const { dateToString } = require("../helpers/DateHelper");
 
@@ -29,10 +31,12 @@ const getLastReportDate = (reports) => {
         return null
     }
 
-    return reports.map(report => report.createdAt)
+    const result =  reports.map(report => dateToMomentFormat(report.date))
         .reduce((date1, date2) => {
             return date1 > date2? date1: date2;
         });
+
+    return momentToHumanDateFromat(result);
 }
 
 const getSortedByReportsWithDate = (startDate, endDate, aList) => {
