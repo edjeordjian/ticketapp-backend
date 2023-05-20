@@ -1,3 +1,6 @@
+const { BLOCKED_USER } = require("../../constants/messages");
+const { setErrorResponse } = require("../../helpers/ResponseHelper");
+const { userIsBlocked } = require("../users/UserService");
 const { UNEXISTING_USER_ERR_LBL } = require("../../constants/events/eventsConstants");
 const { setUnexpectedErrorResponse } = require("../../helpers/ResponseHelper");
 
@@ -133,6 +136,10 @@ const handleLogIn = async (req, res) => {
             return setUnexpectedErrorResponse(ERROR_SEARCHING_USER, res);
         }
 
+        if (await userIsBlocked(findResponse.email)) {
+            return setErrorResponse(BLOCKED_USER, res, 403);
+        }
+
         id = findResponse.id;
 
         email = findResponse.email;
@@ -143,10 +150,10 @@ const handleLogIn = async (req, res) => {
             return setUnexpectedErrorResponse(result.error);
         }
 
-        if (findResponse.is_administrator !== body.isAdministrator ||
-            findResponse.is_organizer !== body.isOrganizer ||
-            findResponse.is_consumer !== body.isConsumer ||
-            findResponse.is_staff !== body.isStaff) {
+        if ((findResponse.is_administrator && ! body.isAdministrator) ||
+            (findResponse.is_organizer && ! body.isOrganizer) ||
+            (findResponse.is_consumer && ! body.isConsumer) ||
+            (findResponse.is_staff && ! body.isStaff)) {
 
             const result = await handleRoleAppend(body, findResponse);
 
