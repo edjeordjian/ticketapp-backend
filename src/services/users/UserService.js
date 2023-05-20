@@ -206,9 +206,11 @@ const getUsers = async (req, res) => {
                                req.query.endDate,
                                users);
 
-    const serializedUsers = await Promise.all(
+    let serializedUsers = await Promise.all(
         users.map(async user => await getSerializedUserWithReports(user))
     );
+
+    serializedUsers = serializedUsers.filter(user => user.reports.length !== 0);
 
     const responseBody = {
         list: serializedUsers

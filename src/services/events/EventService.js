@@ -527,10 +527,12 @@ const handleSearch = async (req, res) => {
             });
         }
 
-        events.sort((x1, x2) => {
-            const a = x1.reports ? x1.reports.length : 0;
+        events = events.filter(e => e.reports.length !== 0);
 
-            const b = x2.reports ? x2.reports.length : 0;
+        events.sort((x1, x2) => {
+            const a = x1.reports.length;
+
+            const b = x2.reports.length;
 
             return b - a;
         });
