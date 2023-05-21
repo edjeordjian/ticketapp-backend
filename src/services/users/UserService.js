@@ -258,7 +258,9 @@ const blockUser = async (req, res) => {
             where: {
                 state_id: {
                     [Op.eq]: publishedId
-                }
+                },
+
+                owner_id: user.id
             },
             include: eventIncludes
         });
