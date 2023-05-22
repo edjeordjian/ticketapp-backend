@@ -1,6 +1,8 @@
 const Logger = require("../helpers/Logger");
 
 const express = require('express');
+const { getAttendancesStats } = require("../services/events/EventService");
+const { ATTENDANCES_STATS } = require("../constants/URLs");
 const { suspendEvent } = require("../services/events/EventService");
 const { administratorMiddleware } = require("./Middleware");
 const { EVENT_SUSPEND_URL } = require("../constants/URLs");
@@ -161,5 +163,13 @@ router.post(EVENT_REPORT, async (req, res, next) => {
     Logger.request(`POST /event/report`);
     await handleCreateEventReport(req,res);
 });
+
+router.get(ATTENDANCES_STATS, async (req, res, next) => {
+    await isAllowedMiddleware(req, res, next, userIsConsumer);
+}, async (req, res) => {
+    Logger.request(`GET /attendances/stats`);
+    await getAttendancesStats(req,res);
+});
+
 
 module.exports = router;
