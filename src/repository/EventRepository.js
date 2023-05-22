@@ -1,3 +1,5 @@
+const { getTimeStringFrom } = require("../helpers/DateHelper");
+
 const { SUSPENDED_STATUS_LBL } = require("../constants/events/EventStatusConstants");
 const { getStateId } = require("../services/events/EventStateService");
 const { getLastReportDate } = require("./ReportRepository");
@@ -68,6 +70,22 @@ const eventIncludes = [
         ]
     }
 ];
+
+const getEventAttendancesStats = (e) => {
+    const attendances = e.attendees
+                         .filter(attendee => attendee.attendances.attended);
+
+    if (attendances.length > 0) {
+        return attendances.map(attendance => {
+            return {
+                email: attendance.email,
+                time: getTimeStringFrom(attendance.attendances.updatedAt)
+            }
+        })
+    }
+
+    return [];
+}
 
 const getTicket = (e,
                    userId) => {
@@ -213,5 +231,5 @@ const getSerializedEvent = async (e,
 };
 
 module.exports = {
-    getSerializedEvent, getTicket, eventIncludes
+    getSerializedEvent, getTicket, eventIncludes, getEventAttendancesStats
 };
