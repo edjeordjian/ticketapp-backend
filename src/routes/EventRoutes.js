@@ -166,13 +166,13 @@ router.post(EVENT_REPORT, async (req, res, next) => {
 router.post('/event/favourite', async (req, res, next) => {
     await isAllowedMiddleware(req, res, next, userIsConsumer);
 }, async (req, res) => {
-    Logger.request('POST /events/favourite');
+    Logger.request('POST /event/favourite');
     await handleAddFavourite(req,res);
 });
 router.delete('/event/favourite', async (req, res, next) => {
     await isAllowedMiddleware(req, res, next, userIsConsumer);
 }, async (req, res) => {
-    Logger.request('DELETE /events/favourite');
+    Logger.request('DELETE /event/favourite');
     await handleDeleteFavourite(req,res);
 });
 
