@@ -26,6 +26,7 @@ const { userIsConsumer } = require("../services/users/UserService");
 const { EVENT_SIGN_UP_URL } = require("../constants/URLs");
 const { handleGetTypes } = require("../services/events/EventCategoriesService");
 const {handleCreateEventReport} = require("../services/events/EventReportService");
+const { handleAddFavourite, handleDeleteFavourite } = require("../services/events/EventsFavouritesService")
 
 const { EVENT_TYPES_URL } = require("../constants/URLs");
 
@@ -162,6 +163,19 @@ router.post(EVENT_REPORT, async (req, res, next) => {
 }, async (req, res) => {
     Logger.request(`POST /event/report`);
     await handleCreateEventReport(req,res);
+});
+
+router.post('/event/favourite', async (req, res, next) => {
+    await isAllowedMiddleware(req, res, next, userIsConsumer);
+}, async (req, res) => {
+    Logger.request('POST /event/favourite');
+    await handleAddFavourite(req,res);
+});
+router.delete('/event/favourite', async (req, res, next) => {
+    await isAllowedMiddleware(req, res, next, userIsConsumer);
+}, async (req, res) => {
+    Logger.request('DELETE /event/favourite');
+    await handleDeleteFavourite(req,res);
 });
 
 router.get(ATTENDANCES_STATS, async (req, res, next) => {
