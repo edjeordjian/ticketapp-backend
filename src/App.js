@@ -74,6 +74,26 @@ setLevel(LOG_LEVEL);
 // Once every minute
 cron.schedule('* * * * *', cronEventUpdate);
 
+/*
+*
+*  LogInService
+*  |
+*  ----> UserService
+*        |
+*        ------> EventNotificationService
+*        |       |
+*        |       v
+*        ------> EventStateService
+*
+*  EventService
+*  |
+*  ----> FirebaseService
+*  ------^
+*  |
+*  EventReportService
+*
+* */
+
 syncDB().then(() => {
     app.listen(NODE_PORT, () => {
         logInfo(`${PORT_LBL} ${NODE_PORT}`);

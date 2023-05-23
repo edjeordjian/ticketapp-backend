@@ -1,41 +1,68 @@
 const Logger = require("../helpers/Logger");
 
 const express = require('express');
-const { getAttendancesStats } = require("../services/events/EventService");
-const { ATTENDANCES_STATS } = require("../constants/URLs");
-const { suspendEvent } = require("../services/events/EventService");
-const { administratorMiddleware } = require("./Middleware");
-const { EVENT_SUSPEND_URL } = require("../constants/URLs");
-const { cancelEvent } = require("../services/events/EventService");
-const { EVENT_CANCEL_URL, EVENT_REPORT } = require("../constants/URLs");
-const { getReportCategories } = require("../services/events/EventCategoriesService");
-const { REPORTS_CATEGORIES_URL } = require("../constants/URLs");
-const { userIsStaff } = require("../services/users/UserService");
-const { handleEventCheck } = require("../services/events/EventService");
-const { EVENT_CHECK_URL } = require("../constants/URLs");
-const { firebaseAuthMiddleware } = require("./Middleware");
-const { emptyBodyMiddleware } = require("./Middleware");
-const { isAllowedMiddleware } = require("./Middleware");
-const { handleGetGroup } = require("../services/login/GroupService");
-const { handleAddUserToGroup } = require("../services/login/GroupService");
-const { isOrganizerMiddleware } = require("./Middleware");
-const { EVENT_GROUP_URL } = require("../constants/URLs");
-const { EVENT_GROUP_ADD_USER_URL } = require("../constants/URLs");
-const { handleEventSignUp } = require("../services/events/EventService");
-const { userIsConsumer } = require("../services/users/UserService");
-const { EVENT_SIGN_UP_URL } = require("../constants/URLs");
-const { handleGetTypes } = require("../services/events/EventCategoriesService");
+
+const {
+    suspendEvent,
+    cancelEvent,
+    getAttendancesStats,
+    getAttendancesRange
+} = require("../services/events/EventService");
+
+const {
+    EVENT_CANCEL_URL,
+    EVENT_REPORT,
+    EVENT_SUSPEND_URL,
+    REPORTS_CATEGORIES_URL,
+    EVENT_CHECK_URL,
+    EVENT_SIGN_UP_URL,
+    EVENT_TYPES_URL,
+    EVENT_GROUP_ADD_USER_URL,
+    EVENT_GROUP_URL,
+    EVENT_URL,
+    EVENT_SEARCH_NAME_URL,
+    ATTENDANCES_STATS_URL,
+    ATTENDANCES_RANGE_URL
+} = require("../constants/URLs");
+
+const {
+    administratorMiddleware,
+    firebaseAuthMiddleware,
+    emptyBodyMiddleware,
+    isAllowedMiddleware,
+    isOrganizerMiddleware
+} = require("./Middleware");
+
+const {
+    handleAddUserToGroup,
+    handleGetGroup
+} = require("../services/login/GroupService");
+
+const {
+    handleEventSignUp,
+    handleEventCheck
+} = require("../services/events/EventService");
+
+const {
+    userIsConsumer,
+    userIsStaff
+} = require("../services/users/UserService");
+
+const {
+    handleGetTypes,
+    getReportCategories
+} = require("../services/events/EventCategoriesService");
 const {handleCreateEventReport} = require("../services/events/EventReportService");
 
-const { EVENT_TYPES_URL } = require("../constants/URLs");
-
-const { handleCreate,
+const {
+    handleCreate,
     handleSearch,
-    handleGet, handleUpdateEvent } = require("../services/events/EventService");
+    handleGet,
+    handleUpdateEvent
+} = require("../services/events/EventService");
 
 const { userIsOrganizer, userExists } = require("../services/users/UserService");
 
-const { EVENT_URL, EVENT_SEARCH_NAME_URL } = require("../constants/URLs");
 const { async } = require("@firebase/util");
 
 const router = express.Router();
@@ -164,12 +191,18 @@ router.post(EVENT_REPORT, async (req, res, next) => {
     await handleCreateEventReport(req,res);
 });
 
-router.get(ATTENDANCES_STATS, async (req, res, next) => {
-    await isAllowedMiddleware(req, res, next, userIsConsumer);
+router.get(ATTENDANCES_STATS_URL, async (req, res, next) => {
+    await isAllowedMiddleware(req, res, next, userIsStaff);
 }, async (req, res) => {
     Logger.request(`GET /attendances/stats`);
-    await getAttendancesStats(req,res);
+    await getAttendancesStats(req, res);
 });
 
+router.get(ATTENDANCES_RANGE_URL, async (req, res, next) => {
+    await isAllowedMiddleware(req, res, next, userIsStaff);
+}, async (req, res) => {
+    Logger.request(`GET /attendances/range`);
+    await getAttendancesRange(req, res);
+});
 
 module.exports = router;

@@ -1,7 +1,13 @@
-const { SUSPENDED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
-const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
-const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
-const { UNSUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const {
+    SUSPENDED_STATUS_LBL,
+    PUBLISHED_STATUS_LBL
+} = require("../../constants/events/EventStatusConstants");
+
+const {
+    SUSPENDED_EVENT_LBL,
+    UNSUSPENDED_EVENT_LBL
+} = require("../../constants/events/eventsConstants");
+
 const { getStateId } = require("./EventStateService");
 const { CANCELLED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { IS_PRODUCTION } = require("../../constants/dataConstants");
