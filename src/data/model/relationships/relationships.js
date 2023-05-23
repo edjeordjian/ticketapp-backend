@@ -13,6 +13,7 @@ const { defineEventSpeakerRelationship } = require("./SpeakerEventRelationship")
 const { defineGroupGroupParticipantRelationship } = require("./GroupParticipantsRelationship");
 
 const { defineEventFAQRelationship } = require("./EventsFAQRelationship");
+const {defineFavouriteEventsRelationship} = require("./FavouriteEventsRelationship");
 
 const defineRelationships = () => {
     defineEventTypeEventRelationship();
@@ -30,6 +31,7 @@ const defineRelationships = () => {
     defineEventReportUserEventRelationship();
 
     defineEventStateRelationship();
+    defineFavouriteEventsRelationship();
 };
 
 module.exports = {

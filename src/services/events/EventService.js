@@ -290,13 +290,22 @@ const handleSearch = async (req, res) => {
         admin,
         latitude,
         longitude,
-        withReports
+        withReports,
+        only_favourites
     } = req.query;
 
     let events;
+    const get_favourites = Boolean(only_favourites);
 
-    let userId = null;
-
+    let userId = await getUserId(req);
+    const include_favourites = {
+        model: User,
+        as: "FavouritedByUsers",
+        where: {
+          id: userId
+        }
+    }
+    const favouriteInclude = get_favourites? [include_favourites]:[];
     const order = [
         ["date", "ASC"],
         ["time", "ASC"]
@@ -309,7 +318,6 @@ const handleSearch = async (req, res) => {
     }
 
     if (value) {
-        userId = await getUserId(req);
 
         const valueToSearch = fullTrimString(value);
 
@@ -326,7 +334,7 @@ const handleSearch = async (req, res) => {
                 [Op.eq]: publishedId
             }
         },
-            eventIncludes,
+            eventIncludes.concat(favouriteInclude),
             order
         );
 
@@ -335,7 +343,6 @@ const handleSearch = async (req, res) => {
         }
     }
     else if (tags) {
-        userId = await getUserId(req);
 
         const types_ids = tags.split(",");
 
@@ -382,7 +389,7 @@ const handleSearch = async (req, res) => {
                     attributes: ["id", "name"],
                     as: EVENT_TO_EVENT_STATE_RELATION_NAME
                 }
-            ],
+            ].concat(favouriteInclude),
             order
         );
         
@@ -394,7 +401,7 @@ const handleSearch = async (req, res) => {
         events = await findAll(Events, {
             owner_id: owner
         },
-            eventIncludes,
+            eventIncludes.concat(favouriteInclude),
             order
         );
         
@@ -443,7 +450,7 @@ const handleSearch = async (req, res) => {
     }
     else if (consumer) {
         userId = await getUserId(req);
-
+        Logger.logInfo("consumer");
         const user = await findOne(User,
             {
                 id: consumer,
@@ -464,7 +471,7 @@ const handleSearch = async (req, res) => {
                         [Op.eq]: publishedId
                     }
                 },
-                include: eventIncludes
+                include: eventIncludes.concat(favouriteInclude)
             })
             .then(events =>
                 events.filter(e => {
@@ -533,6 +540,7 @@ const handleSearch = async (req, res) => {
         });
     }
     else {
+        Logger.logInfo(`published id ${publishedId}`);
         events = await findAll(Events,
             {
                 capacity: {
@@ -543,7 +551,7 @@ const handleSearch = async (req, res) => {
                     [Op.eq]: publishedId
                 }
             },
-            eventIncludes,
+            eventIncludes.concat(favouriteInclude),
             order
         );
         

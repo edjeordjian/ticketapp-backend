@@ -52,7 +52,10 @@ const {
     handleGetTypes,
     getReportCategories
 } = require("../services/events/EventCategoriesService");
+
 const {handleCreateEventReport} = require("../services/events/EventReportService");
+
+const { handleAddFavourite, handleDeleteFavourite } = require("../services/events/EventsFavouritesService")
 
 const {
     handleCreate,
@@ -62,8 +65,6 @@ const {
 } = require("../services/events/EventService");
 
 const { userIsOrganizer, userExists } = require("../services/users/UserService");
-
-const { async } = require("@firebase/util");
 
 const router = express.Router();
 
@@ -189,6 +190,19 @@ router.post(EVENT_REPORT, async (req, res, next) => {
 }, async (req, res) => {
     Logger.request(`POST /event/report`);
     await handleCreateEventReport(req,res);
+});
+
+router.post('/event/favourite', async (req, res, next) => {
+    await isAllowedMiddleware(req, res, next, userIsConsumer);
+}, async (req, res) => {
+    Logger.request('POST /event/favourite');
+    await handleAddFavourite(req,res);
+});
+router.delete('/event/favourite', async (req, res, next) => {
+    await isAllowedMiddleware(req, res, next, userIsConsumer);
+}, async (req, res) => {
+    Logger.request('DELETE /event/favourite');
+    await handleDeleteFavourite(req,res);
 });
 
 router.get(ATTENDANCES_STATS_URL, async (req, res, next) => {
