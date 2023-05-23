@@ -21,33 +21,36 @@ const isOrganizerMiddleware = async (req, res, next) => {
     const authorization = req.headers.authorization;
 
     if (!authorization) {
-        return setErrorResponse("Acceso solo para organizadores.", res, 401);
+        return setErrorResponse("Acceso solo para organizadores.", res, 403);
     }
 
     const token = authorization.split(' ')[1];
 
     const decodedToken = await verifyToken(token);
+
     const isOrganizer = await userIsOrganizer(null, decodedToken.email);
+
+    if (await userIsBlocked(decodedToken.email)) {
+        return setErrorResponse(BLOCKED_USER, res, 403);
+    }
+
     if (isOrganizer) {
         next();
     } else {
-        return setErrorResponse("Acceso solo para organizadores.", res, 401);
+        return setErrorResponse("Acceso solo para organizadores.", res, 403);
     }
-
 }
 
 const administratorMiddleware = async (req, res, next, logIn) => {
     const authorization = req.headers.authorization;
 
-    const body = req.body;
-
     if (! logIn && ! req.headers.isadministrator) {
-        return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 404);
+        return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 403);
     }
 
     if (req.headers.isadministrator) {
         if (! authorization || authorization.split(' ').length < 2){
-            return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 404);
+            return setErrorResponse(ONLY_ADMIN_ERR_LBL, res, 403);
         }
 
         const token = authorization.split(' ')[1];
@@ -55,27 +58,31 @@ const administratorMiddleware = async (req, res, next, logIn) => {
         const decodedToken = await verifyToken(token);
 
         if (! decodedToken) {
-            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 404);
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 403);
         }
 
         const isAdministrator = await userIsAdministrator(decodedToken);
 
-        if (! isAdministrator) {
-            return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 404);
+        if (await userIsBlocked(decodedToken.email)) {
+            return setErrorResponse(BLOCKED_USER, res, 403);
         }
-    } else if (await userExists(null, body.email) && await userIsBlocked(body.email)) {
-        return setErrorResponse(BLOCKED_USER, res, 404);
+
+        if (! isAdministrator) {
+            return setErrorResponse(DENIED_ACCESS_ERR_LBL, res, 403);
+        }
     }
 
     next();
 }
 
 const emptyBodyMiddleware = async (req, res, next) => {
+    const body = req.body;
+
     if (req.method === "POST" && isEmpty(req.body)) {
         return setErrorResponse("Error en la petición. Body", res, 400);
-    } else {
-        next();
     }
+
+    next();
 }
 
 const isAllowedMiddleware = async (req, res, next, check_fn) => {
@@ -85,16 +92,26 @@ const isAllowedMiddleware = async (req, res, next, check_fn) => {
 
     const token = req.headers.authorization.split(' ')[1];
 
+    let email;
+
     let isAllowed;
 
     if (req.headers.expo) {
         const userData = await getFirebaseUserData(token);
 
         isAllowed = await check_fn(userData.id, null);
+
+        email = userData.email;
     } else {
         const decodedToken = await verifyToken(token);
 
         isAllowed = await check_fn(null, decodedToken.email);
+
+        email = decodedToken.email;
+    }
+
+    if (await userIsBlocked(email)) {
+        return setErrorResponse(BLOCKED_USER, res, 403);
     }
 
     if (isAllowed) {
@@ -107,10 +124,16 @@ const isAllowedMiddleware = async (req, res, next, check_fn) => {
 const firebaseAuthMiddleware = async (req, res, next) => {
     let token;
 
+    const body = req.body;
+
     if (req.headers.expo && req.headers.authorization) {
         const userData = await getFirebaseUserData(req.headers.authorization.split(" ")[1]);
 
         if (userData.id) {
+            if (await userIsBlocked(userData.email)) {
+                return setErrorResponse(BLOCKED_USER, res, 403);
+            }
+
             next();
         } else {
             return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 400);
@@ -123,11 +146,18 @@ const firebaseAuthMiddleware = async (req, res, next) => {
         }
         const decodedToken = await verifyToken(token);
         if (decodedToken === false) {
-            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 400);
-        } else {
+            return setErrorResponse(EXPIRED_TOKEN_ERR_LBL, res, 401);
+        }
+        else {
             const exists = await userExists(null, decodedToken.email);
+
             if (exists) {
+                if (await userIsBlocked(decodedToken.email)) {
+                    return setErrorResponse(BLOCKED_USER, res, 403);
+                }
+
                 req.decodedToken = decodedToken;
+
                 next();
             } else {
                 return setErrorResponse("Falta ingresar", res, 400);

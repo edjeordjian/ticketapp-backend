@@ -49,7 +49,7 @@ const getAttendeesTokens = async (e) => {
 }
 
 const notifyTomorrowEvents = async () => {
-    const canceledId = await getStateId(CANCELLED_STATUS_LBL);
+    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
 
     const now = new Date();
 
@@ -106,7 +106,7 @@ const notifyTomorrowEvents = async () => {
             time: whereTime,
 
             state_id: {
-                [Op.ne]: canceledId
+                [Op.ne]: publishedId
             }
         },
         eventIncludes

@@ -61,6 +61,7 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { getEventAttendancesStats } = require("../../repository/EventRepository");
 const { IS_PRODUCTION } = require("../../constants/dataConstants");
 const { FINISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { suspendGivenEvent } = require("./EventNotificationService");
@@ -534,10 +535,12 @@ const handleSearch = async (req, res) => {
             });
         }
 
-        events.sort((x1, x2) => {
-            const a = x1.reports ? x1.reports.length : 0;
+        events = events.filter(e => e.reports.length !== 0);
 
-            const b = x2.reports ? x2.reports.length : 0;
+        events.sort((x1, x2) => {
+            const a = x1.reports.length;
+
+            const b = x2.reports.length;
 
             return b - a;
         });
@@ -1050,6 +1053,34 @@ const cronEventUpdate = async () => {
     await notifyTomorrowEvents();
 }
 
+const getAttendancesStats = async (req, res) => {
+    const {eventId} = req.query;
+
+    const event = await findOne(Events,
+        {
+            id: eventId
+        },
+        [
+            {
+                model: User,
+                attributes: ["id", "email"],
+                as: ATTENDEES_RELATION_NAME
+            }
+        ]);
+
+    if (event.error) {
+        return setUnexpectedErrorResponse(event.error, res);
+    }
+
+    const stats = getEventAttendancesStats(event);
+
+    const response = {
+        stats: stats
+    }
+
+    return setOkResponse(OK_LBL, res, response);
+}
+
 module.exports = {
     handleCreate,
     handleGet,
@@ -1059,5 +1090,6 @@ module.exports = {
     handleUpdateEvent,
     cancelEvent,
     cronEventUpdate,
-    suspendEvent
+    suspendEvent,
+    getAttendancesStats
 };
