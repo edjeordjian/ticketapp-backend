@@ -108,7 +108,7 @@ const handleExpoTokenUpdate = async (expo_token, user)  => {
 }
 
 const handleRoleAppend = async (body, user) => {
-    const userWasNotOrganizer = user.is_organizer;
+    const userWasNotOrganizer = ! user.is_organizer;
 
     const updateResponse = await update(User,
         {

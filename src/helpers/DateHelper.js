@@ -100,7 +100,17 @@ const momentToHumanDateFormat = (dateString) => {
     return `${day}/${month}/${year}`;
 }
 
+const timeToNumber = (timeStr) => {
+    const [
+        hours,
+        minutes
+    ] = timeStr.split(":");
+
+    return Number(hours) * 100 + Number(minutes);
+}
+
 module.exports = {
     getQuickDate, dateFromString, dateToString, timeToString,
-    getDateOnly, dateToMomentFormat, momentToHumanDateFormat, getTimeStringFrom
+    getDateOnly, dateToMomentFormat, momentToHumanDateFormat, getTimeStringFrom,
+    timeToNumber
 };

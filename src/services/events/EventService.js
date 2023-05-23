@@ -61,6 +61,9 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { UNAUTHORIZED_EVENT_ERR_LBL } = require("../../constants/events/eventsConstants");
+const { getDataInBuckets } = require("../../helpers/HistogramHelper");
+const { getTimeFrequencies } = require("../../helpers/HistogramHelper");
 const { addUserToNewGroup } = require("../login/LogInService");
 const { getOwnersIds } = require("../users/UserService");
 const { getEventAttendancesRange } = require("../../repository/EventRepository");
@@ -1112,29 +1115,23 @@ const getAttendancesRange = async (req, res) => {
         ]);
 
     if (! event) {
-        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL);
+        return setErrorResponse(UNAUTHORIZED_EVENT_ERR_LBL, res);
     }
 
     if (event.error) {
         return setUnexpectedErrorResponse(event.error, res);
     }
 
-    const entrances = getEventAttendancesRange(event);
+    let times = getEventAttendancesRange(event);
 
-    let first, last;
+    const labels = getTimeFrequencies(times);
 
-    if (entrances.length > 0) {
-        first = entrances[0];
-
-        last = entrances[entrances.length - 1];
-    }
+    const data = getDataInBuckets(times, labels);
 
     const response = {
-        first: first,
+        data: data,
 
-        last: last,
-
-        entrances: entrances
+        labels: labels
     }
 
     return setOkResponse(OK_LBL, res, response);
