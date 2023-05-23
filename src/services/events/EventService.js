@@ -61,6 +61,12 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { UNAUTHORIZED_EVENT_ERR_LBL } = require("../../constants/events/eventsConstants");
+const { getDataInBuckets } = require("../../helpers/HistogramHelper");
+const { getTimeFrequencies } = require("../../helpers/HistogramHelper");
+const { addUserToNewGroup } = require("../login/LogInService");
+const { getOwnersIds } = require("../users/UserService");
+const { getEventAttendancesRange } = require("../../repository/EventRepository");
 const { getEventAttendancesStats } = require("../../repository/EventRepository");
 const { IS_PRODUCTION } = require("../../constants/dataConstants");
 const { FINISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
@@ -417,25 +423,13 @@ const handleSearch = async (req, res) => {
             return setUnexpectedErrorResponse(user.error, res);
         }
         
-        const groups = await user.getGroups();
+        const ownerIdsResult = await getOwnersIds(user);
 
-        const owner_emails = groups.map(group => {
-            return group.organizer_email
-        });
-
-        const owners = await findAll(User, {
-            email: {
-                [Op.in]: owner_emails
-            }
-        });
-
-        if (owners.error) {
-            return setUnexpectedErrorResponse(owner.error, res);
+        if (ownerIdsResult.error) {
+            return setUnexpectedErrorResponse(ownerIdsResult.error, res);
         }
 
-        const owners_ids = owners.map(owner => {
-            return owner.id
-        });
+        const owners_ids = ownerIdsResult.result;
 
         events = await findAll(Events,
             {
@@ -725,7 +719,8 @@ const handleEventCheck = async (req, res) => {
             attended: true
         },
         {
-            eventId: event.id
+            eventId: event.id,
+            hash_code: eventCode
         });
 
     if (updateResult.error) {
@@ -1081,6 +1076,75 @@ const getAttendancesStats = async (req, res) => {
     return setOkResponse(OK_LBL, res, response);
 }
 
+const getAttendancesRange = async (req, res) => {
+    const {eventId} = req.query;
+
+    const userId = await getUserId(req);
+
+    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
+
+    const user = await findOne(User, {
+        id: userId,
+        is_staff: true
+    });
+
+    if (! user) {
+        return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+    }
+
+    if (user.error) {
+        return setUnexpectedErrorResponse(user.error, res);
+    }
+
+    const ownerIdsResult = await getOwnersIds(user);
+
+    if (ownerIdsResult.error) {
+        return setUnexpectedErrorResponse(ownerIdsResult.error, res);
+    }
+
+    const owners_ids = ownerIdsResult.result;
+
+    const event = await findOne(Events,
+        {
+            id: eventId,
+
+            owner_id: {
+                [Op.in]: owners_ids
+            },
+
+            state_id: publishedId
+        },
+        [
+            {
+                model: User,
+                attributes: ["id"],
+                as: ATTENDEES_RELATION_NAME
+            }
+        ]);
+
+    if (! event) {
+        return setErrorResponse(UNAUTHORIZED_EVENT_ERR_LBL, res);
+    }
+
+    if (event.error) {
+        return setUnexpectedErrorResponse(event.error, res);
+    }
+
+    let times = getEventAttendancesRange(event);
+
+    const labels = getTimeFrequencies(times);
+
+    const data = getDataInBuckets(times, labels);
+
+    const response = {
+        data: data,
+
+        labels: labels
+    }
+
+    return setOkResponse(OK_LBL, res, response);
+}
+
 module.exports = {
     handleCreate,
     handleGet,
@@ -1091,5 +1155,6 @@ module.exports = {
     cancelEvent,
     cronEventUpdate,
     suspendEvent,
-    getAttendancesStats
+    getAttendancesStats,
+    getAttendancesRange
 };

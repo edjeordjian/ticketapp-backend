@@ -87,6 +87,23 @@ const getEventAttendancesStats = (e) => {
     return [];
 }
 
+const getEventAttendancesRange = (e) => {
+    const attendances = e.attendees
+        .filter(attendee => attendee.attendances.attended);
+
+    if (attendances.length > 0) {
+        const result =  attendances.map(attendance => {
+            return getTimeStringFrom(attendance.attendances.updatedAt);
+        });
+
+        result.sort();
+
+        return result;
+    }
+
+    return [];
+}
+
 const getTicket = (e,
                    userId) => {
     const attendances = e.attendees
@@ -231,5 +248,6 @@ const getSerializedEvent = async (e,
 };
 
 module.exports = {
-    getSerializedEvent, getTicket, eventIncludes, getEventAttendancesStats
+    getSerializedEvent, getTicket, eventIncludes, getEventAttendancesStats,
+    getEventAttendancesRange
 };

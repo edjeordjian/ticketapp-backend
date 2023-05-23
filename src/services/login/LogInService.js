@@ -22,6 +22,26 @@ const { setOkResponse } = require("../../helpers/ResponseHelper");
 
 const { findOne, create, update } = require("../../helpers/QueryHelper");
 
+const addUserToNewGroup = async (user) => {
+    const group = await create(Group, {
+        organizer_email: user.email
+    });
+
+    if (group.error) {
+        return {
+            group: group.error
+        }
+    }
+
+    await group.addUser(user);
+
+    logInfo(group);
+
+    return {
+        result: group
+    }
+}
+
 const handleSignUp = async (body) => {
     const createResponse = await create(User, {
         id: body.id,
@@ -34,13 +54,11 @@ const handleSignUp = async (body) => {
         picture_url: body.pictureUrl
     }).then(async (user) => {
         if (body.isOrganizer) {
-            const group = await create(Group, {
-                organizer_email: body.email
-            });
+            const result = await addUserToNewGroup(user);
 
-            await group.addUser(user);
-
-            logInfo(group);
+            if (result.error) {
+                return result;
+            }
         }
 
         return user;
@@ -90,6 +108,8 @@ const handleExpoTokenUpdate = async (expo_token, user)  => {
 }
 
 const handleRoleAppend = async (body, user) => {
+    const userWasNotOrganizer = ! user.is_organizer;
+
     const updateResponse = await update(User,
         {
             is_administrator: body.isAdministrator || user.is_administrator,
@@ -105,6 +125,14 @@ const handleRoleAppend = async (body, user) => {
         return {
             error: updateResponse.error
         };
+    }
+
+    if (body.isOrganizer && userWasNotOrganizer) {
+        const group = await addUserToNewGroup(user);
+
+        if (group.error) {
+            return group;
+        }
     }
 
     return {
@@ -191,5 +219,5 @@ const getUserWithEmail = async(userEmail) => {
 }
 
 module.exports = {
-    handleLogIn, getUserWithEmail
+    handleLogIn, getUserWithEmail, addUserToNewGroup
 };
