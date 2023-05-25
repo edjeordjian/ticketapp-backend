@@ -221,7 +221,9 @@ const getSerializedEvent = async (e,
             "name": e.state.name
             }
             :
-            {}
+            {},
+
+        is_favourite: e.FavouritedByUsers ? e.FavouritedByUsers.length !== 0 : false
     }
 
     if (userId) {
