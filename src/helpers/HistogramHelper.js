@@ -13,11 +13,16 @@ const getNextCurrentTime = (currentMinutes, hours, deltaMinutes) => {
 }
 
 const getTimeFrequencies = (times) => {
+    let labels = [];
+
+    if (times.length === 0) {
+        return labels;
+    }
+
+
     const first = times.reduce((a,b) => a < b ? a : b);
 
     const last = times.reduce((a,b) => a > b ? a : b);
-
-    let labels = [];
 
     let deltaMinutes;
 
@@ -39,7 +44,7 @@ const getTimeFrequencies = (times) => {
 
     let currentTime = `${hours}:${currentMinutes}`;
 
-    for (let i = 1; i < 9; i += 1) {
+    for (let i = 1; i < 6; i += 1) {
         currentTime = getNextCurrentTime(currentMinutes,
                                          hours,
                                          deltaMinutes);
@@ -88,7 +93,13 @@ const getDataInBuckets = (times, labels) => {
         data[label] += 1;
     }
 
-    return data;
+    const dataList = [];
+
+    for (const [key, value] of Object.entries(data)) {
+        dataList.push(value);
+    }
+
+    return dataList;
 }
 
 module.exports = {
