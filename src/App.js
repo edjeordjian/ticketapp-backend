@@ -14,6 +14,8 @@ const eventRoutes = require("./routes/EventRoutes");
 
 const userRoutes = require("./routes/UserRoutes");
 
+const eventScheduleRoutes = require("./routes/EventCalendarScheduleRoutes");
+
 const { cronEventUpdate } = require("./services/events/EventService");
 
 const { defineRelationships } = require("./data/model/relationships/relationships");
@@ -68,6 +70,8 @@ app.use(BASE_URL, logInRoutes);
 app.use(BASE_URL, eventRoutes);
 
 app.use(BASE_URL, userRoutes);
+
+app.use(BASE_URL, eventScheduleRoutes)
 
 setLevel(LOG_LEVEL);
 

@@ -8,7 +8,7 @@ const { objDeepCopy } = require("../../helpers/ObjectHelper");
 
 const { Speakers } = require("../../data/model/Speakers");
 
-const {Event_EventType} = require("../../data/model/relationships/EvenTypeEventRelationship");
+const { Event_EventType } = require("../../data/model/relationships/EvenTypeEventRelationship");
 
 const { Events } = require("../../data/model/Events");
 
@@ -456,7 +456,7 @@ const handleSearch = async (req, res) => {
         }
         
         if (user.error) {
-            return setUnexpectedErrorResponse(events.error, res);
+            return setUnexpectedErrorResponse(user.error, res);
         }
 
         events = await user.getEvents({
@@ -503,7 +503,7 @@ const handleSearch = async (req, res) => {
         }
 
         if (user.error) {
-            return setUnexpectedErrorResponse(events.error, res);
+            return setUnexpectedErrorResponse(user.error, res);
         }
 
         events = await findAll(Events, {
@@ -719,7 +719,9 @@ const handleEventCheck = async (req, res) => {
 
     if (!event) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
-    } else if (event.error) {
+    }
+
+    if (event.error) {
         return setUnexpectedErrorResponse(event.error, res);
     }
 
