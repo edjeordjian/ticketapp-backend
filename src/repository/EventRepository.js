@@ -176,6 +176,8 @@ const getSerializedEvent = async (e,
 
         capacity: e.capacity,
 
+        total_capacity: e.total_capacity,
+
         date: dateToString(e.date),
 
         time: timeToString(e.time),
