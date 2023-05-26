@@ -1,3 +1,6 @@
+const { getFullName } = require("./UserRepository");
+const { getTimeStringFrom } = require("../helpers/DateHelper");
+
 const { SUSPENDED_STATUS_LBL } = require("../constants/events/EventStatusConstants");
 const { getStateId } = require("../services/events/EventStateService");
 const { getLastReportDate } = require("./ReportRepository");
@@ -68,6 +71,39 @@ const eventIncludes = [
         ]
     }
 ];
+
+const getEventAttendancesStats = (e) => {
+    const attendances = e.attendees
+                         .filter(attendee => attendee.attendances.attended);
+
+    if (attendances.length > 0) {
+        return attendances.map(attendance => {
+            return {
+                name: getFullName(attendance),
+                time: getTimeStringFrom(attendance.attendances.updatedAt)
+            }
+        })
+    }
+
+    return [];
+}
+
+const getEventAttendancesRange = (e) => {
+    const attendances = e.attendees
+        .filter(attendee => attendee.attendances.attended);
+
+    if (attendances.length > 0) {
+        const result =  attendances.map(attendance => {
+            return getTimeStringFrom(attendance.attendances.updatedAt);
+        });
+
+        result.sort();
+
+        return result;
+    }
+
+    return [];
+}
 
 const getTicket = (e,
                    userId) => {
@@ -188,7 +224,9 @@ const getSerializedEvent = async (e,
             "name": e.state.name
             }
             :
-            {}
+            {},
+
+        is_favourite: e.FavouritedByUsers ? e.FavouritedByUsers.length !== 0 : false
     }
 
     if (userId) {
@@ -215,5 +253,6 @@ const getSerializedEvent = async (e,
 };
 
 module.exports = {
-    getSerializedEvent, getTicket, eventIncludes
+    getSerializedEvent, getTicket, eventIncludes, getEventAttendancesStats,
+    getEventAttendancesRange
 };

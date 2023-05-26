@@ -61,6 +61,13 @@ const { Attendances } = require("../../data/model/Attendances");
 const { EVENT_ALREADY_BOOKED } = require("../../constants/events/eventsConstants");
 
 const crypto = require("crypto");
+const { UNAUTHORIZED_EVENT_ERR_LBL } = require("../../constants/events/eventsConstants");
+const { getDataInBuckets } = require("../../helpers/HistogramHelper");
+const { getTimeFrequencies } = require("../../helpers/HistogramHelper");
+const { addUserToNewGroup } = require("../login/LogInService");
+const { getOwnersIds } = require("../users/UserService");
+const { getEventAttendancesRange } = require("../../repository/EventRepository");
+const { getEventAttendancesStats } = require("../../repository/EventRepository");
 const { IS_PRODUCTION } = require("../../constants/dataConstants");
 const { FINISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { suspendGivenEvent } = require("./EventNotificationService");
@@ -274,7 +281,7 @@ const handleCreate = async (req, res) => {
 };
 
 const handleSearch = async (req, res) => {
-    const {
+    let {
         value,
         tags,
         owner,
@@ -283,12 +290,18 @@ const handleSearch = async (req, res) => {
         admin,
         latitude,
         longitude,
-        withReports
+        withReports,
+        only_favourites
     } = req.query;
 
     let events;
 
-    let userId = null;
+    let userId = await getUserId(req);
+
+    const favouriteInclude = [{
+        model: User,
+        as: "FavouritedByUsers"
+    }];
 
     const order = [
         ["date", "ASC"],
@@ -302,8 +315,6 @@ const handleSearch = async (req, res) => {
     }
 
     if (value) {
-        userId = await getUserId(req);
-
         const valueToSearch = fullTrimString(value);
 
         events = await findAll(Events, {
@@ -319,7 +330,7 @@ const handleSearch = async (req, res) => {
                 [Op.eq]: publishedId
             }
         },
-            eventIncludes,
+            eventIncludes.concat(favouriteInclude),
             order
         );
 
@@ -328,7 +339,6 @@ const handleSearch = async (req, res) => {
         }
     }
     else if (tags) {
-        userId = await getUserId(req);
 
         const types_ids = tags.split(",");
 
@@ -375,7 +385,7 @@ const handleSearch = async (req, res) => {
                     attributes: ["id", "name"],
                     as: EVENT_TO_EVENT_STATE_RELATION_NAME
                 }
-            ],
+            ].concat(favouriteInclude),
             order
         );
         
@@ -387,7 +397,7 @@ const handleSearch = async (req, res) => {
         events = await findAll(Events, {
             owner_id: owner
         },
-            eventIncludes,
+            eventIncludes.concat(favouriteInclude),
             order
         );
         
@@ -409,25 +419,13 @@ const handleSearch = async (req, res) => {
             return setUnexpectedErrorResponse(user.error, res);
         }
         
-        const groups = await user.getGroups();
+        const ownerIdsResult = await getOwnersIds(user);
 
-        const owner_emails = groups.map(group => {
-            return group.organizer_email
-        });
-
-        const owners = await findAll(User, {
-            email: {
-                [Op.in]: owner_emails
-            }
-        });
-
-        if (owners.error) {
-            return setUnexpectedErrorResponse(owner.error, res);
+        if (ownerIdsResult.error) {
+            return setUnexpectedErrorResponse(ownerIdsResult.error, res);
         }
 
-        const owners_ids = owners.map(owner => {
-            return owner.id
-        });
+        const owners_ids = ownerIdsResult.result;
 
         events = await findAll(Events,
             {
@@ -447,8 +445,6 @@ const handleSearch = async (req, res) => {
         }
     }
     else if (consumer) {
-        userId = await getUserId(req);
-
         const user = await findOne(User,
             {
                 id: consumer,
@@ -469,7 +465,7 @@ const handleSearch = async (req, res) => {
                         [Op.eq]: publishedId
                     }
                 },
-                include: eventIncludes
+                include: eventIncludes.concat(favouriteInclude)
             })
             .then(events =>
                 events.filter(e => {
@@ -486,11 +482,50 @@ const handleSearch = async (req, res) => {
         if (events.error) {
             return setUnexpectedErrorResponse(events.error, res);
         }
-        
+
         userId = await getUserId(req);
 
         events = events.filter(e => {
             return ! getTicket(e, userId).wasUsed;
+        });
+    }
+    else if (only_favourites) {
+        userId = await getUserId(req);
+
+        const user = await findOne(User,
+            {
+                id: userId,
+                is_consumer: true
+            });
+
+        if (! user) {
+            return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+        }
+
+        if (user.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
+
+        events = await findAll(Events, {
+                state_id: {
+                    [Op.eq]: publishedId
+                }
+            },
+            eventIncludes.concat([{
+                model: User,
+                as: "FavouritedByUsers",
+                where: {
+                    id: userId
+                }
+            }])
+        );
+
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
+
+        events = events.filter(e => {
+            return e.FavouritedByUsers.length !== 0;
         });
     }
     else if (admin) {
@@ -527,15 +562,18 @@ const handleSearch = async (req, res) => {
             });
         }
 
-        events.sort((x1, x2) => {
-            const a = x1.reports ? x1.reports.length : 0;
+        events = events.filter(e => e.reports.length !== 0);
 
-            const b = x2.reports ? x2.reports.length : 0;
+        events.sort((x1, x2) => {
+            const a = x1.reports.length;
+
+            const b = x2.reports.length;
 
             return b - a;
         });
     }
     else {
+        Logger.logInfo(`published id ${publishedId}`);
         events = await findAll(Events,
             {
                 capacity: {
@@ -546,7 +584,7 @@ const handleSearch = async (req, res) => {
                     [Op.eq]: publishedId
                 }
             },
-            eventIncludes,
+            eventIncludes.concat(favouriteInclude),
             order
         );
         
@@ -714,7 +752,8 @@ const handleEventCheck = async (req, res) => {
             attended: true
         },
         {
-            eventId: event.id
+            eventId: event.id,
+            hash_code: eventCode
         });
 
     if (updateResult.error) {
@@ -1042,6 +1081,103 @@ const cronEventUpdate = async () => {
     await notifyTomorrowEvents();
 }
 
+const getAttendancesStats = async (req, res) => {
+    const {eventId} = req.query;
+
+    const event = await findOne(Events,
+        {
+            id: eventId
+        },
+        [
+            {
+                model: User,
+                attributes: ["id", "first_name", "last_name", "email"],
+                as: ATTENDEES_RELATION_NAME
+            }
+        ]);
+
+    if (event.error) {
+        return setUnexpectedErrorResponse(event.error, res);
+    }
+
+    const stats = getEventAttendancesStats(event);
+
+    const response = {
+        stats: stats
+    }
+
+    return setOkResponse(OK_LBL, res, response);
+}
+
+const getAttendancesRange = async (req, res) => {
+    const {eventId} = req.query;
+
+    const userId = await getUserId(req);
+
+    const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
+
+    const user = await findOne(User, {
+        id: userId,
+        is_staff: true
+    });
+
+    if (! user) {
+        return setUnexpectedErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+    }
+
+    if (user.error) {
+        return setUnexpectedErrorResponse(user.error, res);
+    }
+
+    const ownerIdsResult = await getOwnersIds(user);
+
+    if (ownerIdsResult.error) {
+        return setUnexpectedErrorResponse(ownerIdsResult.error, res);
+    }
+
+    const owners_ids = ownerIdsResult.result;
+
+    const event = await findOne(Events,
+        {
+            id: eventId,
+
+            owner_id: {
+                [Op.in]: owners_ids
+            },
+
+            state_id: publishedId
+        },
+        [
+            {
+                model: User,
+                attributes: ["id"],
+                as: ATTENDEES_RELATION_NAME
+            }
+        ]);
+
+    if (! event) {
+        return setErrorResponse(UNAUTHORIZED_EVENT_ERR_LBL, res);
+    }
+
+    if (event.error) {
+        return setUnexpectedErrorResponse(event.error, res);
+    }
+
+    let times = getEventAttendancesRange(event);
+
+    const labels = getTimeFrequencies(times);
+
+    const data = getDataInBuckets(times, labels);
+
+    const response = {
+        data: data,
+
+        labels: labels
+    }
+
+    return setOkResponse(OK_LBL, res, response);
+}
+
 module.exports = {
     handleCreate,
     handleGet,
@@ -1051,5 +1187,7 @@ module.exports = {
     handleUpdateEvent,
     cancelEvent,
     cronEventUpdate,
-    suspendEvent
+    suspendEvent,
+    getAttendancesStats,
+    getAttendancesRange
 };
