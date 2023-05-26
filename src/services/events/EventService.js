@@ -1091,7 +1091,7 @@ const getAttendancesStats = async (req, res) => {
         [
             {
                 model: User,
-                attributes: ["id", "email"],
+                attributes: ["id", "first_name", "last_name", "email"],
                 as: ATTENDEES_RELATION_NAME
             }
         ]);

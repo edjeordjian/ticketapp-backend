@@ -1,3 +1,4 @@
+const { getFullName } = require("./UserRepository");
 const { getTimeStringFrom } = require("../helpers/DateHelper");
 
 const { SUSPENDED_STATUS_LBL } = require("../constants/events/EventStatusConstants");
@@ -78,7 +79,7 @@ const getEventAttendancesStats = (e) => {
     if (attendances.length > 0) {
         return attendances.map(attendance => {
             return {
-                email: attendance.email,
+                name: getFullName(attendance),
                 time: getTimeStringFrom(attendance.attendances.updatedAt)
             }
         })

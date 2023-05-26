@@ -12,6 +12,10 @@ const getEventData = (e) => {
     }
 }
 
+const getFullName = (user) => {
+    return `${user.first_name} ${user.last_name}`
+}
+
 const getSerializedUserWithReports = async (user) => {
     let reports = user.reports ? user.reports : [];
 
@@ -41,5 +45,5 @@ const getSerializedUserWithReports = async (user) => {
 };
 
 module.exports = {
-    getSerializedUserWithReports
+    getSerializedUserWithReports, getFullName
 };

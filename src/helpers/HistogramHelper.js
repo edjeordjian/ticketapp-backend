@@ -36,6 +36,10 @@ const getTimeFrequencies = (times) => {
         deltaMinutes = 30;
     }
 
+    if (deltaMinutes === 0) {
+        deltaMinutes = 1;
+    }
+
     labels.push(first);
 
     let hours = Number(first.split(":")[0]);
@@ -45,6 +49,10 @@ const getTimeFrequencies = (times) => {
     let currentTime = `${hours}:${currentMinutes}`;
 
     for (let i = 1; i < 6; i += 1) {
+        if (currentTime.split(":")[1].length === 1) {
+            currentTime = `${currentTime.split(":")[0]}:0${currentTime.split(":")[1]}`;
+        }
+
         currentTime = getNextCurrentTime(currentMinutes,
                                          hours,
                                          deltaMinutes);
