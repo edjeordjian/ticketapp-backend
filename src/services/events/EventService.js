@@ -281,7 +281,7 @@ const handleCreate = async (req, res) => {
 };
 
 const handleSearch = async (req, res) => {
-    const {
+    let {
         value,
         tags,
         owner,
@@ -295,17 +295,14 @@ const handleSearch = async (req, res) => {
     } = req.query;
 
     let events;
-    const get_favourites = Boolean(only_favourites);
 
     let userId = await getUserId(req);
-    const include_favourites = {
+
+    const favouriteInclude = [{
         model: User,
-        as: "FavouritedByUsers",
-        where: {
-          id: userId
-        }
-    }
-    const favouriteInclude = get_favourites? [include_favourites]:[];
+        as: "FavouritedByUsers"
+    }];
+
     const order = [
         ["date", "ASC"],
         ["time", "ASC"]
@@ -318,7 +315,6 @@ const handleSearch = async (req, res) => {
     }
 
     if (value) {
-
         const valueToSearch = fullTrimString(value);
 
         events = await findAll(Events, {
@@ -449,8 +445,6 @@ const handleSearch = async (req, res) => {
         }
     }
     else if (consumer) {
-        userId = await getUserId(req);
-        Logger.logInfo("consumer");
         const user = await findOne(User,
             {
                 id: consumer,
@@ -488,11 +482,50 @@ const handleSearch = async (req, res) => {
         if (events.error) {
             return setUnexpectedErrorResponse(events.error, res);
         }
-        
+
         userId = await getUserId(req);
 
         events = events.filter(e => {
             return ! getTicket(e, userId).wasUsed;
+        });
+    }
+    else if (only_favourites) {
+        userId = await getUserId(req);
+
+        const user = await findOne(User,
+            {
+                id: userId,
+                is_consumer: true
+            });
+
+        if (! user) {
+            return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
+        }
+
+        if (user.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
+
+        events = await findAll(Events, {
+                state_id: {
+                    [Op.eq]: publishedId
+                }
+            },
+            eventIncludes.concat([{
+                model: User,
+                as: "FavouritedByUsers",
+                where: {
+                    id: userId
+                }
+            }])
+        );
+
+        if (events.error) {
+            return setUnexpectedErrorResponse(events.error, res);
+        }
+
+        events = events.filter(e => {
+            return e.FavouritedByUsers.length !== 0;
         });
     }
     else if (admin) {
@@ -1058,7 +1091,7 @@ const getAttendancesStats = async (req, res) => {
         [
             {
                 model: User,
-                attributes: ["id", "email"],
+                attributes: ["id", "first_name", "last_name", "email"],
                 as: ATTENDEES_RELATION_NAME
             }
         ]);

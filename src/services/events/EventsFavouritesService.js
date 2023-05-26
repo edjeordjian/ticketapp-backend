@@ -1,3 +1,4 @@
+const { getUserId } = require("../authentication/FirebaseService");
 const { Events } = require("../../data/model/Events");
 const { User } = require("../../data/model/User");
 const { create, findOne, findAll, update } = require("../../helpers/QueryHelper");
@@ -10,42 +11,32 @@ const {
 
 const handleAddFavourite = async (req,res) => {
     try {
-        const {eventId, userId} = req.body;
-        if (!eventId || !userId) {
-            return setErrorResponse("La solicitud tiene que incluir eventId y userId",res);
+        const {event_id, is_favourite} = req.body;
+
+        const userId = await getUserId(req);
+
+        if (!event_id || !userId) {
+            return setErrorResponse("Falta información en la solicitud",res);
         }
         const user = await findOne(User, {id: userId});
-        const event = await findOne(Events, {id: eventId});
+        const event = await findOne(Events, {id: event_id});
 
         if (!user || !event) {
             return setErrorResponse("La solicitud tiene que incluir eventId de un evnto existente y userId de un usuario existente",res);
         }
 
-        await user.addFavouriteEvent(event);
-        return setOkResponse(`Se agrego el evento ${event.name} como favorito de ${user.email}`,res);
+        if (is_favourite) {
+            await user.addFavouriteEvent(event);
+
+            return setOkResponse(`Se agrego el evento ${event.name} como favorito de ${user.email}`,res);
+        } else {
+            await user.removeFavouriteEvent(event);
+
+            return setOkResponse(`Se elimino el evento ${event.name} como favorito de ${user.email}`,res);
+        }
     } catch (err){
-        return setErrorResponse("Error agregando un favorito", res);
+        return setUnexpectedErrorResponse("Error inesperado.", res);
     }
 }
 
-const handleDeleteFavourite = async (req,res) => {
-    try {
-        const {eventId, userId} = req.body;
-        if (!eventId || !userId) {
-            return setErrorResponse("La solicitud tiene que incluir eventId y userId",res);
-        }
-        const user = await findOne(User, {id: userId});
-        const event = await findOne(Events, {id: eventId});
-
-        if (!user || !event) {
-            return setErrorResponse("La solicitud tiene que incluir eventId de un evnto existente y userId de un usuario existente",res);
-        }
-
-        await user.removeFavouriteEvent(event);
-        return setOkResponse(`Se elimino el evento ${event.name} como favorito de ${user.email}`,res);
-    } catch (err){
-        return setErrorResponse("Error borrando un favorito", res);
-    }
-}
-
-module.exports = { handleAddFavourite, handleDeleteFavourite }
+module.exports = { handleAddFavourite }

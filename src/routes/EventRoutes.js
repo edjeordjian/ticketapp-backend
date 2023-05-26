@@ -215,7 +215,7 @@ router.get(ATTENDANCES_STATS_URL, async (req, res, next) => {
 router.get(ATTENDANCES_RANGE_URL, async (req, res, next) => {
     await isAllowedMiddleware(req, res, next, userIsStaff);
 }, async (req, res) => {
-    Logger.request(`GET /attendances/range`);
+    Logger.request(`GET /event/attendances/range`);
     await getAttendancesRange(req, res);
 });
 
