@@ -134,10 +134,23 @@ const wasReportedByUser = (e, userId) => {
     return userReports.length !== 0;
 }
 
+const getReadTickets = (evt) => {
+    return evt.attendees
+        .map(e => e.attendances)
+        .filter(e => e.attended)
+        .length;
+}
+
 const getSerializedEvent = async (e,
                                   userId = null,
                                   withReports = false,
-                                  read_tickets = null) => {
+                                  with_read_tickets = false) => {
+    let read_tickets = null;
+
+    if (with_read_tickets) {
+        read_tickets = getReadTickets(e);
+    }
+
     const pictures = [];
 
     if (e.wallpaper_url) {
