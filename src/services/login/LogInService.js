@@ -1,3 +1,6 @@
+const { BLOCKED_USER } = require("../../constants/messages");
+const { setErrorResponse } = require("../../helpers/ResponseHelper");
+const { userIsBlocked } = require("../users/UserService");
 const { UNEXISTING_USER_ERR_LBL } = require("../../constants/events/eventsConstants");
 const { setUnexpectedErrorResponse } = require("../../helpers/ResponseHelper");
 
@@ -19,6 +22,26 @@ const { setOkResponse } = require("../../helpers/ResponseHelper");
 
 const { findOne, create, update } = require("../../helpers/QueryHelper");
 
+const addUserToNewGroup = async (user) => {
+    const group = await create(Group, {
+        organizer_email: user.email
+    });
+
+    if (group.error) {
+        return {
+            group: group.error
+        }
+    }
+
+    await group.addUser(user);
+
+    logInfo(group);
+
+    return {
+        result: group
+    }
+}
+
 const handleSignUp = async (body) => {
     const createResponse = await create(User, {
         id: body.id,
@@ -26,18 +49,17 @@ const handleSignUp = async (body) => {
         is_administrator: body.isAdministrator !== undefined,
         is_organizer: body.isOrganizer !== undefined,
         is_consumer: body.isConsumer !== undefined,
+        is_staff: body.isStaff !== undefined,
         first_name: body.firstName,
         last_name: body.lastName,
         picture_url: body.pictureUrl
     }).then(async (user) => {
         if (body.isOrganizer) {
-            const group = await create(Group, {
-                organizer_email: body.email
-            });
+            const result = await addUserToNewGroup(user);
 
-            await group.addUser(user);
-
-            logInfo(group);
+            if (result.error) {
+                return result;
+            }
         }
 
         return user;
@@ -87,6 +109,8 @@ const handleExpoTokenUpdate = async (expo_token, user)  => {
 }
 
 const handleRoleAppend = async (body, user) => {
+    const userWasNotOrganizer = ! user.is_organizer;
+
     const updateResponse = await update(User,
         {
             is_administrator: body.isAdministrator || user.is_administrator,
@@ -102,6 +126,14 @@ const handleRoleAppend = async (body, user) => {
         return {
             error: updateResponse.error
         };
+    }
+
+    if (body.isOrganizer && userWasNotOrganizer) {
+        const group = await addUserToNewGroup(user);
+
+        if (group.error) {
+            return group;
+        }
     }
 
     return {
@@ -133,6 +165,10 @@ const handleLogIn = async (req, res) => {
             return setUnexpectedErrorResponse(ERROR_SEARCHING_USER, res);
         }
 
+        if (await userIsBlocked(findResponse.email)) {
+            return setErrorResponse(BLOCKED_USER, res, 403);
+        }
+
         id = findResponse.id;
 
         email = findResponse.email;
@@ -143,10 +179,10 @@ const handleLogIn = async (req, res) => {
             return setUnexpectedErrorResponse(result.error);
         }
 
-        if (findResponse.is_administrator !== body.isAdministrator ||
-            findResponse.is_organizer !== body.isOrganizer ||
-            findResponse.is_consumer !== body.isConsumer ||
-            findResponse.is_staff !== body.isStaff) {
+        if ((! findResponse.is_administrator && body.isAdministrator) ||
+            (! findResponse.is_organizer && body.isOrganizer) ||
+            (! findResponse.is_consumer && body.isConsumer) ||
+            (! findResponse.is_staff && body.isStaff)) {
 
             const result = await handleRoleAppend(body, findResponse);
 
@@ -184,5 +220,5 @@ const getUserWithEmail = async(userEmail) => {
 }
 
 module.exports = {
-    handleLogIn, getUserWithEmail
+    handleLogIn, getUserWithEmail, addUserToNewGroup
 };

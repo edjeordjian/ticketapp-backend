@@ -4,16 +4,20 @@ const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusCons
 const { getStateId } = require("../events/EventStateService");
 const { eventIncludes } = require("../../repository/EventRepository");
 const { Op } = require("sequelize");
-const { ACTIVATED_USER } = require("../../constants/messages");
-const { BLOCKED_USER } = require("../../constants/messages");
+const {
+    ACTIVATED_USER,
+    BLOCKED_USER
+} = require("../../constants/messages");
 
-const { setErrorResponse } = require("../../helpers/ResponseHelper");
+const {
+    setErrorResponse,
+    setOkResponse
+} = require("../../helpers/ResponseHelper");
 const { CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
 const { logError } = require("../../helpers/Logger");
 
 const { Events } = require("../../data/model/Events");
 
-const { setOkResponse } = require("../../helpers/ResponseHelper");
 const { OK_LBL } = require("../../constants/messages");
 const { getSerializedUserWithReports } = require("../../repository/UserRepository");
 
@@ -206,9 +210,11 @@ const getUsers = async (req, res) => {
                                req.query.endDate,
                                users);
 
-    const serializedUsers = await Promise.all(
+    let serializedUsers = await Promise.all(
         users.map(async user => await getSerializedUserWithReports(user))
     );
+
+    serializedUsers = serializedUsers.filter(user => user.reports.length !== 0);
 
     const responseBody = {
         list: serializedUsers
@@ -256,7 +262,9 @@ const blockUser = async (req, res) => {
             where: {
                 state_id: {
                     [Op.eq]: publishedId
-                }
+                },
+
+                owner_id: user.id
             },
             include: eventIncludes
         });
@@ -277,7 +285,36 @@ const blockUser = async (req, res) => {
     return setOkResponse(responseMessage, res);
 }
 
+const getOwnersIds = async (user) => {
+    const groups = await user.getGroups();
+
+    const owner_emails = groups.map(group => {
+        return group.organizer_email
+    });
+
+    const owners = await findAll(User, {
+        email: {
+            [Op.in]: owner_emails
+        }
+    });
+
+    if (owners.error) {
+        return {
+            error: owners.error
+        };
+    }
+
+    const owners_ids = owners.map(owner => {
+        return owner.id
+    });
+
+    return {
+        result: owners_ids
+    }
+}
+
 module.exports = {
     userIsOrganizer, userExists, userIsConsumer, userIsStaff,
-    userIsAdministrator, getUsers, blockUser, userIsBlocked
+    userIsAdministrator, getUsers, blockUser, userIsBlocked,
+    getOwnersIds
 };

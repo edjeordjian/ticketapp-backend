@@ -49,6 +49,14 @@ const dateToString = (aDate) => {
         });
 };
 
+const getTimeStringFrom = (aDate) => {
+    return aDate.toLocaleDateString('es-AR',
+        {
+            hour: 'numeric',
+            minute: 'numeric'
+        }).split(" ")[1];;
+}
+
 const timeToString = (aTime) => {
     let hours = aTime.getHours();
 
@@ -92,7 +100,17 @@ const momentToHumanDateFormat = (dateString) => {
     return `${day}/${month}/${year}`;
 }
 
+const timeToNumber = (timeStr) => {
+    const [
+        hours,
+        minutes
+    ] = timeStr.split(":");
+
+    return Number(hours) * 100 + Number(minutes);
+}
+
 module.exports = {
     getQuickDate, dateFromString, dateToString, timeToString,
-    getDateOnly, dateToMomentFormat, momentToHumanDateFormat
+    getDateOnly, dateToMomentFormat, momentToHumanDateFormat, getTimeStringFrom,
+    timeToNumber
 };

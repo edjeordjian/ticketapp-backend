@@ -59,9 +59,12 @@ describe("LogInService", function () {
 
         const handleExpoTokenUpdateStub = sinon.stub().resolves(async () => {});
 
+        const userIsBlockedStub = sinon.stub().resolves(false);
+
         LogInService.__set__({
             "findOne": findOneStub,
-            "handleExpoTokenUpdate": handleExpoTokenUpdateStub
+            "handleExpoTokenUpdate": handleExpoTokenUpdateStub,
+            "userIsBlocked": userIsBlockedStub
         });
 
         const response = await LogInService.handleLogIn(req, res);

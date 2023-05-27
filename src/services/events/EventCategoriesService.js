@@ -6,11 +6,12 @@ const { EventTypes } = require("../../data/model/EventTypes");
 
 const { findAll } = require("../../helpers/QueryHelper");
 
-const { setErrorResponse } = require("../../helpers/ResponseHelper");
-
 const { getSerializedEventType } = require("../../data/model/EventTypes");
 
-const { setOkResponse } = require("../../helpers/ResponseHelper");
+const {
+    setOkResponse,
+    setErrorResponse
+} = require("../../helpers/ResponseHelper");
 
 const getAllSerialized = async (req,
                                 res,

@@ -14,6 +14,8 @@ const eventRoutes = require("./routes/EventRoutes");
 
 const userRoutes = require("./routes/UserRoutes");
 
+const eventScheduleRoutes = require("./routes/EventCalendarScheduleRoutes");
+
 const { cronEventUpdate } = require("./services/events/EventService");
 
 const { defineRelationships } = require("./data/model/relationships/relationships");
@@ -69,10 +71,32 @@ app.use(BASE_URL, eventRoutes);
 
 app.use(BASE_URL, userRoutes);
 
+app.use(BASE_URL, eventScheduleRoutes)
+
 setLevel(LOG_LEVEL);
 
 // Once every minute
 cron.schedule('* * * * *', cronEventUpdate);
+
+/*
+*
+*  LogInService
+*  |
+*  ----> UserService
+*        |
+*        ------> EventNotificationService
+*        |       |
+*        |       v
+*        ------> EventStateService
+*
+*  EventService
+*  |
+*  ----> FirebaseService
+*  ------^
+*  |
+*  EventReportService
+*
+* */
 
 syncDB().then(() => {
     app.listen(NODE_PORT, () => {

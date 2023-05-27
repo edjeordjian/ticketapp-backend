@@ -40,6 +40,10 @@ const Events = database.define("events", {
         type: Sequelize.INTEGER
     },
 
+    total_capacity: {
+        type: Sequelize.INTEGER
+    },
+
     date: {
         type: Sequelize.DATE,
         allowNull: true,
