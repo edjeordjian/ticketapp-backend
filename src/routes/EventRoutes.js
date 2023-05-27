@@ -198,6 +198,7 @@ router.post('/event/favourite', async (req, res, next) => {
     Logger.request('POST /event/favourite');
     await handleAddFavourite(req,res);
 });
+
 router.delete('/event/favourite', async (req, res, next) => {
     await isAllowedMiddleware(req, res, next, userIsConsumer);
 }, async (req, res) => {
@@ -208,14 +209,14 @@ router.delete('/event/favourite', async (req, res, next) => {
 router.get(ATTENDANCES_STATS_URL, async (req, res, next) => {
     await isAllowedMiddleware(req, res, next, userIsStaff);
 }, async (req, res) => {
-    Logger.request(`GET /attendances/stats`);
+    Logger.request(`GET ${ATTENDANCES_STATS_URL}`);
     await getAttendancesStats(req, res);
 });
 
 router.get(ATTENDANCES_RANGE_URL, async (req, res, next) => {
     await isAllowedMiddleware(req, res, next, userIsStaff);
 }, async (req, res) => {
-    Logger.request(`GET /event/attendances/range`);
+    Logger.request(`GET ${ATTENDANCES_RANGE_URL}`);
     await getAttendancesRange(req, res);
 });
 

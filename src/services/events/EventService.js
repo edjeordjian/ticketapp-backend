@@ -8,7 +8,7 @@ const { objDeepCopy } = require("../../helpers/ObjectHelper");
 
 const { Speakers } = require("../../data/model/Speakers");
 
-const {Event_EventType} = require("../../data/model/relationships/EvenTypeEventRelationship");
+const { Event_EventType } = require("../../data/model/relationships/EvenTypeEventRelationship");
 
 const { Events } = require("../../data/model/Events");
 
@@ -198,6 +198,8 @@ const handleCreate = async (req, res) => {
 
         capacity: body.capacity,
 
+        total_capacity: body.capacity,
+
         address: body.address,
 
         latitude: body.latitude,
@@ -297,6 +299,8 @@ const handleSearch = async (req, res) => {
     let events;
 
     let userId = await getUserId(req);
+
+    let read_tickets = null;
 
     const favouriteInclude = [{
         model: User,
@@ -456,7 +460,7 @@ const handleSearch = async (req, res) => {
         }
         
         if (user.error) {
-            return setUnexpectedErrorResponse(events.error, res);
+            return setUnexpectedErrorResponse(user.error, res);
         }
 
         events = await user.getEvents({
@@ -503,7 +507,7 @@ const handleSearch = async (req, res) => {
         }
 
         if (user.error) {
-            return setUnexpectedErrorResponse(events.error, res);
+            return setUnexpectedErrorResponse(user.error, res);
         }
 
         events = await findAll(Events, {
@@ -621,7 +625,8 @@ const handleSearch = async (req, res) => {
 const handleGet = async (req, res) => {
     const {
         eventId,
-        withReports
+        withReports,
+        with_percentage
     } = req.query;
 
     if (!eventId) {
@@ -642,7 +647,10 @@ const handleGet = async (req, res) => {
 
     const userId = await getUserId(req);
 
-    const serializedEvent = await getSerializedEvent(event, userId, withReports);
+    const serializedEvent = await getSerializedEvent(event,
+                                                     userId,
+                                                     withReports,
+                                                     with_percentage);
 
     return setOkResponse(OK_LBL, res, serializedEvent);
 };
@@ -712,14 +720,16 @@ const handleEventSignUp = async (req, res) => {
 const handleEventCheck = async (req, res) => {
     const { eventId, eventCode } = req.body;
 
-    const event = await findOne(Events, {
+    let event = await findOne(Events, {
             id: eventId
         },
         eventIncludes);
 
     if (!event) {
         return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
-    } else if (event.error) {
+    }
+
+    if (event.error) {
         return setUnexpectedErrorResponse(event.error, res);
     }
 
@@ -743,7 +753,9 @@ const handleEventCheck = async (req, res) => {
 
     if (!user) {
         return setErrorResponse(UNEXISTING_USER_ERR_LBL, res);
-    } else if (user.error) {
+    }
+
+    if (user.error) {
         return setUnexpectedErrorResponse(user.error, res);
     }
 
@@ -760,7 +772,25 @@ const handleEventCheck = async (req, res) => {
         return setErrorResponse(updateResult.error, res);
     }
 
-    return setOkResponse(OK_LBL, res, {});
+    event = await findOne(Events, {
+            id: eventId
+        },
+        eventIncludes);
+
+    if (!event) {
+        return setErrorResponse(EVENT_DOESNT_EXIST_ERR_LBL, res);
+    }
+
+    if (event.error) {
+        return setUnexpectedErrorResponse(event.error, res);
+    }
+
+    const serializedEvent = await getSerializedEvent(event,
+                                                     null,
+                                                     false,
+                                                     true);
+
+    return setOkResponse(OK_LBL, res, serializedEvent);
 }
 
 const handleUpdateEvent = async (req, res) => {
