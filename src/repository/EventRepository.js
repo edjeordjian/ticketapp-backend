@@ -136,7 +136,8 @@ const wasReportedByUser = (e, userId) => {
 
 const getSerializedEvent = async (e,
                                   userId = null,
-                                  withReports = false) => {
+                                  withReports = false,
+                                  read_tickets = null) => {
     const pictures = [];
 
     if (e.wallpaper_url) {
@@ -175,8 +176,6 @@ const getSerializedEvent = async (e,
         description: e.description,
 
         capacity: e.capacity,
-
-        total_capacity: e.total_capacity,
 
         date: dateToString(e.date),
 
@@ -227,6 +226,18 @@ const getSerializedEvent = async (e,
             {},
 
         is_favourite: e.FavouritedByUsers ? e.FavouritedByUsers.length !== 0 : false
+    }
+
+    if (read_tickets !== null) {
+        const sold_tickets = e.total_capacity - e.capacity;
+
+        const percentage = sold_tickets !== 0 ? Math.ceil(read_tickets / sold_tickets * 100) : 0;
+
+        result.ticket_percentage = 100 - percentage;
+
+        result.ticket_fraction = percentage / 100;
+
+        result.ticket_to_read = sold_tickets - read_tickets;
     }
 
     if (userId) {

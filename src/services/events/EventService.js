@@ -198,6 +198,8 @@ const handleCreate = async (req, res) => {
 
         capacity: body.capacity,
 
+        total_capacity: body.capacity,
+
         address: body.address,
 
         latitude: body.latitude,
@@ -297,6 +299,8 @@ const handleSearch = async (req, res) => {
     let events;
 
     let userId = await getUserId(req);
+
+    let read_tickets = null;
 
     const favouriteInclude = [{
         model: User,
@@ -621,7 +625,8 @@ const handleSearch = async (req, res) => {
 const handleGet = async (req, res) => {
     const {
         eventId,
-        withReports
+        withReports,
+        with_percentage
     } = req.query;
 
     if (!eventId) {
@@ -642,7 +647,16 @@ const handleGet = async (req, res) => {
 
     const userId = await getUserId(req);
 
-    const serializedEvent = await getSerializedEvent(event, userId, withReports);
+    let read_tickets = null;
+
+    if (with_percentage) {
+        read_tickets = event.attendees
+                            .map(e => e.attendances)
+                            .filter(e => e.attended)
+                            .length;
+    }
+
+    const serializedEvent = await getSerializedEvent(event, userId, withReports, read_tickets);
 
     return setOkResponse(OK_LBL, res, serializedEvent);
 };

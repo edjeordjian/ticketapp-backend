@@ -49,6 +49,7 @@ const handleSignUp = async (body) => {
         is_administrator: body.isAdministrator !== undefined,
         is_organizer: body.isOrganizer !== undefined,
         is_consumer: body.isConsumer !== undefined,
+        is_staff: body.isStaff !== undefined,
         first_name: body.firstName,
         last_name: body.lastName,
         picture_url: body.pictureUrl
@@ -178,10 +179,10 @@ const handleLogIn = async (req, res) => {
             return setUnexpectedErrorResponse(result.error);
         }
 
-        if ((findResponse.is_administrator && ! body.isAdministrator) ||
-            (findResponse.is_organizer && ! body.isOrganizer) ||
-            (findResponse.is_consumer && ! body.isConsumer) ||
-            (findResponse.is_staff && ! body.isStaff)) {
+        if ((! findResponse.is_administrator && body.isAdministrator) ||
+            (! findResponse.is_organizer && body.isOrganizer) ||
+            (! findResponse.is_consumer && body.isConsumer) ||
+            (! findResponse.is_staff && body.isStaff)) {
 
             const result = await handleRoleAppend(body, findResponse);
 
