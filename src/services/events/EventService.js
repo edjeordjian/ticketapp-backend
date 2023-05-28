@@ -71,9 +71,7 @@ const { getEventAttendancesStats } = require("../../repository/EventRepository")
 const { IS_PRODUCTION } = require("../../constants/dataConstants");
 const { FINISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { suspendGivenEvent } = require("./EventNotificationService");
-const { UNSUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { notifiyEventStatus } = require("./EventNotificationService");
-const { SUSPENDED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { CANCELLED_EVENT_LBL } = require("../../constants/events/eventsConstants");
 const { getUserWithEmail } = require("../login/LogInService");
 const { getSortedByReportsWithDate } = require("./EventReportService");
@@ -81,9 +79,11 @@ const { getDateOnly } = require("../../helpers/DateHelper");
 const { getUserId } = require("../authentication/FirebaseService");
 const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
 const { INVALID_STATUS_ERR_LBL } = require("../../constants/login/logInConstants");
-const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
-const { SUSPENDED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
-const { CANCELLED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+const {
+    PUBLISHED_STATUS_LBL,
+    CANCELLED_STATUS_LBL
+} = require("../../constants/events/EventStatusConstants");
+
 const { getStateId } = require("./EventStateService");
 const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
 const { EventState } = require("../../data/model/EventState");

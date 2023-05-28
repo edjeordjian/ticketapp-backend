@@ -75,11 +75,11 @@ const saveRecordOfEventScheduleInCalendar = async (req, res) => {
 
 const getScheduleId = (e, userId) => {
     const lastSchedule = e.event_calendar_schedules
-        .filter(schedule => schedule.userId === userId)
-        .reduce((a, b) => a.createdAt > b.createdAt ? a : b);
+        .filter(schedule => schedule.userId === userId);
 
-    if (lastSchedule) {
-        return lastSchedule.schedule_id;
+    if (lastSchedule.length !== 0) {
+        return lastSchedule.reduce((a, b) => a.createdAt > b.createdAt ? a : b)
+            .schedule_id;
     }
 
     return -1;

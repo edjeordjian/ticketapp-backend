@@ -40,8 +40,6 @@ const getTimeFrequencies = (times) => {
         deltaMinutes = 1;
     }
 
-    labels.push(first);
-
     let hours = Number(first.split(":")[0]);
 
     let currentMinutes = Number(first.split(":")[1]);

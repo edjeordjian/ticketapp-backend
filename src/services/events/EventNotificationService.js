@@ -1,3 +1,4 @@
+const { EventCalendarSchedule } = require("../../data/model/EventCalendarSchedule");
 const { getScheduleId } = require("./EventCalendarScheduleService");
 const {
     SUSPENDED_STATUS_LBL,
@@ -18,7 +19,8 @@ const { User } = require("../../data/model/User");
 const { Events } = require("../../data/model/Events");
 const {
     findAll,
-    update
+    update,
+    destroy
 } = require("../../helpers/QueryHelper");
 const { OK_LBL } = require("../../constants/messages");
 const {
@@ -29,8 +31,36 @@ const {
 
 const { SendNotification } = require("../../helpers/SendNotification");
 
-const getAttendeesTokens = async (e, withSchedule) => {
-    const userData = {};
+const removeTokenDuplicates = (tokens, scheduleIds) => {
+    //  If tokens contains duplicates, remove them by keeping the
+    //  i-token whose schedule[i] is not null.
+    // Create an object to store unique tokens and their corresponding calendar values
+    const uniqueTokens = {};
+
+    tokens.forEach((token, index) => {
+        if (uniqueTokens.hasOwnProperty(token) && scheduleIds[index] === null) {
+            return;
+        }
+
+        uniqueTokens[token] = index;
+    });
+
+    const filteredTokens = Object.values(uniqueTokens).map(index => tokens[index]);
+
+    const filteredSchedules = Object.values(uniqueTokens).map(index => scheduleIds[index]);
+
+    return {
+        tokens: filteredTokens,
+        scheduleIds: filteredSchedules
+    }
+}
+
+const getAttendeesTokens = async (e, withSchedule, doNotRemoveCalendarEvent) => {
+    let userData = {
+        tokens: [],
+
+        scheduleIds: []
+    };
 
     if (e.attendees) {
         const userIds = e.attendees.map(attendee => attendee.attendances.userId);
@@ -47,25 +77,35 @@ const getAttendeesTokens = async (e, withSchedule) => {
             return users
         }
 
-        if (users) {
-            userData.tokens = users.map(user => user.expo_token);
+        if (users.length === 0) {
+            return;
         }
 
-        if (withSchedule) {
-            const scheduleIds = [];
+        let scheduleIds = [];
 
-            userIds.forEach(id => {
+        if (withSchedule) {
+            for (let i = 0; i < userIds.length; i += 1) {
+                const id = userIds[i];
+
                 const scheduleId = getScheduleId(e, id);
 
                 if (scheduleId >= 0) {
+                    if (! doNotRemoveCalendarEvent) {
+                        const result = await destroy(EventCalendarSchedule, {
+                            userId: id,
+                            eventId: e.id
+                        });
+                    }
+
                     scheduleIds.push(scheduleId);
                 } else {
                     scheduleIds.push(null);
                 }
-            });
-
-            userData.scheduleIds = scheduleIds;
+            }
         }
+
+        userData = removeTokenDuplicates(users.map(user => user.expo_token),
+                                         scheduleIds)
     }
 
     return userData;
@@ -212,12 +252,14 @@ const sendNotificationTo = async (e, body) => {
         .params
         .eventInCalendarId !== undefined;
 
-    const userData = await getAttendeesTokens(e, withSchedule);
+    const doNotRemoveCalendarEvent = body.data
+        .params
+        .doNotRemoveCalendarEvent;
+
+    const userData = await getAttendeesTokens(e, withSchedule, doNotRemoveCalendarEvent);
 
     if (userData.error > 0) {
-        return {
-            error: userData.error
-        }
+        return userData;
     }
 
     for (let i = 0; i < userData.tokens.length; i += 1) {
@@ -227,7 +269,7 @@ const sendNotificationTo = async (e, body) => {
 
             body.data
                 .params
-                .eventInCalendarId = userData.scheduleIds[i];
+                .eventInCalendarId = String(userData.scheduleIds[i]);
 
             const result = await SendNotification(body);
 
