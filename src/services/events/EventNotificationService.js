@@ -78,7 +78,7 @@ const getAttendeesTokens = async (e, withSchedule, doNotRemoveCalendarEvent) => 
         }
 
         if (users.length === 0) {
-            return;
+            return userData;
         }
 
         let scheduleIds = [];
