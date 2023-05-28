@@ -212,7 +212,9 @@ const notifyEventChange = async(e, originalName) => {
                 params: {
                     eventId: e.id,
 
-                    eventInCalendarId: null
+                    eventInCalendarId: null,
+
+                    recreateEventInCalendar: true
                 }
             }
         } );
@@ -256,6 +258,11 @@ const sendNotificationTo = async (e, body) => {
         .params
         .doNotRemoveCalendarEvent;
 
+
+    const recreateEventInCalendar = body.data
+        .params
+        .recreateEventInCalendar;
+
     const userData = await getAttendeesTokens(e, withSchedule, doNotRemoveCalendarEvent);
 
     if (userData.error > 0) {
@@ -270,6 +277,10 @@ const sendNotificationTo = async (e, body) => {
             body.data
                 .params
                 .eventInCalendarId = String(userData.scheduleIds[i]);
+
+            body.data
+                .params
+                .recreateEventInCalendar = recreateEventInCalendar;
 
             const result = await SendNotification(body);
 
