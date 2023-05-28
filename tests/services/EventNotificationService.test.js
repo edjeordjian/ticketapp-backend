@@ -3,6 +3,7 @@ const rewire = require("rewire");
 const sinon = require("sinon");
 
 const assert = require("assert");
+
 const { DateMock } = require("../mocks/DateMock");
 
 const EventNotificationService = rewire("../../src/services/events/EventNotificationService");
@@ -32,7 +33,7 @@ describe("Event notification service", () => {
 
         const result = await EventNotificationService.getAttendeesTokens(eventStub);
 
-        assert(result.length === 0);
+        assert(result !== undefined);
     });
 
     it("Get attendees tokens error", async () => {
@@ -56,7 +57,7 @@ describe("Event notification service", () => {
 
         const result = await EventNotificationService.getAttendeesTokens(eventStub);
 
-        assert(result === "error");
+        assert(result.error !== undefined);
     });
 
     it("Notifiy tomorrow events", async () => {

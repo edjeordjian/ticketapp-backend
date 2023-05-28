@@ -1,3 +1,4 @@
+const { EventCalendarSchedule } = require("../data/model/EventCalendarSchedule");
 const { getFullName } = require("./UserRepository");
 const { getTimeStringFrom } = require("../helpers/DateHelper");
 
@@ -69,6 +70,9 @@ const eventIncludes = [
                 model: EventReportCategory
             }
         ]
+    },
+    {
+        model: EventCalendarSchedule
     }
 ];
 
@@ -77,12 +81,16 @@ const getEventAttendancesStats = (e) => {
                          .filter(attendee => attendee.attendances.attended);
 
     if (attendances.length > 0) {
-        return attendances.map(attendance => {
+        const stats = attendances.map(attendance => {
             return {
                 name: getFullName(attendance),
                 time: getTimeStringFrom(attendance.attendances.updatedAt)
             }
         })
+
+        stats.sort((a, b) => a.time > b.time ? 1 :-1);
+
+        return stats;
     }
 
     return [];
@@ -236,9 +244,7 @@ const getSerializedEvent = async (e,
             "name": e.state.name
             }
             :
-            {},
-
-        is_favourite: e.FavouritedByUsers ? e.FavouritedByUsers.length !== 0 : false
+            {}
     }
 
     if (read_tickets !== null) {
@@ -255,6 +261,12 @@ const getSerializedEvent = async (e,
 
     if (userId) {
         result.wasReported = wasReportedByUser(e, userId);
+
+        result.is_favourite = e.FavouritedByUsers ?
+            e.FavouritedByUsers.filter(fav => fav.id === userId).length !== 0 :
+            false;
+    } else {
+        result.is_favourite = false;
     }
 
     if (withReports) {
