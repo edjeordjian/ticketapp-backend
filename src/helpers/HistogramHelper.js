@@ -53,13 +53,13 @@ const getTimeFrequencies = (times) => {
             currentTime = `${currentTime.split(":")[0]}:0${currentTime.split(":")[1]}`;
         }
 
+        labels.push(currentTime);
+
         currentTime = getNextCurrentTime(currentMinutes,
                                          hours,
                                          deltaMinutes);
 
         currentMinutes = Number(currentTime.split(":")[1]);
-
-        labels.push(currentTime);
     }
 
     if (last > currentTime) {
