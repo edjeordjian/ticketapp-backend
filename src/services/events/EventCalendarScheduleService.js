@@ -73,6 +73,18 @@ const saveRecordOfEventScheduleInCalendar = async (req, res) => {
     return setOkResponse(EVENT_SCHEDULED_LBL, res);
 };
 
+const getScheduleId = (e, userId) => {
+    const lastSchedule = e.event_calendar_schedules
+        .filter(schedule => schedule.userId === userId);
+
+    if (lastSchedule.length !== 0) {
+        return lastSchedule.reduce((a, b) => a.createdAt > b.createdAt ? a : b)
+            .schedule_id;
+    }
+
+    return -1;
+}
+
 module.exports = {
-    saveRecordOfEventScheduleInCalendar
+    saveRecordOfEventScheduleInCalendar, getScheduleId
 };

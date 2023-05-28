@@ -30,12 +30,6 @@ const today = new Date();
 
 async function runMigrations() {
     logInfo(RUNNING_MIGRATIONS_LBL);
-
-    await queryInterface.addColumn(Events.tableName,
-        'total_capacity',
-        {
-            type: Sequelize.INTEGER
-        }).catch(error => console.log(error.toString()));
 }
 
 module.exports = {

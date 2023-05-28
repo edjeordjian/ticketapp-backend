@@ -1,3 +1,5 @@
+const { EventCalendarSchedule } = require("../../data/model/EventCalendarSchedule");
+const { getScheduleId } = require("./EventCalendarScheduleService");
 const {
     SUSPENDED_STATUS_LBL,
     PUBLISHED_STATUS_LBL
@@ -17,7 +19,8 @@ const { User } = require("../../data/model/User");
 const { Events } = require("../../data/model/Events");
 const {
     findAll,
-    update
+    update,
+    destroy
 } = require("../../helpers/QueryHelper");
 const { OK_LBL } = require("../../constants/messages");
 const {
@@ -28,8 +31,36 @@ const {
 
 const { SendNotification } = require("../../helpers/SendNotification");
 
-const getAttendeesTokens = async (e) => {
-    let tokens = []
+const removeTokenDuplicates = (tokens, scheduleIds) => {
+    //  If tokens contains duplicates, remove them by keeping the
+    //  i-token whose schedule[i] is not null.
+    // Create an object to store unique tokens and their corresponding calendar values
+    const uniqueTokens = {};
+
+    tokens.forEach((token, index) => {
+        if (uniqueTokens.hasOwnProperty(token) && scheduleIds[index] === null) {
+            return;
+        }
+
+        uniqueTokens[token] = index;
+    });
+
+    const filteredTokens = Object.values(uniqueTokens).map(index => tokens[index]);
+
+    const filteredSchedules = Object.values(uniqueTokens).map(index => scheduleIds[index]);
+
+    return {
+        tokens: filteredTokens,
+        scheduleIds: filteredSchedules
+    }
+}
+
+const getAttendeesTokens = async (e, withSchedule, doNotRemoveCalendarEvent) => {
+    let userData = {
+        tokens: [],
+
+        scheduleIds: []
+    };
 
     if (e.attendees) {
         const userIds = e.attendees.map(attendee => attendee.attendances.userId);
@@ -43,15 +74,41 @@ const getAttendeesTokens = async (e) => {
             });
 
         if (users.error) {
-            return users.error
+            return users
         }
 
-        if (users) {
-            tokens = users.map(user => user.expo_token);
+        if (users.length === 0) {
+            return userData;
         }
+
+        let scheduleIds = [];
+
+        if (withSchedule) {
+            for (let i = 0; i < userIds.length; i += 1) {
+                const id = userIds[i];
+
+                const scheduleId = getScheduleId(e, id);
+
+                if (scheduleId >= 0) {
+                    if (! doNotRemoveCalendarEvent) {
+                        const result = await destroy(EventCalendarSchedule, {
+                            userId: id,
+                            eventId: e.id
+                        });
+                    }
+
+                    scheduleIds.push(scheduleId);
+                } else {
+                    scheduleIds.push(null);
+                }
+            }
+        }
+
+        userData = removeTokenDuplicates(users.map(user => user.expo_token),
+                                         scheduleIds)
     }
 
-    return tokens;
+    return userData;
 }
 
 const notifyTomorrowEvents = async () => {
@@ -153,13 +210,29 @@ const notifyEventChange = async(e, originalName) => {
                 screenName: EVENT_SCREEN_NAME,
 
                 params: {
-                    eventId: e.id
+                    eventId: e.id,
+
+                    eventInCalendarId: null,
+
+                    recreateEventInCalendar: true
                 }
             }
         } );
 }
 
-const notifiyEventStatus = async (e, label) => {
+const notifiyEventStatus = async (e,
+                                  label,
+                                  doNotRemoveCalendarEvent = false) => {
+    const params = {
+        eventId: e.id,
+
+        eventInCalendarId: null
+    };
+
+    if (doNotRemoveCalendarEvent) {
+        params.doNotRemoveCalendarEvent = true;
+    }
+
     return await sendNotificationTo(e,
         {
             title: e.name,
@@ -169,9 +242,7 @@ const notifiyEventStatus = async (e, label) => {
             data: {
                 screenName: EVENT_SCREEN_NAME,
 
-                params: {
-                    eventId: e.id
-                }
+                params: params
             }
         } );
 }
@@ -179,19 +250,49 @@ const notifiyEventStatus = async (e, label) => {
 const sendNotificationTo = async (e, body) => {
     const errors = [];
 
-    const tokens = await getAttendeesTokens(e);
+    const withSchedule = body.data
+        .params
+        .eventInCalendarId !== undefined;
 
-    await Promise.all(
-        tokens.map(async token => {
+    const doNotRemoveCalendarEvent = body.data
+        .params
+        .doNotRemoveCalendarEvent;
+
+
+    const recreateEventInCalendar = body.data
+        .params
+        .recreateEventInCalendar;
+
+    const userData = await getAttendeesTokens(e, withSchedule, doNotRemoveCalendarEvent);
+
+    if (userData.error > 0) {
+        return userData;
+    }
+
+    for (let i = 0; i < userData.tokens.length; i += 1) {
+            const token = userData.tokens[i];
+
             body.to = token;
+
+            body.data
+                .params
+                .eventInCalendarId = String(userData.scheduleIds[i]);
+
+            body.data
+                .params
+                .recreateEventInCalendar = recreateEventInCalendar;
 
             const result = await SendNotification(body);
 
             if (result.error) {
                 errors.push(result.error);
             }
-        })
-    );
+    }
+
+    /*
+    await Promise.all( () => {
+
+    ); */
 
     if (errors.length > 0) {
         return {
@@ -236,7 +337,7 @@ const suspendGivenEvent = async (e, suspend) => {
     if (! suspend) {
         label = UNSUSPENDED_EVENT_LBL;
 
-        notificationResponse = await notifiyEventStatus(e, label);
+        notificationResponse = await notifiyEventStatus(e, label, true);
     } else {
         label = SUSPENDED_EVENT_LBL;
 

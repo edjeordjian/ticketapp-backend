@@ -2,6 +2,13 @@
 */
 
 async function m7() {
+    await queryInterface.addColumn(Events.tableName,
+        'total_capacity',
+        {
+            type: Sequelize.INTEGER
+        }).catch(error => console.log(error.toString())
+    );
+
     await queryInterface.addColumn(User.tableName,
         "is_blocked",
         {
