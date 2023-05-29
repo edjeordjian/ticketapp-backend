@@ -63,11 +63,7 @@ const getTimeFrequencies = (times) => {
     if (last > currentTime) {
         labels.push(last);
     } else {
-        labels.push(
-            getNextCurrentTime(currentMinutes,
-                               hours,
-                               deltaMinutes)
-        );
+        labels.push(currentTime);
     }
 
     return labels;
