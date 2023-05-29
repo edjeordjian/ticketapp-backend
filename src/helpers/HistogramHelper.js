@@ -1,6 +1,7 @@
 const { IS_PRODUCTION } = require("../constants/dataConstants");
 const { timeToNumber } = require("./DateHelper");
 const { dateFromString } = require("./DateHelper");
+
 const getNextCurrentTime = (currentMinutes, hours, deltaMinutes) => {
     currentMinutes = currentMinutes + deltaMinutes;
 
