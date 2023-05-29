@@ -1,3 +1,4 @@
+const { IS_PRODUCTION } = require("../constants/dataConstants");
 const { timeToNumber } = require("./DateHelper");
 const { dateFromString } = require("./DateHelper");
 const getNextCurrentTime = (currentMinutes, hours, deltaMinutes) => {
@@ -41,6 +42,10 @@ const getTimeFrequencies = (times) => {
     }
 
     let hours = Number(first.split(":")[0]);
+
+    if (IS_PRODUCTION) {
+        hours -= 3;
+    }
 
     let currentMinutes = Number(first.split(":")[1]);
 
