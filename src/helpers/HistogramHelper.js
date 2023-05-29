@@ -50,10 +50,6 @@ const getTimeFrequencies = (times) => {
 
     let hours = Number(first.split(":")[0]);
 
-    if (IS_PRODUCTION) {
-        hours -= 3;
-    }
-
     let currentMinutes = Number(first.split(":")[1]);
 
     let currentTime = `${hours}:${currentMinutes}`;
