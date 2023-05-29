@@ -109,7 +109,13 @@ const getEventAttendancesRange = (e) => {
 
     if (attendances.length > 0) {
         const result =  attendances.map(attendance => {
-            return getTimeStringFrom(attendance.attendances.updatedAt);
+            let updateTime = attendance.attendances.updatedAt;
+
+            if (IS_PRODUCTION) {
+                updateTime = new Date(new Date(updateTime).setHours(updateTime.getHours() - 3));
+            }
+
+            return getTimeStringFrom(updateTime);
         });
 
         result.sort();
