@@ -472,4 +472,62 @@ describe("EventService", function() {
 
         assert(response);
     });
+
+    it("Get attendances stats", async () => {
+        req.query = {
+            eventId: 1
+        };
+
+        const findOneStub = sinon.stub().resolves({
+            "attendees": [
+                {
+                    attendances: {
+                        attended: true,
+                        updatedAt: new Date("2023-05-29T20:09:26.352Z")
+                    }
+                }
+            ]
+        });
+
+        EventService.__set__({
+            "findOne": findOneStub
+        });
+
+        const result = await EventService.getAttendancesStats(req, res);
+
+        assert(result.message === OK_LBL);
+    });
+
+    it("Get attendances range", async () => {
+        req.query = {
+            eventId: 1
+        };
+
+        const findOneStub = sinon.stub().resolves({
+            "attendees": [
+                {
+                    attendances: {
+                        attended: true,
+                        updatedAt: new Date("2023-05-29T20:09:26.352Z")
+                    }
+                }
+            ],
+            "getGroups": () => {return []}
+        });
+
+        const eventIdStub = sinon.stub().resolves(1);
+
+        const getOwnersIdsStub = sinon.stub().resolves(["1"]);
+
+        EventService.__set__({
+            "findOne": findOneStub,
+            "getUserId": eventIdStub,
+            "getStateId": eventIdStub,
+            "getOwnersIds": getOwnersIdsStub
+        });
+
+        const result = await EventService.getAttendancesRange(req, res);
+
+        assert(result.message === OK_LBL);
+    });
 });
