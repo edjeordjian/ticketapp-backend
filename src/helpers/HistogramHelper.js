@@ -13,6 +13,14 @@ const getNextCurrentTime = (currentMinutes, hours, deltaMinutes) => {
     return `${hours}:${currentMinutes}`;
 }
 
+const addLeadingZero = (aTime) => {
+    if (aTime.split(":")[1].length === 1) {
+        return `${aTime.split(":")[0]}:0${aTime.split(":")[1]}`;
+    }
+
+    return aTime;
+}
+
 const getTimeFrequencies = (times) => {
     let labels = [];
 
@@ -20,10 +28,9 @@ const getTimeFrequencies = (times) => {
         return labels;
     }
 
+    const first = addLeadingZero(times.reduce((a,b) => a < b ? a : b));
 
-    const first = times.reduce((a,b) => a < b ? a : b);
-
-    const last = times.reduce((a,b) => a > b ? a : b);
+    const last = addLeadingZero(times.reduce((a,b) => a > b ? a : b));
 
     let deltaMinutes;
 
@@ -52,9 +59,7 @@ const getTimeFrequencies = (times) => {
     let currentTime = `${hours}:${currentMinutes}`;
 
     for (let i = 1; i < 6; i += 1) {
-        if (currentTime.split(":")[1].length === 1) {
-            currentTime = `${currentTime.split(":")[0]}:0${currentTime.split(":")[1]}`;
-        }
+        addLeadingZero(currentTime);
 
         labels.push(currentTime);
 
@@ -68,7 +73,7 @@ const getTimeFrequencies = (times) => {
     if (last > currentTime) {
         labels.push(last);
     } else {
-        labels.push(currentTime);
+        labels.push(addLeadingZero(currentTime));
     }
 
     return labels;
