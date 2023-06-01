@@ -40,8 +40,6 @@ const getEventStatusStats = async (req, res) => {
         end
     } = req.query;
 
-    // Dates are being set incorrectly
-
     const startDate = dateFromString(start);
 
     const endDate = dateFromString(end, true);
@@ -83,7 +81,11 @@ const getEventStatusStats = async (req, res) => {
         };
     });
 
-    return setOkResponse(OK_LBL, res, responseData);
+    const response = {
+        stats: responseData
+    }
+
+    return setOkResponse(OK_LBL, res, response);
 }
 
 module.exports = {

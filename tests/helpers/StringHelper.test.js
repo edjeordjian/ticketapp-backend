@@ -1,11 +1,13 @@
 const rewire = require("rewire");
 
-const { getBcryptOf, getHashOf, replaceAll, fullTrimString, replaceAllBy, setCharAt } = rewire("../../../src/helpers/StringHelper");
-
-const StringHelper = rewire("../../../src/helpers/StringHelper");
+const {
+    replaceAll,
+    fullTrimString,
+    replaceAllBy,
+    setCharAt
+} = rewire("../../src/helpers/StringHelper");
 
 const assert = require("assert");
-const sinon = require("sinon");
 
 
 describe("code functions", () => {
