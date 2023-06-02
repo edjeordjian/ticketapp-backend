@@ -1,3 +1,4 @@
+const { IS_PRODUCTION } = require("../constants/dataConstants");
 const { EventCalendarSchedule } = require("../data/model/EventCalendarSchedule");
 const { getFullName } = require("./UserRepository");
 const { getTimeStringFrom } = require("../helpers/DateHelper");
@@ -82,9 +83,15 @@ const getEventAttendancesStats = (e) => {
 
     if (attendances.length > 0) {
         const stats = attendances.map(attendance => {
+            let updateTime = attendance.attendances.updatedAt;
+
+            if (IS_PRODUCTION) {
+                updateTime = new Date(new Date(updateTime).setHours(updateTime.getHours() - 3));
+            }
+
             return {
                 name: getFullName(attendance),
-                time: getTimeStringFrom(attendance.attendances.updatedAt)
+                time: getTimeStringFrom(updateTime)
             }
         })
 
@@ -102,7 +109,13 @@ const getEventAttendancesRange = (e) => {
 
     if (attendances.length > 0) {
         const result =  attendances.map(attendance => {
-            return getTimeStringFrom(attendance.attendances.updatedAt);
+            let updateTime = attendance.attendances.updatedAt;
+
+            if (IS_PRODUCTION) {
+                updateTime = new Date(new Date(updateTime).setHours(updateTime.getHours() - 3));
+            }
+
+            return getTimeStringFrom(updateTime);
         });
 
         result.sort();

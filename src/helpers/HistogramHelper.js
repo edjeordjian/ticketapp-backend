@@ -1,5 +1,7 @@
+const { IS_PRODUCTION } = require("../constants/dataConstants");
 const { timeToNumber } = require("./DateHelper");
 const { dateFromString } = require("./DateHelper");
+
 const getNextCurrentTime = (currentMinutes, hours, deltaMinutes) => {
     currentMinutes = currentMinutes + deltaMinutes;
 
@@ -12,13 +14,20 @@ const getNextCurrentTime = (currentMinutes, hours, deltaMinutes) => {
     return `${hours}:${currentMinutes}`;
 }
 
+const addLeadingZero = (aTime) => {
+    if (aTime.split(":")[1].length === 1) {
+        return `${aTime.split(":")[0]}:0${aTime.split(":")[1]}`;
+    }
+
+    return aTime;
+}
+
 const getTimeFrequencies = (times) => {
     let labels = [];
 
     if (times.length === 0) {
         return labels;
     }
-
 
     const first = times.reduce((a,b) => a < b ? a : b);
 
@@ -47,9 +56,7 @@ const getTimeFrequencies = (times) => {
     let currentTime = `${hours}:${currentMinutes}`;
 
     for (let i = 1; i < 6; i += 1) {
-        if (currentTime.split(":")[1].length === 1) {
-            currentTime = `${currentTime.split(":")[0]}:0${currentTime.split(":")[1]}`;
-        }
+        currentTime = addLeadingZero(currentTime);
 
         labels.push(currentTime);
 
@@ -61,13 +68,9 @@ const getTimeFrequencies = (times) => {
     }
 
     if (last > currentTime) {
-        labels.push(last);
+        labels.push(addLeadingZero(last));
     } else {
-        labels.push(
-            getNextCurrentTime(currentMinutes,
-                               hours,
-                               deltaMinutes)
-        );
+        labels.push(addLeadingZero(currentTime));
     }
 
     return labels;

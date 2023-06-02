@@ -4,9 +4,9 @@ const sinon = require("sinon");
 
 const assert = require("assert");
 
-const { DateMock } = require("../mocks/DateMock");
+const { DateMock } = require("../../mocks/DateMock");
 
-const EventNotificationService = rewire("../../src/services/events/EventNotificationService");
+const EventNotificationService = rewire("../../../src/services/events/EventNotificationService");
 
 
 describe("Event notification service", () => {
