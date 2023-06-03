@@ -65,8 +65,26 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getEventStatusStats(req, res);
 
-        console.log(result);
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get even date stats by day", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getEventsDatesStats(req, res);
 
         assert(OK_LBL === result.message);
     });
-})
+});

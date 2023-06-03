@@ -6,7 +6,7 @@ const assert = require("assert");
 
 const { userIsOrganizer } = require("../../src/services/users/UserService");
 
-const Middleware = rewire("../../src/routes/Middleware");
+const Middleware = rewire("../../src/routes/authentication/Middleware");
 
 describe("Middleware", () => {
     const req = {
