@@ -1,11 +1,11 @@
-const Logger = require("../helpers/Logger");
+const Logger = require("../../helpers/Logger");
 
 const express = require("express");
-const { blockUser } = require("../services/users/UserService");
-const { USER_BLOCK_URL } = require("../constants/URLs");
-const { administratorMiddleware } = require("./Middleware");
-const { USER_ALL } = require("../constants/URLs");
-const { getUsers } = require("../services/users/UserService");
+const { blockUser } = require("../../services/users/UserService");
+const { USER_BLOCK_URL } = require("../../constants/URLs");
+const { administratorMiddleware } = require("../authentication/Middleware");
+const { USER_ALL } = require("../../constants/URLs");
+const { getUsers } = require("../../services/users/UserService");
 
 const router = express.Router();
 

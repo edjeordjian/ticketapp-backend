@@ -1,15 +1,11 @@
-const Logger = require("../helpers/Logger");
+const Logger = require("../../helpers/Logger");
 
 const express = require('express');
-const { getEventStatusStats } = require("../services/events/EventStatsService");
-const { EVENT_STATUS_URL } = require("../constants/URLs");
 
 const {
     suspendEvent,
     cancelEvent,
-    getAttendancesStats,
-    getAttendancesRange
-} = require("../services/events/EventService");
+} = require("../../services/events/EventService");
 
 const {
     EVENT_CANCEL_URL,
@@ -22,10 +18,8 @@ const {
     EVENT_GROUP_ADD_USER_URL,
     EVENT_GROUP_URL,
     EVENT_URL,
-    EVENT_SEARCH_NAME_URL,
-    ATTENDANCES_STATS_URL,
-    ATTENDANCES_RANGE_URL
-} = require("../constants/URLs");
+    EVENT_SEARCH_NAME_URL
+} = require("../../constants/URLs");
 
 const {
     administratorMiddleware,
@@ -33,40 +27,46 @@ const {
     emptyBodyMiddleware,
     isAllowedMiddleware,
     isOrganizerMiddleware
-} = require("./Middleware");
+} = require("../authentication/Middleware");
 
 const {
     handleAddUserToGroup,
     handleGetGroup
-} = require("../services/login/GroupService");
+} = require("../../services/login/GroupService");
 
 const {
     handleEventSignUp,
     handleEventCheck
-} = require("../services/events/EventService");
+} = require("../../services/events/EventService");
 
 const {
     userIsConsumer,
     userIsStaff
-} = require("../services/users/UserService");
+} = require("../../services/users/UserService");
 
 const {
     handleGetTypes,
     getReportCategories
-} = require("../services/events/EventCategoriesService");
+} = require("../../services/events/EventCategoriesService");
 
-const {handleCreateEventReport} = require("../services/events/EventReportService");
+const {handleCreateEventReport} = require("../../services/events/EventReportService");
 
-const { handleAddFavourite, handleDeleteFavourite } = require("../services/events/EventsFavouritesService")
+const {
+    handleAddFavourite,
+    handleDeleteFavourite
+} = require("../../services/events/EventsFavouritesService")
 
 const {
     handleCreate,
     handleSearch,
     handleGet,
     handleUpdateEvent
-} = require("../services/events/EventService");
+} = require("../../services/events/EventService");
 
-const { userIsOrganizer, userExists } = require("../services/users/UserService");
+const {
+    userIsOrganizer,
+    userExists
+} = require("../../services/users/UserService");
 
 const router = express.Router();
 
@@ -206,20 +206,6 @@ router.delete('/event/favourite', async (req, res, next) => {
 }, async (req, res) => {
     Logger.request('DELETE /event/favourite');
     await handleDeleteFavourite(req,res);
-});
-
-router.get(ATTENDANCES_STATS_URL, async (req, res, next) => {
-    await isAllowedMiddleware(req, res, next, userIsStaff);
-}, async (req, res) => {
-    Logger.request(`GET ${ATTENDANCES_STATS_URL}`);
-    await getAttendancesStats(req, res);
-});
-
-router.get(EVENT_STATUS_URL, async (req, res, next) => {
-    await administratorMiddleware(req, res, next)
-}, async (req, res) => {
-    Logger.request(`GET ${EVENT_STATUS_URL}`);
-    await getEventStatusStats(req, res);
 });
 
 module.exports = router;

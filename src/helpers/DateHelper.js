@@ -117,8 +117,20 @@ const timeToNumber = (timeStr) => {
     return Number(hours) * 100 + Number(minutes);
 }
 
+const monthNumberToString = (monthNumberStr) => {
+    const monthStrings = {
+        "01": "Enero", "02": "Febrero", "03": "Marzo", "04": "Abril",
+
+        "05": "Mayo", "06": "Junio", "07": "Julio", "08": "Agosto",
+
+        "09": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
+    }
+
+    return monthStrings[monthNumberStr];
+}
+
 module.exports = {
     getQuickDate, dateFromString, dateToString, timeToString,
     getDateOnly, dateToMomentFormat, momentToHumanDateFormat, getTimeStringFrom,
-    timeToNumber
+    timeToNumber, monthNumberToString
 };
