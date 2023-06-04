@@ -77,9 +77,13 @@ const eventIncludes = [
     }
 ];
 
-const getEventAttendancesStats = (e) => {
-    const attendances = e.attendees
+const getEventAttendancesStats = (e, from,to) => {
+    let attendances = e.attendees
                          .filter(attendee => attendee.attendances.attended);
+    if (from && to){
+        attendances = attendances.filter(attendance => new Date(attendance.attendances.updatedAt) > new Date(from) && 
+                                                       new Date(attendance.attendances.updatedAt) < new Date(to));
+    }
 
     if (attendances.length > 0) {
         const stats = attendances.map(attendance => {

@@ -1130,6 +1130,7 @@ const cronEventUpdate = async () => {
 
 const getAttendancesStats = async (req, res) => {
     const {eventId} = req.query;
+    const {from, to} = req.query;
 
     const event = await findOne(Events,
         {
@@ -1143,11 +1144,11 @@ const getAttendancesStats = async (req, res) => {
             }
         ]);
 
-    if (event.error) {
-        return setUnexpectedErrorResponse(event.error, res);
+    if (!event || event.error) {
+        return setUnexpectedErrorResponse(`Error while getting attendances stats for event with id ${eventId}`, res);
     }
 
-    const stats = getEventAttendancesStats(event);
+    const stats = getEventAttendancesStats(event,from,to);
 
     const response = {
         stats: stats

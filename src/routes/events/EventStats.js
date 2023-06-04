@@ -10,7 +10,7 @@ const {
     ATTENDANCES_STATS_URL
 } = require("../../constants/URLs");
 
-const { userIsStaff } = require("../../services/users/UserService");
+const { userIsStaff, userExists } = require("../../services/users/UserService");
 
 const {
     isAllowedMiddleware,
@@ -26,7 +26,7 @@ const {
 const router = express.Router();
 
 router.get(ATTENDANCES_STATS_URL, async (req, res, next) => {
-    await isAllowedMiddleware(req, res, next, userIsStaff);
+    await isAllowedMiddleware(req, res, next, userExists);
 }, async (req, res) => {
     Logger.request(`GET ${ATTENDANCES_STATS_URL}`);
 

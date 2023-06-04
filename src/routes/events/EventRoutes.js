@@ -99,7 +99,7 @@ router.post(EVENT_SIGN_UP_URL,
 
 router.post(EVENT_CHECK_URL,
     async (req, res, next) => {
-        await isAllowedMiddleware(req, res, next, userIsStaff)
+        await isAllowedMiddleware(req, res, next, userExists)
     },
     async (req, res, next) => {
         Logger.request(`POST: ${EVENT_CHECK_URL}`);
