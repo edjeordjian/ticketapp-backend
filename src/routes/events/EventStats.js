@@ -26,7 +26,7 @@ const {
 const router = express.Router();
 
 router.get(ATTENDANCES_STATS_URL, async (req, res, next) => {
-    await isAllowedMiddleware(req, res, next, userExists);
+    await isAllowedMiddleware(req, res, next, userIsStaff);
 }, async (req, res) => {
     Logger.request(`GET ${ATTENDANCES_STATS_URL}`);
 
