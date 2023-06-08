@@ -338,7 +338,9 @@ const getTop5OrganizersByAttendances = async (req, res) => {
 
     const resultSortingFn = (a, b) => a.tickets - b.tickets;
 
-    const top5 = topK(attendancesByOrganizers, resultSortingFn, 5);
+    const top5 = topK(attendancesByOrganizers, resultSortingFn, 5).filter(organizer => {
+        return organizer.percentage > "80%"
+    });
 
     top5.sort(resultSortingFn);
 
