@@ -1,12 +1,16 @@
 const moment = require("moment");
-const { monthNumberToString } = require("../../helpers/DateHelper");
+
+const { EventReport } = require("../../data/model/EventReport");
 
 const {
     FILTER_TYPE_MONTH,
     FILTER_TYPE_YEAR
 } = require("../../constants/events/eventStatsConstants");
 
-const { dateFromString } = require("../../helpers/DateHelper");
+const {
+    dateFromString,
+    monthNumberToString
+} = require("../../helpers/DateHelper");
 
 const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
 
@@ -105,8 +109,8 @@ const getEventsDatesStatsInDays = (startDate, endDate, eventCounts) => {
     while (startMoment.isSameOrBefore(endMoment, 'day')) {
         const momentDate = startMoment.format('DD/MM/YYYY');
 
-        const eventCount = eventCounts.find(e => {
-            return moment(e.date).format('DD/MM/YYYY') === momentDate
+        const eventCount = eventCounts.filter(e => {
+            return moment(e.date, 'DD/MM/YYYY').isSame(momentDate, 'day');
         });
 
         resultInDays.push({
@@ -227,6 +231,56 @@ const getEventsDatesStats = async (req, res) => {
     return setOkResponse(OK_LBL, res, result);
 }
 
+const getReportsStats = async (req, res) => {
+    const {
+        start,
+        end,
+        filter
+    } = req.query;
+
+    const startDate = dateFromString(start);
+
+    const endDate = dateFromString(end, true);
+
+    if (startDate == "Invalid Date" || endDate == "Invalid Date") {
+        return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
+    }
+
+    const eventCounts = await findAll(EventReport,
+        {
+            'createdAt': {
+                [Op.between]: [startDate, endDate]
+            }
+        },
+        [
+        ],
+        [],
+        [
+            ['createdAt', 'date'],
+            [
+                Sequelize.fn('count', Sequelize.col('createdAt')),
+                'count'
+            ]
+        ],
+        [
+            'createdAt'
+        ],
+        true
+    );
+
+    if (eventCounts.error) {
+        return setUnexpectedErrorResponse(eventCounts.error, res);
+    }
+
+    const resultInDays = getEventsDatesStatsInDays(startDate, endDate, eventCounts);
+
+    const result = {
+        stats: resultInDays
+    }
+
+    return setOkResponse(OK_LBL, res, result);
+}
+
 module.exports = {
-    getEventsDatesStats, getEventStatusStats
+    getEventsDatesStats, getEventStatusStats, getReportsStats
 };

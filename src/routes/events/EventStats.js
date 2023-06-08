@@ -2,7 +2,7 @@ const express = require("express");
 
 const Logger = require("../../helpers/Logger");
 
-const { getEventsDatesStats } = require("../../services/events/EventStatsService");
+const { REPORTS_STATS_URL } = require("../../constants/URLs");
 
 const {
     EVENTS_DATES_STATS_URL,
@@ -17,7 +17,11 @@ const {
     administratorMiddleware
 } = require("../authentication/Middleware");
 
-const { getEventStatusStats } = require("../../services/events/EventStatsService");
+const {
+    getReportsStats,
+    getEventStatusStats,
+    getEventsDatesStats
+} = require("../../services/events/EventStatsService");
 
 const {
     getAttendancesStats,
@@ -47,6 +51,14 @@ router.get(EVENTS_DATES_STATS_URL, async (req, res, next) => {
     Logger.request(`GET ${EVENTS_DATES_STATS_URL}`);
 
     await getEventsDatesStats(req, res);
-})
+});
+
+router.get(REPORTS_STATS_URL, async (req, res, next) => {
+    await administratorMiddleware(req, res, next)
+}, async (req, res) => {
+    Logger.request(`GET ${REPORTS_STATS_URL}`);
+
+    await getReportsStats(req, res);
+});
 
 module.exports = router;
