@@ -65,8 +65,136 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getEventStatusStats(req, res);
 
-        console.log(result);
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get even date stats by day", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getEventsDatesStats(req, res);
 
         assert(OK_LBL === result.message);
     });
-})
+
+    it("Get even date stats by month", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31",
+
+            filter: "month"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getEventsDatesStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get even date stats by year", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31",
+
+            filter: "year"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getEventsDatesStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get reports stats by day", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31",
+
+            filter: "day"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getReportsStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get reports stats by month", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31",
+
+            filter: "month"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getReportsStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get reports stats by year", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31",
+
+            filter: "year"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getReportsStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
+});

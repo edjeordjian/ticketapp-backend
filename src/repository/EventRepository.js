@@ -1,24 +1,32 @@
-const { IS_PRODUCTION } = require("../constants/dataConstants");
 const { EventCalendarSchedule } = require("../data/model/EventCalendarSchedule");
+
 const { getFullName } = require("./UserRepository");
+
 const { getTimeStringFrom } = require("../helpers/DateHelper");
 
 const { SUSPENDED_STATUS_LBL } = require("../constants/events/EventStatusConstants");
-const { getStateId } = require("../services/events/EventStateService");
-const { getLastReportDate } = require("./ReportRepository");
+
 const { EventReportCategory } = require("../data/model/EventReportCategory");
-const { getReportDataForEvent } = require("./ReportRepository");
-const { REPORTER_RELATION_NAME } = require("../constants/dataConstants");
-const { EVENTS_REPORT_RELATION_NAME } = require("../constants/dataConstants");
-const { REPORTS_RELATION_NAME } = require("../constants/dataConstants");
+
+const {
+    getReportDataForEvent,
+    getLastReportDate
+} = require("./ReportRepository");
+
+const {
+    IS_PRODUCTION,
+    REPORTER_RELATION_NAME,
+    EVENT_TO_EVENT_STATE_RELATION_NAME,
+    EVENTS_REPORT_RELATION_NAME,
+    ATTENDEES_RELATION_NAME,
+    ORGANIZER_RELATION_NAME
+} = require("../constants/dataConstants");
+
 const { EventReport } = require("../data/model/EventReport");
-const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../constants/dataConstants");
+
 const { EventState } = require("../data/model/EventState");
+
 const { FAQ } = require("../data/model/FAQ");
-
-const { ATTENDEES_RELATION_NAME } = require("../constants/dataConstants");
-
-const { ORGANIZER_RELATION_NAME } = require("../constants/dataConstants");
 
 const { User } = require("../data/model/User");
 
@@ -26,9 +34,25 @@ const { EventTypes } = require("../data/model/EventTypes");
 
 const { Speakers } = require("../data/model/Speakers");
 
-const { timeToString } = require("../helpers/DateHelper");
+const {
+    timeToString,
+    dateToString
+} = require("../helpers/DateHelper");
 
-const { dateToString } = require("../helpers/DateHelper");
+const eventReportsInclude = {
+    model: EventReport,
+    attributes: ["text", "createdAt"],
+    as: EVENTS_REPORT_RELATION_NAME,
+    include: [
+        {
+            model: User,
+            as: REPORTER_RELATION_NAME
+        },
+        {
+            model: EventReportCategory
+        }
+    ]
+};
 
 const eventIncludes = [
     {
@@ -58,20 +82,7 @@ const eventIncludes = [
         attributes: ["id", "name"],
         as: EVENT_TO_EVENT_STATE_RELATION_NAME
     },
-    {
-        model: EventReport,
-        attributes: ["text", "createdAt"],
-        as: EVENTS_REPORT_RELATION_NAME,
-        include: [
-            {
-                model: User,
-                as: REPORTER_RELATION_NAME
-            },
-            {
-                model: EventReportCategory
-            }
-        ]
-    },
+    eventReportsInclude,
     {
         model: EventCalendarSchedule
     }

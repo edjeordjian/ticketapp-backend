@@ -8,13 +8,15 @@ const cron = require('node-cron');
 
 const { database } = require("./data/database");
 
-const logInRoutes = require("./routes/LogInRoutes");
+const logInRoutes = require("./routes/login/LogInRoutes");
 
-const eventRoutes = require("./routes/EventRoutes");
+const eventRoutes = require("./routes/events/EventRoutes");
 
-const userRoutes = require("./routes/UserRoutes");
+const userRoutes = require("./routes/users/UserRoutes");
 
-const eventScheduleRoutes = require("./routes/EventCalendarScheduleRoutes");
+const eventScheduleRoutes = require("./routes/events/EventCalendarScheduleRoutes");
+
+const eventStatsRoutes = require("./routes/events/EventStats");
 
 const { cronEventUpdate } = require("./services/events/EventService");
 
@@ -39,8 +41,6 @@ const { IS_PRODUCTION } = require("./constants/dataConstants");
 const { BASE_URL } = require("./constants/URLs");
 
 const { RESET_DATABASE } = require("./constants/dataConstants");
-
-const { notifyTomorrowEvents } = require("./services/events/EventNotificationService");
 
 const syncDB = async () => {
     defineRelationships();
@@ -71,7 +71,9 @@ app.use(BASE_URL, eventRoutes);
 
 app.use(BASE_URL, userRoutes);
 
-app.use(BASE_URL, eventScheduleRoutes)
+app.use(BASE_URL, eventStatsRoutes);
+
+app.use(BASE_URL, eventScheduleRoutes);
 
 setLevel(LOG_LEVEL);
 

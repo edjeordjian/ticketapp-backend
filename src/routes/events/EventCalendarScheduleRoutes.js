@@ -1,14 +1,14 @@
-const Logger = require("../helpers/Logger");
+const Logger = require("../../helpers/Logger");
 
 const express = require("express");
 
-const { saveRecordOfEventScheduleInCalendar } = require("../services/events/EventCalendarScheduleService");
+const { saveRecordOfEventScheduleInCalendar } = require("../../services/events/EventCalendarScheduleService");
 
-const { EVENT_CALENDAR_SCHEDULE_URL } = require("../constants/URLs");
+const { EVENT_CALENDAR_SCHEDULE_URL } = require("../../constants/URLs");
 
-const { userIsConsumer } = require("../services/users/UserService");
+const { userIsConsumer } = require("../../services/users/UserService");
 
-const { isAllowedMiddleware } = require("./Middleware");
+const { isAllowedMiddleware } = require("../authentication/Middleware");
 
 const router = express.Router();
 

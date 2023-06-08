@@ -1,20 +1,20 @@
-const Logger = require("../helpers/Logger");
-const { BLOCKED_USER } = require("../constants/messages");
-const { userIsBlocked } = require("../services/users/UserService");
-const { EXPIRED_TOKEN_ERR_LBL } = require("../constants/login/logInConstants");
-const { ONLY_ADMIN_ERR_LBL } = require("../constants/login/logInConstants");
-const { DENIED_ACCESS_ERR_LBL } = require("../constants/login/logInConstants");
-const { userIsAdministrator } = require("../services/users/UserService");
+const Logger = require("../../helpers/Logger");
+const { BLOCKED_USER } = require("../../constants/messages");
+const { userIsBlocked } = require("../../services/users/UserService");
+const { EXPIRED_TOKEN_ERR_LBL } = require("../../constants/login/logInConstants");
+const { ONLY_ADMIN_ERR_LBL } = require("../../constants/login/logInConstants");
+const { DENIED_ACCESS_ERR_LBL } = require("../../constants/login/logInConstants");
+const { userIsAdministrator } = require("../../services/users/UserService");
 
-const { getFirebaseUserData } = require("../services/authentication/FirebaseService");
+const { getFirebaseUserData } = require("../../services/authentication/FirebaseService");
 
-const { userIsOrganizer, userExists } = require("../services/users/UserService");
+const { userIsOrganizer, userExists } = require("../../services/users/UserService");
 
-const { setErrorResponse } = require("../helpers/ResponseHelper");
+const { setErrorResponse } = require("../../helpers/ResponseHelper");
 
-const { isEmpty } = require("../helpers/ObjectHelper");
+const { isEmpty } = require("../../helpers/ObjectHelper");
 
-const { verifyToken } = require("../services/authentication/FirebaseService")
+const { verifyToken } = require("../../services/authentication/FirebaseService")
 
 
 const isOrganizerMiddleware = async (req, res, next) => {
