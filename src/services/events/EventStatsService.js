@@ -1,4 +1,5 @@
 const moment = require("moment");
+const { getTotalTickets } = require("../../repository/EventRepository");
 const { topK } = require("../../helpers/ListHelper");
 const { getReadTickets } = require("../../repository/EventRepository");
 
@@ -301,8 +302,9 @@ const getTop5OrganizersByAttendances = async (req, res) => {
             },
         ],
         [],
-        [
-        ],
+        {
+            exclude: []
+        },
         [
         ],
         false
@@ -315,12 +317,22 @@ const getTop5OrganizersByAttendances = async (req, res) => {
     const eventsByOrganizers = groupBy(events, event => getFullName(event.organizer));
 
     const attendancesByOrganizers = eventsByOrganizers.map(event => {
+        const readTickets = event.value.length > 1
+            ? event.value.reduce((e1, e2) => getReadTickets(e1) + getReadTickets(e2))
+            : getReadTickets(event.value[0]);
+
+        const totalTickets = event.value.length > 1
+            ? event.value.reduce((e1, e2) => e1.capacity + e2.capacity)
+            : event.value[0].capacity;
+
+        const percentage = parseInt(readTickets / totalTickets * 100);
+
         return {
             organizer: event.name,
 
-            tickets: event.value.length > 1
-                ? event.value.reduce((e1, e2) => getReadTickets(e1) + getReadTickets(e2))
-                : getReadTickets(event.value[0])
+            tickets: readTickets,
+
+            percentage: `${percentage}%`
         }
     });
 
