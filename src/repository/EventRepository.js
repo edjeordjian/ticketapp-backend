@@ -314,5 +314,5 @@ const getSerializedEvent = async (e,
 
 module.exports = {
     getSerializedEvent, getTicket, eventIncludes, getEventAttendancesStats,
-    getEventAttendancesRange
+    getEventAttendancesRange, getReadTickets
 };

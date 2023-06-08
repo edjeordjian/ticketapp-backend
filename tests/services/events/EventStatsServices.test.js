@@ -197,4 +197,16 @@ describe("Event stats service", () => {
 
         assert(OK_LBL === result.message);
     });
+
+    it("Event attendances by organizers stats", async () => {
+        const findAllStub = sinon.stub().returns([]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getTop5OrganizersByAttendances(req, res);
+
+        assert(OK_LBL === result.message);
+    });
 });

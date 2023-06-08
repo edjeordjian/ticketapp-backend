@@ -2,12 +2,12 @@ const express = require("express");
 
 const Logger = require("../../helpers/Logger");
 
-const { REPORTS_STATS_URL } = require("../../constants/URLs");
-
 const {
     EVENTS_DATES_STATS_URL,
     EVENT_STATUS_STATS_URL,
-    ATTENDANCES_STATS_URL
+    ATTENDANCES_STATS_URL,
+    REPORTS_STATS_URL,
+    TOP_ORGANIZERS_URL
 } = require("../../constants/URLs");
 
 const { userIsStaff } = require("../../services/users/UserService");
@@ -20,7 +20,8 @@ const {
 const {
     getReportsStats,
     getEventStatusStats,
-    getEventsDatesStats
+    getEventsDatesStats,
+    getTop5OrganizersByAttendances
 } = require("../../services/events/EventStatsService");
 
 const {
@@ -59,6 +60,14 @@ router.get(REPORTS_STATS_URL, async (req, res, next) => {
     Logger.request(`GET ${REPORTS_STATS_URL}`);
 
     await getReportsStats(req, res);
+});
+
+router.get(TOP_ORGANIZERS_URL, async (req, res, next) => {
+    await administratorMiddleware(req, res, next)
+}, async (req, res) => {
+    Logger.request(`GET ${TOP_ORGANIZERS_URL}`);
+
+    await getTop5OrganizersByAttendances(req, res);
 });
 
 module.exports = router;

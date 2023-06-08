@@ -31,7 +31,7 @@ Events.belongsToMany(User, {
 User.belongsToMany(Events, {
     through: Attendances,
     as: EVENTS_RELATION_NAME
-})
+});
 
 module.exports = {
     Attendances
