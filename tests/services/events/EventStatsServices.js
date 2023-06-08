@@ -131,4 +131,70 @@ describe("Event stats service", () => {
 
         assert(OK_LBL === result.message);
     });
+
+    it("Get reports stats by day", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31",
+
+            filter: "day"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getReportsStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get reports stats by month", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31",
+
+            filter: "month"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getReportsStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get reports stats by year", async () => {
+        req.query = {
+            start: "2022-05-31",
+
+            end: "2023-05-31",
+
+            filter: "year"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            "date": new Date()
+        }]);
+
+        EventStatsService.__set__({
+            "findAll": findAllStub
+        });
+
+        const result = await EventStatsService.getReportsStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
 });

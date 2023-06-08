@@ -107,16 +107,16 @@ const getEventsDatesStatsInDays = (startDate, endDate, eventCounts) => {
     const resultInDays = []
 
     while (startMoment.isSameOrBefore(endMoment, 'day')) {
-        const momentDate = startMoment.format('DD/MM/YYYY');
-
         const eventCount = eventCounts.filter(e => {
-            return moment(e.date, 'DD/MM/YYYY').isSame(momentDate, 'day');
+            return moment(e.date, 'DD/MM/YYYY').isSame(startMoment, 'day');
         });
+
+        const momentDate = startMoment.format('DD/MM/YYYY');
 
         resultInDays.push({
             moment: momentDate,
 
-            count: eventCount ? parseInt(eventCount.count) : 0
+            count: eventCount ? parseInt(eventCount.length) : 0
         });
 
         startMoment.add(1, 'day');
@@ -176,7 +176,8 @@ const getEventsDatesStatsInYears = (resultInDays) => {
         }));
 }
 
-const getEventsDatesStats = async (req, res) => {
+const getStatsData = async (req, res, statsCallback) => {
+
     const {
         start,
         end,
@@ -191,26 +192,7 @@ const getEventsDatesStats = async (req, res) => {
         return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
     }
 
-    const eventCounts = await findAll(Events,
-        {
-            date: {
-                [Op.between]: [startDate, endDate]
-            }
-        },
-        [],
-        [],
-        [
-            'date',
-            [
-                Sequelize.fn('count', Sequelize.col('date')),
-                'count'
-            ]
-        ],
-        [
-            'date'
-        ],
-        true
-    );
+    const eventCounts = await statsCallback(startDate, endDate);
 
     if (eventCounts.error) {
         return setUnexpectedErrorResponse(eventCounts.error, res);
@@ -223,7 +205,7 @@ const getEventsDatesStats = async (req, res) => {
     }
 
     if (filter === FILTER_TYPE_MONTH) {
-       result.stats = getEventsDatesStatsInMonths(resultInDays);
+        result.stats = getEventsDatesStatsInMonths(resultInDays);
     } else if (filter === FILTER_TYPE_YEAR) {
         result.stats = getEventsDatesStatsInYears(resultInDays);
     }
@@ -231,54 +213,59 @@ const getEventsDatesStats = async (req, res) => {
     return setOkResponse(OK_LBL, res, result);
 }
 
-const getReportsStats = async (req, res) => {
-    const {
-        start,
-        end,
-        filter
-    } = req.query;
-
-    const startDate = dateFromString(start);
-
-    const endDate = dateFromString(end, true);
-
-    if (startDate == "Invalid Date" || endDate == "Invalid Date") {
-        return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
-    }
-
-    const eventCounts = await findAll(EventReport,
-        {
-            'createdAt': {
-                [Op.between]: [startDate, endDate]
-            }
-        },
-        [
-        ],
-        [],
-        [
-            ['createdAt', 'date'],
+const getEventsDatesStats = async (req, res) => {
+    const eventCallback = async (startDate, endDate) => {
+        return await findAll(Events,
+            {
+                date: {
+                    [Op.between]: [startDate, endDate]
+                }
+            },
+            [],
+            [],
             [
-                Sequelize.fn('count', Sequelize.col('createdAt')),
-                'count'
-            ]
-        ],
-        [
-            'createdAt'
-        ],
-        true
-    );
-
-    if (eventCounts.error) {
-        return setUnexpectedErrorResponse(eventCounts.error, res);
+                'date',
+                [
+                    Sequelize.fn('count', Sequelize.col('date')),
+                    'count'
+                ]
+            ],
+            [
+                'date'
+            ],
+            true
+        );
     }
 
-    const resultInDays = getEventsDatesStatsInDays(startDate, endDate, eventCounts);
+    return getStatsData(req, res, eventCallback);
+}
 
-    const result = {
-        stats: resultInDays
+const getReportsStats = async (req, res) => {
+    const eventCallback = async (startDate, endDate) => {
+        return await findAll(EventReport,
+            {
+                'createdAt': {
+                    [Op.between]: [startDate, endDate]
+                }
+            },
+            [
+            ],
+            [],
+            [
+                ['createdAt', 'date'],
+                [
+                    Sequelize.fn('count', Sequelize.col('createdAt')),
+                    'count'
+                ]
+            ],
+            [
+                'createdAt'
+            ],
+            true
+        );
     }
 
-    return setOkResponse(OK_LBL, res, result);
+    return getStatsData(req, res, eventCallback);
 }
 
 module.exports = {
