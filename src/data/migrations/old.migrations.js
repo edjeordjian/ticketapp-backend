@@ -1,61 +1,7 @@
 /* Save here your old migrations.
 */
 
-async function m7() {
-    await queryInterface.addColumn(Events.tableName,
-        'total_capacity',
-        {
-            type: Sequelize.INTEGER
-        }).catch(error => console.log(error.toString())
-    );
-
-    await queryInterface.addColumn(User.tableName,
-        "is_blocked",
-        {
-            type: Sequelize.BOOLEAN,
-            allowNull: false,
-            validate: { notEmpty: true },
-            defaultValue: false
-        }).catch(err => {
-        console.log(err.toString());
-    });
-
-    await queryInterface.addColumn(EventReport.tableName,
-        "event_id",
-        {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-            validate: { notEmpty: true }
-        }).catch(err => {
-        console.log(err.toString());
-    });
-}
-
-async function m6() {
-    await queryInterface.addColumn(Events.tableName,
-        "state_id",
-        {
-            type: Sequelize.INTEGER
-        }).catch(err => {
-        console.log(err.toString());
-    });
-
-    await queryInterface.addColumn(EventReport.tableName,
-        "reporter_id",
-        {
-            type: Sequelize.STRING(MAX_STR_LEN)
-        }).catch(err => {
-        console.log(err.toString());
-    });
-
-    await queryInterface.addColumn(User.tableName,
-        "expo_token",
-        {
-            type: Sequelize.STRING(MAX_STR_LEN)
-        }).catch(err => {
-        console.log(err.toString());
-    });
-
+const dataMigrations = async () => {
     await EventReportCategory.count()
         .then(async count => {
             if (count === 0) {
@@ -86,6 +32,7 @@ async function m6() {
             console.log(err.toString());
         });
 
+
     await EventState.count()
         .then(async count => {
             if (count === 0) {
@@ -115,19 +62,6 @@ async function m6() {
         }).catch(err => {
             console.log(err.toString());
         });
-}
-
-async function m5() {
-    await queryInterface.addColumn(Events.tableName,
-        "latitude", {
-            type: Sequelize.STRING(MAX_STR_LEN)
-        }
-    ).catch(error => console.log(error.toString()));
-
-    await queryInterface.addColumn(Events.tableName,
-        "longitude", {
-            type: Sequelize.STRING(MAX_STR_LEN)
-        }).catch(error => console.log(error.toString()));
 
     await queryInterface.bulkInsert(EventTypes.tableName, [{
         name: "Evento deportivo",
@@ -220,6 +154,75 @@ async function m5() {
             updatedAt: today
         }
     ]);
+}
+
+async function m7() {
+    await queryInterface.addColumn(Events.tableName,
+        'total_capacity',
+        {
+            type: Sequelize.INTEGER
+        }).catch(error => console.log(error.toString())
+    );
+
+    await queryInterface.addColumn(User.tableName,
+        "is_blocked",
+        {
+            type: Sequelize.BOOLEAN,
+            allowNull: false,
+            validate: { notEmpty: true },
+            defaultValue: false
+        }).catch(err => {
+        console.log(err.toString());
+    });
+
+    await queryInterface.addColumn(EventReport.tableName,
+        "event_id",
+        {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            validate: { notEmpty: true }
+        }).catch(err => {
+        console.log(err.toString());
+    });
+}
+
+async function m6() {
+    await queryInterface.addColumn(Events.tableName,
+        "state_id",
+        {
+            type: Sequelize.INTEGER
+        }).catch(err => {
+        console.log(err.toString());
+    });
+
+    await queryInterface.addColumn(EventReport.tableName,
+        "reporter_id",
+        {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }).catch(err => {
+        console.log(err.toString());
+    });
+
+    await queryInterface.addColumn(User.tableName,
+        "expo_token",
+        {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }).catch(err => {
+        console.log(err.toString());
+    });
+}
+
+async function m5() {
+    await queryInterface.addColumn(Events.tableName,
+        "latitude", {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }
+    ).catch(error => console.log(error.toString()));
+
+    await queryInterface.addColumn(Events.tableName,
+        "longitude", {
+            type: Sequelize.STRING(MAX_STR_LEN)
+        }).catch(error => console.log(error.toString()));
 }
 
 async function m4() {
@@ -336,47 +339,6 @@ async function m2() {
     ).catch(error => {
         console.log(error.toString());
     });
-
-    await queryInterface.bulkInsert(EventTypes.tableName, [{
-        name: "Música",
-        createdAt: today,
-        updatedAt: today
-    },
-        {
-            name: "Deporte",
-            createdAt: today,
-            updatedAt: today
-        },
-        {
-            name: "Artes visuales",
-            createdAt: today,
-            updatedAt: today
-        },
-        {
-            name: "Salud",
-            createdAt: today,
-            updatedAt: today
-        },
-        {
-            name: "Pasatiempos",
-            createdAt: today,
-            updatedAt: today
-        },
-        {
-            name: "Negocios",
-            createdAt: today,
-            updatedAt: today
-        },
-        {
-            name: "Gastronomía",
-            createdAt: today,
-            updatedAt: today
-        },
-        {
-            name: "Charla",
-            createdAt: today,
-            updatedAt: today
-        }]);
 }
 
 async function m1() {
