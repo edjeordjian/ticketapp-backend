@@ -62,22 +62,22 @@ const { OK_LBL } = require("../../constants/messages");
 
 const getEventStatusStats = async (req, res) => {
     const {
-        start,
-        end
+        startDate,
+        endDate
     } = req.query;
 
-    const startDate = dateFromString(start);
+    const start = dateFromString(startDate);
 
-    const endDate = dateFromString(end, true);
+    const end = dateFromString(endDate, true);
 
-    if (startDate == "Invalid Date" || endDate == "Invalid Date") {
+    if (start == "Invalid Date" || end == "Invalid Date") {
         return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
     }
 
     const eventsResult = await findAll(Events,
         {
             date: {
-                [Op.between]: [startDate, endDate]
+                [Op.between]: [start, end]
             }
         },
         {
@@ -108,7 +108,9 @@ const getEventStatusStats = async (req, res) => {
     });
 
     const response = {
-        stats: responseData
+        labels: responseData.map(o => o.status),
+
+        data: responseData.map(o => o.number)
     }
 
     return setOkResponse(OK_LBL, res, response);
