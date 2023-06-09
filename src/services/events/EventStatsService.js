@@ -1,6 +1,7 @@
 const moment = require("moment");
-const { getTotalTickets } = require("../../repository/EventRepository");
+
 const { topK } = require("../../helpers/ListHelper");
+
 const { getReadTickets } = require("../../repository/EventRepository");
 
 const { groupBy } = require("../../helpers/ListHelper");
@@ -192,35 +193,37 @@ const getEventsDatesStatsInYears = (resultInDays) => {
 
 const getStatsData = async (req, res, statsCallback) => {
     const {
-        start,
-        end,
+        startDate,
+        endDate,
         filter
     } = req.query;
 
-    const startDate = dateFromString(start);
+    const start = dateFromString(new Date(startDate).toISOString().split("T")[0] + "T");
 
-    const endDate = dateFromString(end, true);
+    const end = dateFromString(new Date(endDate).toISOString().split("T")[0] + "T", true);
 
-    if (startDate == "Invalid Date" || endDate == "Invalid Date") {
+    if (start == "Invalid Date" || end == "Invalid Date") {
         return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
     }
 
-    const eventCounts = await statsCallback(startDate, endDate);
+    const eventCounts = await statsCallback(start, end);
 
     if (eventCounts.error) {
         return setUnexpectedErrorResponse(eventCounts.error, res);
     }
 
-    const resultInDays = getEventsDatesStatsInDays(startDate, endDate, eventCounts);
-
-    const result = {
-        stats: resultInDays
-    }
+    let stats = getEventsDatesStatsInDays(start, end, eventCounts);
 
     if (filter === FILTER_TYPE_MONTH) {
-        result.stats = getEventsDatesStatsInMonths(resultInDays);
+        stats = getEventsDatesStatsInMonths(stats);
     } else if (filter === FILTER_TYPE_YEAR) {
-        result.stats = getEventsDatesStatsInYears(resultInDays);
+        stats = getEventsDatesStatsInYears(stats);
+    }
+
+    const result = {
+        labels: stats.map(o => o.moment),
+
+        data: stats.map(o => o.count)
     }
 
     return setOkResponse(OK_LBL, res, result);
