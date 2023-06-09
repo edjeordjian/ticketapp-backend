@@ -68,11 +68,11 @@ describe("Event stats service", () => {
         assert(OK_LBL === result.message);
     });
 
-    it("Get even date stats by day", async () => {
+    it("Get event date stats by day", async () => {
         req.query = {
-            start: "2022-05-31",
+            startDate: "2022-05-31",
 
-            end: "2023-05-31"
+            endDate: "2023-05-31"
         };
 
         const findAllStub = sinon.stub().returns([{
@@ -88,11 +88,11 @@ describe("Event stats service", () => {
         assert(OK_LBL === result.message);
     });
 
-    it("Get even date stats by month", async () => {
+    it("Get event date stats by month", async () => {
         req.query = {
-            start: "2022-05-31",
+            startDate: "2022-05-31",
 
-            end: "2023-05-31",
+            endDate: "2023-05-31",
 
             filter: "month"
         };
@@ -110,11 +110,11 @@ describe("Event stats service", () => {
         assert(OK_LBL === result.message);
     });
 
-    it("Get even date stats by year", async () => {
+    it("Get event date stats by year", async () => {
         req.query = {
-            start: "2022-05-31",
+            startDate: "2022-05-31",
 
-            end: "2023-05-31",
+            endDate: "2023-05-31",
 
             filter: "year"
         };
@@ -134,9 +134,9 @@ describe("Event stats service", () => {
 
     it("Get reports stats by day", async () => {
         req.query = {
-            start: "2022-05-31",
+            startDate: "2022-05-31",
 
-            end: "2023-05-31",
+            endDate: "2023-05-31",
 
             filter: "day"
         };
@@ -156,9 +156,9 @@ describe("Event stats service", () => {
 
     it("Get reports stats by month", async () => {
         req.query = {
-            start: "2022-05-31",
+            startDate: "2022-05-31",
 
-            end: "2023-05-31",
+            endDate: "2023-05-31",
 
             filter: "month"
         };
@@ -178,9 +178,9 @@ describe("Event stats service", () => {
 
     it("Get reports stats by year", async () => {
         req.query = {
-            start: "2022-05-31",
+            startDate: "2022-05-31",
 
-            end: "2023-05-31",
+            endDate: "2023-05-31",
 
             filter: "year"
         };
