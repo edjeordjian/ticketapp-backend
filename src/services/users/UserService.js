@@ -1,9 +1,18 @@
 const { getSortedByReportsWithDate } = require("../../repository/ReportRepository");
+
 const { suspendGivenEvent } = require("../events/EventNotificationService");
-const { PUBLISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+
+const {
+    PUBLISHED_STATUS_LBL,
+    SUSPENDED_STATUS_LBL
+} = require("../../constants/events/EventStatusConstants");
+
 const { getStateId } = require("../events/EventStateService");
+
 const { eventIncludes } = require("../../repository/EventRepository");
+
 const { Op } = require("sequelize");
+
 const {
     ACTIVATED_USER,
     BLOCKED_USER
@@ -13,12 +22,15 @@ const {
     setErrorResponse,
     setOkResponse
 } = require("../../helpers/ResponseHelper");
+
 const { CREATED_EVENTS_RELATION_NAME } = require("../../constants/dataConstants");
+
 const { logError } = require("../../helpers/Logger");
 
 const { Events } = require("../../data/model/Events");
 
 const { OK_LBL } = require("../../constants/messages");
+
 const { getSerializedUserWithReports } = require("../../repository/UserRepository");
 
 const { EventReportCategory } = require("../../data/model/EventReportCategory");
@@ -251,17 +263,33 @@ const blockUser = async (req, res) => {
         return setUnexpectedErrorResponse(result.error, res);
     }
 
-    if (body.block && user.is_organizer) {
-        const publishedId = await getStateId(PUBLISHED_STATUS_LBL);
+    if (user.is_organizer) {
+        let statusId;
 
-        if (publishedId.error) {
-            return setErrorResponse(publishedId.error, res);
+        let suspend;
+
+        if (body.block) {
+            statusId = await getStateId(PUBLISHED_STATUS_LBL);
+
+            if (statusId.error) {
+                return setErrorResponse(statusId.error, res);
+            }
+
+            suspend = true;
+        } else {
+            statusId = await getStateId(SUSPENDED_STATUS_LBL);
+
+            if (statusId.error) {
+                return setErrorResponse(statusId.error, res);
+            }
+
+            suspend = false;
         }
 
         const eventsToSuspend = await user.getEvents({
             where: {
                 state_id: {
-                    [Op.eq]: publishedId
+                    [Op.eq]: statusId
                 },
 
                 owner_id: user.id
@@ -270,12 +298,12 @@ const blockUser = async (req, res) => {
         });
 
         if (eventsToSuspend.error) {
-            return setErrorResponse(publishedId.error, res);
+            return setErrorResponse(statusId.error, res);
         }
 
         await Promise.all(
             eventsToSuspend.map(async e => {
-                await suspendGivenEvent(e, true);
+                await suspendGivenEvent(e, suspend);
             })
         );
     }
