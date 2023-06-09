@@ -198,9 +198,9 @@ const getStatsData = async (req, res, statsCallback) => {
         filter
     } = req.query;
 
-    const start = dateFromString(new Date(startDate).toISOString().split("T")[0] + "T");
+    const start = dateFromString(startDate);
 
-    const end = dateFromString(new Date(endDate).toISOString().split("T")[0] + "T", true);
+    const end = dateFromString(endDate, true);
 
     if (start == "Invalid Date" || end == "Invalid Date") {
         return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
