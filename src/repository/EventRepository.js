@@ -166,6 +166,12 @@ const wasReportedByUser = (e, userId) => {
     return userReports.length !== 0;
 }
 
+const getTotalTickets = (evt) => {
+    return evt.attendees
+        .map(e => e.attendances)
+        .length;
+}
+
 const getReadTickets = (evt) => {
     return evt.attendees
         .map(e => e.attendances)
@@ -314,5 +320,5 @@ const getSerializedEvent = async (e,
 
 module.exports = {
     getSerializedEvent, getTicket, eventIncludes, getEventAttendancesStats,
-    getEventAttendancesRange
+    getEventAttendancesRange, getReadTickets, getTotalTickets
 };

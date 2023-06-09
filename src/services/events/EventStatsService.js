@@ -1,5 +1,19 @@
 const moment = require("moment");
 
+const { topK } = require("../../helpers/ListHelper");
+
+const { getReadTickets } = require("../../repository/EventRepository");
+
+const { groupBy } = require("../../helpers/ListHelper");
+
+const { getFullName } = require("../../repository/UserRepository");
+
+const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
+
+const { User } = require("../../data/model/User");
+
+const { Events } = require("../../data/model/Events");
+
 const { EventReport } = require("../../data/model/EventReport");
 
 const {
@@ -12,7 +26,10 @@ const {
     monthNumberToString
 } = require("../../helpers/DateHelper");
 
-const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
+const {
+    EVENT_TO_EVENT_STATE_RELATION_NAME,
+    ORGANIZER_RELATION_NAME
+} = require("../../constants/dataConstants");
 
 const { EventState } = require("../../data/model/EventState");
 
@@ -22,8 +39,6 @@ const {
 } = require("sequelize");
 
 const { WRONG_DATE_FORMAT_ERR_LBL } = require("../../constants/events/eventsConstants");
-
-const { Events } = require("../../data/model/Events");
 
 const {
     DRAFT_STATUS_LBL,
@@ -177,37 +192,38 @@ const getEventsDatesStatsInYears = (resultInDays) => {
 }
 
 const getStatsData = async (req, res, statsCallback) => {
-
     const {
-        start,
-        end,
+        startDate,
+        endDate,
         filter
     } = req.query;
 
-    const startDate = dateFromString(start);
+    const start = dateFromString(startDate);
 
-    const endDate = dateFromString(end, true);
+    const end = dateFromString(endDate, true);
 
-    if (startDate == "Invalid Date" || endDate == "Invalid Date") {
+    if (start == "Invalid Date" || end == "Invalid Date") {
         return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
     }
 
-    const eventCounts = await statsCallback(startDate, endDate);
+    const eventCounts = await statsCallback(start, end);
 
     if (eventCounts.error) {
         return setUnexpectedErrorResponse(eventCounts.error, res);
     }
 
-    const resultInDays = getEventsDatesStatsInDays(startDate, endDate, eventCounts);
-
-    const result = {
-        stats: resultInDays
-    }
+    let stats = getEventsDatesStatsInDays(start, end, eventCounts);
 
     if (filter === FILTER_TYPE_MONTH) {
-        result.stats = getEventsDatesStatsInMonths(resultInDays);
+        stats = getEventsDatesStatsInMonths(stats);
     } else if (filter === FILTER_TYPE_YEAR) {
-        result.stats = getEventsDatesStatsInYears(resultInDays);
+        stats = getEventsDatesStatsInYears(stats);
+    }
+
+    const result = {
+        labels: stats.map(o => o.moment),
+
+        data: stats.map(o => o.count)
     }
 
     return setOkResponse(OK_LBL, res, result);
@@ -268,6 +284,77 @@ const getReportsStats = async (req, res) => {
     return getStatsData(req, res, eventCallback);
 }
 
+const getTop5OrganizersByAttendances = async (req, res) => {
+    const events = await findAll(Events,
+        {
+
+        },
+        [
+            {
+                model: User,
+                attributes:  [
+                    "first_name",
+                    "last_name"
+                ],
+                as: ORGANIZER_RELATION_NAME
+            },
+            {
+                model: User,
+                attributes: ["id"],
+                as: ATTENDEES_RELATION_NAME
+            },
+        ],
+        [],
+        {
+            exclude: []
+        },
+        [
+        ],
+        false
+    );
+
+    if (events.error) {
+        return setUnexpectedErrorResponse(events.error, res);
+    }
+
+    const eventsByOrganizers = groupBy(events, event => getFullName(event.organizer));
+
+    const attendancesByOrganizers = eventsByOrganizers.map(event => {
+        const readTickets = event.value.length > 1
+            ? event.value.reduce((e1, e2) => getReadTickets(e1) + getReadTickets(e2))
+            : getReadTickets(event.value[0]);
+
+        const totalTickets = event.value.length > 1
+            ? event.value.reduce((e1, e2) => e1.capacity + e2.capacity)
+            : event.value[0].capacity;
+
+        const percentage = parseInt(readTickets / totalTickets * 100);
+
+        return {
+            organizer: event.name,
+
+            tickets: readTickets,
+
+            percentage: `${percentage}%`
+        }
+    });
+
+    const resultSortingFn = (a, b) => a.tickets - b.tickets;
+
+    const top5 = topK(attendancesByOrganizers, resultSortingFn, 5).filter(organizer => {
+        return organizer.percentage > "80%"
+    });
+
+    top5.sort(resultSortingFn);
+
+    const result = {
+        organizers: top5
+    };
+
+    return setOkResponse(OK_LBL, res, result);
+}
+
 module.exports = {
-    getEventsDatesStats, getEventStatusStats, getReportsStats
+    getEventsDatesStats, getEventStatusStats, getReportsStats,
+    getTop5OrganizersByAttendances
 };
