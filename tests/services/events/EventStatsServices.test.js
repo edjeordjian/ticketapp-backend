@@ -48,9 +48,9 @@ describe("Event stats service", () => {
 
     it("Get event status stats", async () => {
         req.query = {
-            start: "2022-05-31",
+            startDate: "2022-05-31",
 
-            end: "2023-05-31"
+            endDate: "2023-05-31"
         };
 
         const findAllStub = sinon.stub().returns([{

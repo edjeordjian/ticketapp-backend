@@ -1,3 +1,4 @@
+const { groupBy } = require("../helpers/ListHelper");
 const { EventCalendarSchedule } = require("../data/model/EventCalendarSchedule");
 
 const { getFullName } = require("./UserRepository");
@@ -88,11 +89,24 @@ const eventIncludes = [
     }
 ];
 
-const getEventAttendancesStats = (e) => {
-    const attendances = e.attendees
+const getEventAttendancesStats = (e, from, to) => {
+    let attendances = e.attendees
                          .filter(attendee => attendee.attendances.attended);
 
     if (attendances.length > 0) {
+        if (from && to){
+            const groupedAttendances = groupBy(attendances, (attendance) => {
+                return dateToString(attendance.attendances.updatedAt);
+            })
+
+            return groupedAttendances.map(attendance => {
+                return {
+                    date: attendance.name,
+                    count: attendance.value.length
+                }
+            });
+        }
+
         const stats = attendances.map(attendance => {
             let updateTime = attendance.attendances.updatedAt;
 
@@ -102,9 +116,10 @@ const getEventAttendancesStats = (e) => {
 
             return {
                 name: getFullName(attendance),
+
                 time: getTimeStringFrom(updateTime)
             }
-        })
+        });
 
         stats.sort((a, b) => a.time > b.time ? 1 :-1);
 
