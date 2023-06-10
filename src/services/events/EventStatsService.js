@@ -1,5 +1,5 @@
 const moment = require("moment");
-const { monthNumberToString } = require("../../helpers/DateHelper");
+const { monthNumberToString, dateToMomentFormat } = require("../../helpers/DateHelper");
 
 const {
     FILTER_TYPE_MONTH,
@@ -14,8 +14,9 @@ const { EventState } = require("../../data/model/EventState");
 
 const {
     Sequelize,
-    Op
+    Op,
 } = require("sequelize");
+
 
 const { WRONG_DATE_FORMAT_ERR_LBL } = require("../../constants/events/eventsConstants");
 
@@ -40,6 +41,7 @@ const {
 } = require("../../helpers/ResponseHelper");
 
 const { OK_LBL } = require("../../constants/messages");
+const { Attendances } = require("../../data/model/Attendances");
 
 const getEventStatusStats = async (req, res) => {
     const {
@@ -227,6 +229,49 @@ const getEventsDatesStats = async (req, res) => {
     return setOkResponse(OK_LBL, res, result);
 }
 
+const getGeneralAttendancesStats = async (req, res) => {
+    const { fromDay, toDay, fromYear, toYear, fromMonth, toMonth } = req.query;
+    let result;
+    let between;
+    let groupCondition;
+    try {
+        if(fromDay && toDay) {
+            groupCondition = Sequelize.literal('DATE("updatedAt")');
+            groupColumn = [groupCondition,'date']
+        } else if (fromMonth && toMonth) {
+            groupCondition = Sequelize.literal('EXTRACT(MONTH FROM "updatedAt")');
+            groupColumn  =[groupCondition, 'date'];
+        } else if (fromYear && toYear) {
+            groupCondition = Sequelize.literal('EXTRACT(YEAR FROM "updatedAt")');
+            groupColumn  = [groupCondition, 'date'];
+        }
+        
+        result = await Attendances.findAll({
+            attributes: [
+                groupColumn,
+                [Sequelize.fn('COUNT', Sequelize.col('*')), 'count']
+            ],
+            where: {
+                attended: true
+            },
+            group: groupCondition
+            });
+    
+            
+    } catch (error) {
+        console.error('Error:', error);
+        return setErrorResponse(error,res);
+    }
+    let labels = result.map(item => item.dataValues.date);
+    const data = result.map(item => item.dataValues.count);
+    if (fromMonth && toMonth){
+        labels = labels.map(month => monthNumberToString(month));
+    }
+  
+    setOkResponse(OK_LBL, res, {labels:labels, data: data});
+  };
+
+
 module.exports = {
-    getEventsDatesStats, getEventStatusStats
+    getEventsDatesStats, getEventStatusStats,getGeneralAttendancesStats
 };
