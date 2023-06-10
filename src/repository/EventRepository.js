@@ -77,12 +77,20 @@ const eventIncludes = [
     }
 ];
 
-const getEventAttendancesStats = (e, from,to) => {
+const getEventAttendancesStats = (e, fDay,fMonth,fYear,fHour, tDay, tMonth, tYear, tHour) => {
     let attendances = e.attendees
                          .filter(attendee => attendee.attendances.attended);
-    if (from && to){
-        attendances = attendances.filter(attendance => new Date(attendance.attendances.updatedAt) > new Date(from) && 
-                                                       new Date(attendance.attendances.updatedAt) < new Date(to));
+    if ((fDay && tDay) || (fMonth && tMonth) || (fYear && tYear) || (fHour && tHour)){
+        const fromHour = fHour? fHour : 0;
+        const toHour = tHour? tHour: fromHour;
+        const fromDay = fDay? fDay: 1;
+        const toDay = tDay? tDay: 31;
+        const fromMonth = fMonth? fMonth: 1;
+        const toMonth = tMonth? tMonth: 12;
+        const fromYear = fYear? fYear: 2023;
+        const toYear = tYear? tYear: 2023;
+        attendances = attendances.filter(attendance => new Date(attendance.attendances.updatedAt) > new Date(fromYear,fromMonth,fromDay,toMonth,fromHour) && 
+                                                       new Date(attendance.attendances.updatedAt) < new Date(toYear,toMonth,toDay,toHour));
     }
 
     if (attendances.length > 0) {
