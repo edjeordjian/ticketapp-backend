@@ -1,14 +1,37 @@
 const moment = require("moment");
 const { monthNumberToString, dateToMomentFormat } = require("../../helpers/DateHelper");
 
+const { getEventAttendancesStats } = require("../../repository/EventRepository");
+
+const { topK } = require("../../helpers/ListHelper");
+
+const { getReadTickets } = require("../../repository/EventRepository");
+
+const { groupBy } = require("../../helpers/ListHelper");
+
+const { getFullName } = require("../../repository/UserRepository");
+
+const { ATTENDEES_RELATION_NAME } = require("../../constants/dataConstants");
+
+const { User } = require("../../data/model/User");
+
+const { Events } = require("../../data/model/Events");
+
+const { EventReport } = require("../../data/model/EventReport");
+
 const {
     FILTER_TYPE_MONTH,
     FILTER_TYPE_YEAR
 } = require("../../constants/events/eventStatsConstants");
 
-const { dateFromString } = require("../../helpers/DateHelper");
+const {
+    dateFromString,
+} = require("../../helpers/DateHelper");
 
-const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
+const {
+    EVENT_TO_EVENT_STATE_RELATION_NAME,
+    ORGANIZER_RELATION_NAME
+} = require("../../constants/dataConstants");
 
 const { EventState } = require("../../data/model/EventState");
 
@@ -19,8 +42,6 @@ const {
 
 
 const { WRONG_DATE_FORMAT_ERR_LBL } = require("../../constants/events/eventsConstants");
-
-const { Events } = require("../../data/model/Events");
 
 const {
     DRAFT_STATUS_LBL,
@@ -45,22 +66,22 @@ const { Attendances } = require("../../data/model/Attendances");
 
 const getEventStatusStats = async (req, res) => {
     const {
-        start,
-        end
+        startDate,
+        endDate
     } = req.query;
 
-    const startDate = dateFromString(start);
+    const start = dateFromString(startDate);
 
-    const endDate = dateFromString(end, true);
+    const end = dateFromString(endDate, true);
 
-    if (startDate == "Invalid Date" || endDate == "Invalid Date") {
+    if (start == "Invalid Date" || end == "Invalid Date") {
         return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
     }
 
     const eventsResult = await findAll(Events,
         {
             date: {
-                [Op.between]: [startDate, endDate]
+                [Op.between]: [start, end]
             }
         },
         {
@@ -91,7 +112,9 @@ const getEventStatusStats = async (req, res) => {
     });
 
     const response = {
-        stats: responseData
+        labels: responseData.map(o => o.status),
+
+        data: responseData.map(o => o.number)
     }
 
     return setOkResponse(OK_LBL, res, response);
@@ -105,16 +128,16 @@ const getEventsDatesStatsInDays = (startDate, endDate, eventCounts) => {
     const resultInDays = []
 
     while (startMoment.isSameOrBefore(endMoment, 'day')) {
-        const momentDate = startMoment.format('DD/MM/YYYY');
-
-        const eventCount = eventCounts.find(e => {
-            return moment(e.date).format('DD/MM/YYYY') === momentDate
+        const eventCount = eventCounts.filter(e => {
+            return moment(e.date, 'DD/MM/YYYY').isSame(startMoment, 'day');
         });
+
+        const momentDate = startMoment.format('DD/MM/YYYY');
 
         resultInDays.push({
             moment: momentDate,
 
-            count: eventCount ? parseInt(eventCount.count) : 0
+            count: eventCount ? parseInt(eventCount.length) : 0
         });
 
         startMoment.add(1, 'day');
@@ -174,59 +197,221 @@ const getEventsDatesStatsInYears = (resultInDays) => {
         }));
 }
 
-const getEventsDatesStats = async (req, res) => {
+const getStatsData = async (req, res, statsCallback) => {
     const {
-        start,
-        end,
+        startDate,
+        endDate,
         filter
     } = req.query;
 
-    const startDate = dateFromString(start);
+    const start = dateFromString(startDate);
 
-    const endDate = dateFromString(end, true);
+    const end = dateFromString(endDate, true);
 
-    if (startDate == "Invalid Date" || endDate == "Invalid Date") {
+    if (start == "Invalid Date" || end == "Invalid Date") {
         return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
     }
 
-    const eventCounts = await findAll(Events,
-        {
-            date: {
-                [Op.between]: [startDate, endDate]
-            }
-        },
-        [],
-        [],
-        [
-            'date',
-            [
-                Sequelize.fn('count', Sequelize.col('date')),
-                'count'
-            ]
-        ],
-        [
-            'date'
-        ],
-        true
-    );
+    const eventCounts = await statsCallback(start, end);
 
     if (eventCounts.error) {
         return setUnexpectedErrorResponse(eventCounts.error, res);
     }
 
-    const resultInDays = getEventsDatesStatsInDays(startDate, endDate, eventCounts);
-
-    const result = {
-        stats: resultInDays
-    }
+    let stats = getEventsDatesStatsInDays(start, end, eventCounts);
 
     if (filter === FILTER_TYPE_MONTH) {
-       result.stats = getEventsDatesStatsInMonths(resultInDays);
+        stats = getEventsDatesStatsInMonths(stats);
     } else if (filter === FILTER_TYPE_YEAR) {
-        result.stats = getEventsDatesStatsInYears(resultInDays);
+        stats = getEventsDatesStatsInYears(stats);
+    }
+
+    const result = {
+        labels: stats.map(o => o.moment),
+
+        data: stats.map(o => o.count)
     }
 
     return setOkResponse(OK_LBL, res, result);
+}
+
+const getEventsDatesStats = async (req, res) => {
+    const eventCallback = async (startDate, endDate) => {
+        return await findAll(Events,
+            {
+                date: {
+                    [Op.between]: [startDate, endDate]
+                }
+            },
+            [],
+            [],
+            [
+                'date',
+                [
+                    Sequelize.fn('count', Sequelize.col('date')),
+                    'count'
+                ]
+            ],
+            [
+                'date'
+            ],
+            true
+        );
+    }
+
+    return getStatsData(req, res, eventCallback);
+}
+
+const getReportsStats = async (req, res) => {
+    const eventCallback = async (startDate, endDate) => {
+        return await findAll(EventReport,
+            {
+                'createdAt': {
+                    [Op.between]: [startDate, endDate]
+                }
+            },
+            [
+            ],
+            [],
+            [
+                ['createdAt', 'date'],
+                [
+                    Sequelize.fn('count', Sequelize.col('createdAt')),
+                    'count'
+                ]
+            ],
+            [
+                'createdAt'
+            ],
+            true
+        );
+    }
+
+    return getStatsData(req, res, eventCallback);
+}
+
+const getEventsAttendancesStats = async (req, res) => {
+    const eventCallback = async (startDate, endDate) => {
+        const result =  await findAll(Events,
+            {
+                'date': {
+                    [Op.between]: [startDate, endDate]
+                }
+            },
+            [
+                {
+                    model: User,
+                    attributes: ["id", "first_name", "last_name", "email"],
+                    as: ATTENDEES_RELATION_NAME
+                }
+            ],
+        );
+
+        if (result.error) {
+            return result;
+        }
+
+        return result.map(e => getEventAttendancesStats(e, startDate, endDate))
+                     .reduce((list1, list2) => list1.concat(list2));
+    }
+
+    return getStatsData(req, res, eventCallback);
+}
+
+const getTop5OrganizersByAttendances = async (req, res) => {
+    const events = await findAll(Events,
+        {
+
+        },
+        [
+            {
+                model: User,
+                attributes:  [
+                    "first_name",
+                    "last_name"
+                ],
+                as: ORGANIZER_RELATION_NAME
+            },
+            {
+                model: User,
+                attributes: ["id"],
+                as: ATTENDEES_RELATION_NAME
+            },
+        ],
+        [],
+        {
+            exclude: []
+        },
+        [
+        ],
+        false
+    );
+
+    if (events.error) {
+        return setUnexpectedErrorResponse(events.error, res);
+    }
+
+    const eventsByOrganizers = groupBy(events, event => getFullName(event.organizer));
+
+    const attendancesByOrganizers = eventsByOrganizers.map(event => {
+        const readTickets = event.value.length > 1
+            ? event.value.reduce((e1, e2) => getReadTickets(e1) + getReadTickets(e2))
+            : getReadTickets(event.value[0]);
+
+        const totalTickets = event.value.length > 1
+            ? event.value.reduce((e1, e2) => e1.capacity + e2.capacity)
+            : event.value[0].capacity;
+
+        const percentage = parseInt(readTickets / totalTickets * 100);
+
+        return {
+            organizer: event.name,
+
+            tickets: readTickets,
+
+            percentage: `${percentage}%`
+        }
+    });
+
+    const resultSortingFn = (a, b) => a.tickets - b.tickets;
+
+    const top5 = topK(attendancesByOrganizers, resultSortingFn, 5).filter(organizer => {
+        return organizer.percentage > "80%"
+    });
+
+    top5.sort(resultSortingFn);
+
+    const result = {
+        organizers: top5
+    };
+
+    return setOkResponse(OK_LBL, res, result);
+}
+
+const getHistoricStats = async (req, res) => {
+    const userCount = await User.count();
+    const reportCount = await EventReport.count();
+    const consumerCount = await User.count({
+        where: {is_consumer: true}
+    })
+    const organizerCount = await User.count({
+        where: {is_organizer: true}
+    })
+    const eventCount = await Events.count();
+    const activeEvents = await Events.count({
+        where: {state_id: 2}
+    });
+    const result = {
+        userCount: userCount,
+        consumerCount: consumerCount,
+        organizerCount: organizerCount,
+        reportCount: reportCount,
+        eventCount: eventCount,
+        activeEventCount: activeEvents
+    }
+
+
+    setOkResponse(OK_LBL, res,result)
 }
 
 const getGeneralAttendancesStats = async (req, res) => {
@@ -273,5 +458,8 @@ const getGeneralAttendancesStats = async (req, res) => {
 
 
 module.exports = {
-    getEventsDatesStats, getEventStatusStats,getGeneralAttendancesStats
+    getEventsDatesStats, getEventStatusStats,getGeneralAttendancesStats,
+     getEventStatusStats, getReportsStats,
+    getTop5OrganizersByAttendances, getEventsAttendancesStats,
+    getHistoricStats
 };

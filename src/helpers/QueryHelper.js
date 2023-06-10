@@ -26,7 +26,8 @@ const findOne = async (model,
 };
 
 
-// TODO: Should receive a JSON as only attribute
+// TODO:
+//  - Should receive a JSON as only attribute
 const findAll = async (model,
     condition,
     include = [],
