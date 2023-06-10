@@ -8,7 +8,8 @@ const {
     ATTENDANCES_STATS_URL,
     REPORTS_STATS_URL,
     TOP_ORGANIZERS_URL,
-    ATTENDANCES_TOTAL_STATS_URL
+    ATTENDANCES_TOTAL_STATS_URL,
+    HISTORIC_STATS_URL
 } = require("../../constants/URLs");
 
 const { userIsStaff } = require("../../services/users/UserService");
@@ -23,7 +24,8 @@ const {
     getEventStatusStats,
     getEventsDatesStats,
     getTop5OrganizersByAttendances,
-    getEventsAttendancesStats
+    getEventsAttendancesStats,
+    getHistoricStats
 } = require("../../services/events/EventStatsService");
 
 const {
@@ -79,5 +81,14 @@ router.get(TOP_ORGANIZERS_URL, async (req, res, next) => {
 
     await getTop5OrganizersByAttendances(req, res);
 });
+
+router.get(HISTORIC_STATS_URL,async (req, res, next) => {
+    await administratorMiddleware(req, res, next)
+}, async (req,res)=> {
+    Logger.request(`GET ${HISTORIC_STATS_URL}`);
+
+    await getHistoricStats(req,res);
+
+})
 
 module.exports = router;

@@ -385,7 +385,34 @@ const getTop5OrganizersByAttendances = async (req, res) => {
     return setOkResponse(OK_LBL, res, result);
 }
 
+const getHistoricStats = async (req, res) => {
+    const userCount = await User.count();
+    const reportCount = await EventReport.count();
+    const consumerCount = await User.count({
+        where: {is_consumer: true}
+    })
+    const organizerCount = await User.count({
+        where: {is_organizer: true}
+    })
+    const eventCount = await Events.count();
+    const activeEvents = await Events.count({
+        where: {state_id: 2}
+    });
+    const result = {
+        userCount: userCount,
+        consumerCount: consumerCount,
+        organizerCount: organizerCount,
+        reportCount: reportCount,
+        eventCount: eventCount,
+        activeEventCount: activeEvents
+    }
+
+
+    setOkResponse(OK_LBL, res,result)
+}
+
 module.exports = {
     getEventsDatesStats, getEventStatusStats, getReportsStats,
-    getTop5OrganizersByAttendances, getEventsAttendancesStats
+    getTop5OrganizersByAttendances, getEventsAttendancesStats,
+    getHistoricStats
 };
