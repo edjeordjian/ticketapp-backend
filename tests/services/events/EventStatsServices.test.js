@@ -209,4 +209,33 @@ describe("Event stats service", () => {
 
         assert(OK_LBL === result.message);
     });
+
+    it("Get attendances stats", async () => {
+        req.query = {
+            startDate: "2022-05-31",
+
+            endDate: "2023-05-31",
+
+            filter: "year"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            attendees: [ {
+                attendances: [
+                    {
+                        attended: false
+                    }
+                ]
+               }
+             ]
+        }]);
+
+        EventStatsService.__set__({
+                "findAll": findAllStub
+            });
+
+        const result = await EventStatsService.getEventsAttendancesStats(req, res);
+
+        assert(OK_LBL === result.message);
+    });
 });
