@@ -1,4 +1,5 @@
 const moment = require("moment");
+const { getEventAttendancesStats } = require("../../repository/EventRepository");
 
 const { topK } = require("../../helpers/ListHelper");
 
@@ -286,6 +287,34 @@ const getReportsStats = async (req, res) => {
     return getStatsData(req, res, eventCallback);
 }
 
+const getEventsAttendancesStats = async (req, res) => {
+    const eventCallback = async (startDate, endDate) => {
+        const result =  await findAll(Events,
+            {
+                'date': {
+                    [Op.between]: [startDate, endDate]
+                }
+            },
+            [
+                {
+                    model: User,
+                    attributes: ["id", "first_name", "last_name", "email"],
+                    as: ATTENDEES_RELATION_NAME
+                }
+            ],
+        );
+
+        if (result.error) {
+            return result;
+        }
+
+        return result.map(e => getEventAttendancesStats(e, startDate, endDate))
+                     .reduce((list1, list2) => list1.concat(list2));
+    }
+
+    return getStatsData(req, res, eventCallback);
+}
+
 const getTop5OrganizersByAttendances = async (req, res) => {
     const events = await findAll(Events,
         {
@@ -358,5 +387,5 @@ const getTop5OrganizersByAttendances = async (req, res) => {
 
 module.exports = {
     getEventsDatesStats, getEventStatusStats, getReportsStats,
-    getTop5OrganizersByAttendances
+    getTop5OrganizersByAttendances, getEventsAttendancesStats
 };
