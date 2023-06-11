@@ -199,6 +199,12 @@ describe("Event stats service", () => {
     });
 
     it("Event attendances by organizers stats", async () => {
+        req.query = {
+            startDate: "2022-05-31",
+
+            endDate: "2023-05-31"
+        };
+
         const findAllStub = sinon.stub().returns([]);
 
         EventStatsService.__set__({
@@ -206,6 +212,35 @@ describe("Event stats service", () => {
         });
 
         const result = await EventStatsService.getTop5OrganizersByAttendances(req, res);
+
+        assert(OK_LBL === result.message);
+    });
+
+    it("Get attendances stats", async () => {
+        req.query = {
+            startDate: "2022-05-31",
+
+            endDate: "2023-05-31",
+
+            filter: "year"
+        };
+
+        const findAllStub = sinon.stub().returns([{
+            attendees: [ {
+                attendances: [
+                    {
+                        attended: false
+                    }
+                ]
+               }
+             ]
+        }]);
+
+        EventStatsService.__set__({
+                "findAll": findAllStub
+            });
+
+        const result = await EventStatsService.getEventsAttendancesStats(req, res);
 
         assert(OK_LBL === result.message);
     });

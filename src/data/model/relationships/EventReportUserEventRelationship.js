@@ -1,4 +1,5 @@
 const { User } = require("../User");
+
 const { Events } = require("../Events");
 
 const { EventReport } = require("../EventReport");
@@ -6,7 +7,7 @@ const { EventReport } = require("../EventReport");
 const {
     REPORTS_RELATION_NAME, REPORTER_RELATION_NAME,
     EVENTS_REPORT_RELATION_NAME
-    } = require("../../../constants/dataConstants");
+} = require("../../../constants/dataConstants");
 
 
 const defineEventReportUserEventRelationship = () => {
