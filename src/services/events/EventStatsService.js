@@ -124,7 +124,7 @@ const getEventsDatesStatsInDays = (startDate, endDate, eventCounts) => {
 
     const endMoment = moment(endDate);
 
-    const resultInDays = []
+    const resultInDays = [];
 
     while (startMoment.isSameOrBefore(endMoment, 'day')) {
         const eventCount = eventCounts.filter(e => {
@@ -133,10 +133,15 @@ const getEventsDatesStatsInDays = (startDate, endDate, eventCounts) => {
 
         const momentDate = startMoment.format('DD/MM/YYYY');
 
+        const result = groupBy(eventCount, (data) => moment(data.date).format("DD/MM/YYYY"))
+            .map((data) => data.value
+                               .map(value => parseInt(value.count))
+                               .reduce((a, b) => a + b))
+
         resultInDays.push({
             moment: momentDate,
 
-            count: eventCount ? parseInt(eventCount.length) : 0
+            count: result.length !== 0 ? result[0] : 0
         });
 
         startMoment.add(1, 'day');
@@ -314,7 +319,7 @@ const getEventsAttendancesStats = async (req, res) => {
 
         return mappedResult.length !== 0
             ? mappedResult.reduce((list1, list2) => list1.concat(list2))
-            : 0;
+            : [];
     }
 
     return getStatsData(req, res, eventCallback);
@@ -377,7 +382,7 @@ const getTop5OrganizersByAttendances = async (req, res) => {
 
         const totalTickets = event.value.length > 1
             ? event.value.reduce((e1, e2) => e1.capacity + e2.capacity)
-            : event.value[0].capacity;
+            : event.value[0].total_capacity;
 
         const percentage = parseInt(readTickets / totalTickets * 100);
 
@@ -393,7 +398,7 @@ const getTop5OrganizersByAttendances = async (req, res) => {
     const resultSortingFn = (a, b) => a.tickets - b.tickets;
 
     const top5 = topK(attendancesByOrganizers, resultSortingFn, 5).filter(organizer => {
-        return organizer.percentage > "80%"
+        return parseInt(organizer.percentage.split("%")[0]) > 80
     });
 
     top5.sort(resultSortingFn);
@@ -406,18 +411,26 @@ const getTop5OrganizersByAttendances = async (req, res) => {
 }
 
 const getHistoricStats = async (req, res) => {
-    const userCount = await User.count();
+    const userCount = await User.count({
+        where: {is_blocked: false}
+    });
+
     const reportCount = await EventReport.count();
+
     const consumerCount = await User.count({
         where: {is_consumer: true}
-    })
+    });
+
     const organizerCount = await User.count({
         where: {is_organizer: true}
-    })
+    });
+
     const eventCount = await Events.count();
+
     const activeEvents = await Events.count({
         where: {state_id: 2}
     });
+
     const result = {
         userCount: userCount,
         consumerCount: consumerCount,
@@ -426,7 +439,6 @@ const getHistoricStats = async (req, res) => {
         eventCount: eventCount,
         activeEventCount: activeEvents
     }
-
 
     setOkResponse(OK_LBL, res,result)
 }
