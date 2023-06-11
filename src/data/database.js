@@ -13,7 +13,7 @@ const database = new Sequelize(dataConstants.DATABASE_URL, {
         timestamp: false
     },
 
-    ssl: dataConstants.IS_PRODUCTION ? {
+    ssl: true ? {
         rejectUnauthorized: false
     } : false,
 
@@ -27,7 +27,7 @@ const database = new Sequelize(dataConstants.DATABASE_URL, {
     dialectOptions: {
         useUTC: true,
 
-        ssl: dataConstants.IS_PRODUCTION ? {
+        ssl: true ? {
             require: true,
             rejectUnauthorized: false
         } : false

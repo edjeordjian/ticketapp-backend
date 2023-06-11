@@ -116,7 +116,7 @@ const getEventStatusStats = async (req, res) => {
         data: responseData.map(o => o.number)
     }
 
-    return setOkResponse(OK_LBL, res, response);
+    return response;
 }
 
 const getEventsDatesStatsInDays = (startDate, endDate, eventCounts) => {
@@ -236,31 +236,38 @@ const getStatsData = async (req, res, statsCallback) => {
         data: stats.map(o => o.count)
     }
 
-    return setOkResponse(OK_LBL, res, result);
+    return result;
 }
 
 const getEventsDatesStats = async (req, res) => {
     const eventCallback = async (startDate, endDate) => {
-        return await findAll(Events,
+        const result = await findAll(Events,
             {
-                date: {
+                createdAt: {
                     [Op.between]: [startDate, endDate]
                 }
             },
             [],
             [],
             [
-                'date',
+                'createdAt',
                 [
-                    Sequelize.fn('count', Sequelize.col('date')),
+                    Sequelize.fn('count', Sequelize.col('createdAt')),
                     'count'
                 ]
             ],
             [
-                'date'
+                ['createdAt']
             ],
             true
         );
+
+        return result.map(event => {
+            return {
+                date: event.createdAt,
+                count: event.count
+            }
+        });
     }
 
     return getStatsData(req, res, eventCallback);
@@ -407,7 +414,7 @@ const getTop5OrganizersByAttendances = async (req, res) => {
         organizers: top5
     };
 
-    return setOkResponse(OK_LBL, res, result);
+    return result;
 }
 
 const getHistoricStats = async (req, res) => {
@@ -440,7 +447,8 @@ const getHistoricStats = async (req, res) => {
         activeEventCount: activeEvents
     }
 
-    setOkResponse(OK_LBL, res,result)
+
+    return result;
 }
 
 const getTop5ReportedOrganizers = async (req, res) => {
@@ -501,11 +509,39 @@ const getTop5ReportedOrganizers = async (req, res) => {
         data:  top5.length !== 0 ? top5.map(o => o.count) : []
     }
 
+    return result;
+}
+
+const getAllStats = async (req, res) => {
+    const topOrganizers = await getTop5ReportedOrganizers(req, res);
+
+    const historicStats = await getHistoricStats(req, res);
+
+    const top5Organizers = await getTop5OrganizersByAttendances(req, res);
+
+    const attendances = await getEventsAttendancesStats(req, res);
+
+    const reportStats = await getReportsStats(req, res);
+
+    const eventStats = await getEventsDatesStats(req, res);
+
+    const statusStats = await getEventStatusStats(req, res);
+
+    const result = {
+        topOrganizers,
+        historicStats,
+        top5Organizers,
+        attendances,
+        reportStats,
+        eventStats,
+        statusStats
+    }
+
     return setOkResponse(OK_LBL, res, result);
 }
 
 module.exports = {
     getEventsDatesStats, getEventStatusStats, getReportsStats,
     getTop5OrganizersByAttendances, getEventsAttendancesStats, getHistoricStats,
-    getTop5ReportedOrganizers
+    getTop5ReportedOrganizers, getAllStats
 };
