@@ -4,9 +4,9 @@ const assert = require("assert");
 
 const sinon = require("sinon");
 
-const { OK_LBL } = require("../../src/constants/messages");
+const { OK_LBL } = require("../../../src/constants/messages");
 
-const EventCategoriesService = rewire("../../src/services/events/EventCategoriesService");
+const EventCategoriesService = rewire("../../../src/services/events/EventCategoriesService");
 
 
 describe("Event categories service", () =>  {

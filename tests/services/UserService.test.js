@@ -3,6 +3,7 @@ const sinon = require("sinon");
 const rewire = require("rewire");
 
 const assert = require("assert");
+
 const { EventMock } = require("../mocks/EventMock");
 
 const UserService = rewire("../../src/services/users/UserService");

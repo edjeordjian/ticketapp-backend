@@ -1,12 +1,12 @@
-const Logger = require("../helpers/Logger");
+const Logger = require("../../helpers/Logger");
 
 const express = require('express');
 
-const { administratorMiddleware } = require("./Middleware");
+const { administratorMiddleware } = require("../authentication/Middleware");
 
-const {handleLogIn} = require("../services/login/LogInService");
+const {handleLogIn} = require("../../services/login/LogInService");
 
-const {SIGN_IN_URL} = require("../constants/URLs");
+const {SIGN_IN_URL} = require("../../constants/URLs");
 
 const router = express.Router();
 

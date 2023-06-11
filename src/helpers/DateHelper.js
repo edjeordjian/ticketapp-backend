@@ -4,7 +4,7 @@ const getQuickDate = () => {
 };
 
 // https://stackoverflow.com/questions/5619202/parsing-a-string-to-a-date-in-javascript
-const dateFromString = (strFullDate) => {
+const dateFromString = (strFullDate, finalTime = false) => {
     let strDate, strTime;
 
     let hours, minutes, seconds;
@@ -35,6 +35,14 @@ const dateFromString = (strFullDate) => {
         minutes = "0";
 
         seconds = "0";
+    }
+
+    if (finalTime) {
+        hours = "23";
+
+        minutes = "59";
+
+        seconds = "59";
     }
 
     return new Date(year, month - 1, day, hours, minutes, seconds);
@@ -109,8 +117,20 @@ const timeToNumber = (timeStr) => {
     return Number(hours) * 100 + Number(minutes);
 }
 
+const monthNumberToString = (monthNumberStr) => {
+    const monthStrings = {
+        "01": "Enero", "02": "Febrero", "03": "Marzo", "04": "Abril",
+
+        "05": "Mayo", "06": "Junio", "07": "Julio", "08": "Agosto",
+
+        "09": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
+    }
+
+    return monthStrings[monthNumberStr];
+}
+
 module.exports = {
     getQuickDate, dateFromString, dateToString, timeToString,
     getDateOnly, dateToMomentFormat, momentToHumanDateFormat, getTimeStringFrom,
-    timeToNumber
+    timeToNumber, monthNumberToString
 };

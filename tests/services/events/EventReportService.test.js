@@ -4,7 +4,7 @@ const sinon = require("sinon");
 
 const rewire = require("rewire");
 
-const EventReportService = rewire("../../src/services/events/EventReportService");
+const EventReportService = rewire("../../../src/services/events/EventReportService");
 
 describe("Event report service", () => {
     let req, res;

@@ -4,7 +4,7 @@ const sinon = require("sinon");
 
 const assert = require("assert");
 
-const EventStateService = rewire("../../src/services/events/EventStateService");
+const EventStateService = rewire("../../../src/services/events/EventStateService");
 
 describe("Event state service", () => {
     it("Event state error", async () => {

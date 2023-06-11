@@ -3,9 +3,9 @@ const rewire = require("rewire");
 const sinon = require("sinon");
 
 const assert = require("assert");
-const { OK_LBL } = require("../../src/constants/messages");
+const { OK_LBL } = require("../../../src/constants/messages");
 
-const EventCalendarScheduleService = rewire("../../src/services/events/EventCalendarScheduleService");
+const EventCalendarScheduleService = rewire("../../../src/services/events/EventCalendarScheduleService");
 
 describe("Event calendar schedule service", () => {
     let req, res;

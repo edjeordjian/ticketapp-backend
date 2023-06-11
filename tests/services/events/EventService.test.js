@@ -4,15 +4,13 @@ const assert = require("assert");
 
 const sinon = require("sinon");
 
-const { EventMock } = require("../mocks/EventMock");
+const { EventMock } = require("../../mocks/EventMock");
 
-const Event = rewire("../../src/data/model/Events");
+const EventRepository = rewire("../../../src/repository/EventRepository");
 
-const EventRepository = rewire("../../src/repository/EventRepository");
+const {OK_LBL} = require("../../../src/constants/messages");
 
-const {OK_LBL} = require("../../src/constants/messages");
-
-const EventService = rewire("../../src/services/events/EventService");
+const EventService = rewire("../../../src/services/events/EventService");
 
 
 describe("EventService", function() {

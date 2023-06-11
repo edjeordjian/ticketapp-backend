@@ -2,7 +2,7 @@ const rewire = require("rewire");
 
 const assert = require("assert");
 
-const HistogramHelper = rewire("../../../src/helpers/HistogramHelper");
+const HistogramHelper = rewire("../../src/helpers/HistogramHelper");
 
 describe("Histogarm helper", () => {
     it("Get time frequencies", () => {

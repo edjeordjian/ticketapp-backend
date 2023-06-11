@@ -44,7 +44,12 @@ const {
     setUnexpectedErrorResponse
 } = require("../../helpers/ResponseHelper");
 
-const { create, findOne, findAll, update } = require("../../helpers/QueryHelper");
+const {
+    create,
+    findOne,
+    findAll,
+    update
+} = require("../../helpers/QueryHelper");
 
 const { OK_LBL } = require("../../constants/messages");
 
@@ -64,28 +69,42 @@ const crypto = require("crypto");
 const { UNAUTHORIZED_EVENT_ERR_LBL } = require("../../constants/events/eventsConstants");
 const { getDataInBuckets } = require("../../helpers/HistogramHelper");
 const { getTimeFrequencies } = require("../../helpers/HistogramHelper");
-const { addUserToNewGroup } = require("../login/LogInService");
 const { getOwnersIds } = require("../users/UserService");
-const { getEventAttendancesRange } = require("../../repository/EventRepository");
-const { getEventAttendancesStats } = require("../../repository/EventRepository");
+
+const {
+    getEventAttendancesRange,
+    getEventAttendancesStats
+} = require("../../repository/EventRepository");
+
 const { IS_PRODUCTION } = require("../../constants/dataConstants");
-const { FINISHED_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
-const { suspendGivenEvent } = require("./EventNotificationService");
-const { notifiyEventStatus } = require("./EventNotificationService");
-const { CANCELLED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+const {
+    FINISHED_STATUS_LBL,
+    DRAFT_STATUS_LBL
+} = require("../../constants/events/EventStatusConstants");
+const {
+    suspendGivenEvent,
+    notifiyEventStatus
+} = require("./EventNotificationService");
+
 const { getUserWithEmail } = require("../login/LogInService");
-const { getSortedByReportsWithDate } = require("./EventReportService");
+
 const { getDateOnly } = require("../../helpers/DateHelper");
+
 const { getUserId } = require("../authentication/FirebaseService");
-const { DRAFT_STATUS_LBL } = require("../../constants/events/EventStatusConstants");
+
 const { INVALID_STATUS_ERR_LBL } = require("../../constants/login/logInConstants");
+
+const { CANCELLED_EVENT_LBL } = require("../../constants/events/eventsConstants");
+
 const {
     PUBLISHED_STATUS_LBL,
     CANCELLED_STATUS_LBL
 } = require("../../constants/events/EventStatusConstants");
 
 const { getStateId } = require("./EventStateService");
+
 const { EVENT_TO_EVENT_STATE_RELATION_NAME } = require("../../constants/dataConstants");
+
 const { EventState } = require("../../data/model/EventState");
 
 const { notifyTomorrowEvents } = require("./EventNotificationService");
@@ -93,8 +112,6 @@ const { notifyTomorrowEvents } = require("./EventNotificationService");
 const { eventIncludes } = require("../../repository/EventRepository");
 
 const { notifyEventChange } = require("./EventNotificationService");
-
-const { notifyCancelledEvent } = require("./EventNotificationService");
 
 const { INVALID_CODE_ERR_LBL } = require("../../constants/events/eventsConstants");
 

@@ -1,6 +1,7 @@
-const { Op } = require("sequelize");
-const { logError, logInfo } = require("./Logger");
-const { objDeepCopy } = require("./ObjectHelper");
+const {
+    logError,
+    logInfo
+} = require("./Logger");
 
 
 const findOne = async (model,
@@ -25,16 +26,27 @@ const findOne = async (model,
 };
 
 
+// TODO:
+//  - Should receive a JSON as only attribute
 const findAll = async (model,
     condition,
     include = [],
-    order = [['createdAt', 'ASC']]) => {
+    order = [['createdAt', 'ASC']],
+    attributes = { exclude: [] },
+    group = [],
+    raw = false) => {
     const response = await model.findAll({
         where: condition,
 
         include: include,
 
-        order: order
+        order: order,
+
+        attributes: attributes,
+
+        group: group,
+
+        raw: raw
     }).catch(error => {
         logError(error.name);
 
