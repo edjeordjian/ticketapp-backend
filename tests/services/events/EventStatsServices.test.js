@@ -199,6 +199,12 @@ describe("Event stats service", () => {
     });
 
     it("Event attendances by organizers stats", async () => {
+        req.query = {
+            startDate: "2022-05-31",
+
+            endDate: "2023-05-31"
+        };
+
         const findAllStub = sinon.stub().returns([]);
 
         EventStatsService.__set__({
