@@ -30,7 +30,8 @@ const {
 
 const {
     EVENT_TO_EVENT_STATE_RELATION_NAME,
-    ORGANIZER_RELATION_NAME
+    ORGANIZER_RELATION_NAME,
+    EVENTS_REPORT_RELATION_NAME
 } = require("../../constants/dataConstants");
 
 const { EventState } = require("../../data/model/EventState");
@@ -309,17 +310,35 @@ const getEventsAttendancesStats = async (req, res) => {
             return result;
         }
 
-        return result.map(e => getEventAttendancesStats(e, startDate, endDate))
-                     .reduce((list1, list2) => list1.concat(list2));
+        const mappedResult = result.map(e => getEventAttendancesStats(e, startDate, endDate));
+
+        return mappedResult.length !== 0
+            ? mappedResult.reduce((list1, list2) => list1.concat(list2))
+            : 0;
     }
 
     return getStatsData(req, res, eventCallback);
 }
 
 const getTop5OrganizersByAttendances = async (req, res) => {
+    const {
+        startDate,
+        endDate
+    } = req.query;
+
+    const start = dateFromString(startDate);
+
+    const end = dateFromString(endDate, true);
+
+    if (start == "Invalid Date" || end == "Invalid Date") {
+        return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
+    }
+
     const events = await findAll(Events,
         {
-
+            'date': {
+                [Op.between]: [start, end]
+            }
         },
         [
             {
@@ -412,8 +431,69 @@ const getHistoricStats = async (req, res) => {
     setOkResponse(OK_LBL, res,result)
 }
 
+const getTop5ReportedOrganizers = async (req, res) => {
+    const {
+        startDate,
+        endDate
+    } = req.query;
+
+    const start = dateFromString(startDate);
+
+    const end = dateFromString(endDate, true);
+
+    if (start == "Invalid Date" || end == "Invalid Date") {
+        return setErrorResponse(WRONG_DATE_FORMAT_ERR_LBL, res);
+    }
+
+    const reports = await findAll(EventReport,
+        {
+            'createdAt': {
+                [Op.between]: [start, end]
+            }
+        },
+        [
+            {
+                model: Events,
+                as: EVENTS_REPORT_RELATION_NAME,
+                include: {
+                    model: User,
+                    as: ORGANIZER_RELATION_NAME
+                }
+            },
+        ]
+    );
+
+    if (reports.error) {
+        return setUnexpectedErrorResponse(reports.error, res);
+    }
+
+    const responseByOrganizator = groupBy(reports, report => {
+        return getFullName(report.events_reports.organizer)
+    }).map(data => {
+        return {
+            name: data.name,
+
+            count: data.value.length
+        }
+    });
+
+    const resultSortingFn = (a, b) => a.count - b.count;
+
+    const top5 = topK(responseByOrganizator, resultSortingFn, 5);
+
+    top5.sort(resultSortingFn);
+
+    const result = {
+        labels: top5.length !== 0 ? top5.map(o => o.name) : [],
+
+        data:  top5.length !== 0 ? top5.map(o => o.count) : []
+    }
+
+    return setOkResponse(OK_LBL, res, result);
+}
+
 module.exports = {
     getEventsDatesStats, getEventStatusStats, getReportsStats,
-    getTop5OrganizersByAttendances, getEventsAttendancesStats,
-    getHistoricStats
+    getTop5OrganizersByAttendances, getEventsAttendancesStats, getHistoricStats,
+    getTop5ReportedOrganizers
 };
