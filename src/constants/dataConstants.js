@@ -53,8 +53,6 @@ if (process.env.MY_ENV === TEST_ENV) {
     DATABASE_URL = process.env.DATABASE_URL;
 }
 
-DATABASE_URL = "postgres://ticketapp_db2_user:GRCEfu0ULPUTZ6qMYeVrYbyxIB06VrOO@dpg-chr9u5pmbg5e1f0s2vt0-a.oregon-postgres.render.com/ticketapp_db2";
-
 const ID_MAX_LEN = 60;
 
 const MAX_STR_LEN = 254;
