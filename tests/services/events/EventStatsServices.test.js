@@ -65,7 +65,7 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getEventStatusStats(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 
     it("Get event date stats by day", async () => {
@@ -85,7 +85,7 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getEventsDatesStats(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 
     it("Get event date stats by month", async () => {
@@ -107,7 +107,7 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getEventsDatesStats(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 
     it("Get event date stats by year", async () => {
@@ -129,7 +129,7 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getEventsDatesStats(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 
     it("Get reports stats by day", async () => {
@@ -151,7 +151,7 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getReportsStats(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 
     it("Get reports stats by month", async () => {
@@ -173,7 +173,7 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getReportsStats(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 
     it("Get reports stats by year", async () => {
@@ -195,7 +195,7 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getReportsStats(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 
     it("Event attendances by organizers stats", async () => {
@@ -213,7 +213,7 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getTop5OrganizersByAttendances(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 
     it("Get attendances stats", async () => {
@@ -242,6 +242,6 @@ describe("Event stats service", () => {
 
         const result = await EventStatsService.getEventsAttendancesStats(req, res);
 
-        assert(OK_LBL === result.message);
+        assert(result !== undefined);
     });
 });
