@@ -116,9 +116,9 @@ const notifyTomorrowEvents = async () => {
 
     const now = new Date();
 
-    if (IS_PRODUCTION) {
-        now.setHours(now.getHours() - 3);
-    }
+    //if (IS_PRODUCTION) {
+    //    now.setHours(now.getHours() - 3);
+    //}
 
     now.setUTCSeconds(0);
 
@@ -130,9 +130,9 @@ const notifyTomorrowEvents = async () => {
 
     tomorrow.setUTCMinutes(0);
 
-    if (IS_PRODUCTION) {
-        tomorrow.setHours(0);
-    }
+    //if (IS_PRODUCTION) {
+    //    tomorrow.setHours(0);
+    //}
 
     let nextMinute = new Date(now.getTime() + 60 * 1000); // + 1 minute
 
