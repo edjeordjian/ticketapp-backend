@@ -384,7 +384,7 @@ const getTop5OrganizersByAttendances = async (req, res) => {
 
     const attendancesByOrganizers = eventsByOrganizers.map(event => {
         const readTickets = event.value.length > 1
-            ? event.value.reduce((e1, e2) => getReadTickets(e1) + getReadTickets(e2))
+            ? event.value.reduce((sum, e) => sum + getReadTickets(e), 0)
             : getReadTickets(event.value[0]);
 
         const totalTickets = event.value.length > 1
