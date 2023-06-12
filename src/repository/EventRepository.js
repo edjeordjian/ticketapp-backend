@@ -111,9 +111,9 @@ const getEventAttendancesStats = (e, from, to) => {
         const stats = attendances.map(attendance => {
             let updateTime = attendance.attendances.updatedAt;
 
-            if (IS_PRODUCTION) {
-                updateTime = new Date(new Date(updateTime).setHours(updateTime.getHours() - 3));
-            }
+            //if (IS_PRODUCTION) {
+            //    updateTime = new Date(new Date(updateTime).setHours(updateTime.getHours() - 3));
+            //}
 
             return {
                 name: getFullName(attendance),
@@ -138,9 +138,9 @@ const getEventAttendancesRange = (e) => {
         const result =  attendances.map(attendance => {
             let updateTime = attendance.attendances.updatedAt;
 
-            if (IS_PRODUCTION) {
-                updateTime = new Date(new Date(updateTime).setHours(updateTime.getHours() - 3));
-            }
+            //if (IS_PRODUCTION) {
+            //    updateTime = new Date(new Date(updateTime).setHours(updateTime.getHours() - 3));
+            //}
 
             return getTimeStringFrom(updateTime);
         });

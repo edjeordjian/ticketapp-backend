@@ -1064,9 +1064,9 @@ const cancelEvent = async (req, res) => {
 const cronEventUpdate = async () => {
     const now = new Date();
 
-    if (IS_PRODUCTION) {
-        now.setHours(now.getHours() - 3);
-    }
+    //if (IS_PRODUCTION) {
+    //    now.setHours(now.getHours() - 3);
+    //}
 
     now.setUTCSeconds(0);
 
@@ -1078,9 +1078,9 @@ const cronEventUpdate = async () => {
 
     yesterday.setUTCMinutes(0);
 
-    if (IS_PRODUCTION) {
-        yesterday.setHours(0);
-    }
+    //if (IS_PRODUCTION) {
+    //    yesterday.setHours(0);
+    //}
 
     let adaptedNow = new Date(now.getTime());
 

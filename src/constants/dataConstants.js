@@ -59,8 +59,7 @@ const MAX_STR_LEN = 254;
 
 const MAX_STR_CAPACITY = 65500;
 
-// const BASE_SALT = process.env.BASE_SALT
-const BASE_SALT = "$2b$10$sfW8rHWvJcda/4cMOq.p5."
+const BASE_SALT = process.env.BASE_SALT
 
 const path = "./file.txt";
 
