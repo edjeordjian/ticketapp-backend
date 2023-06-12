@@ -61,6 +61,8 @@ const syncDB = async () => {
 
 const app = express();
 
+process.env.TZ = "America/Argentina/Buenos_Aires";
+
 app.use(cors());
 
 app.use(bodyParser.json());
